@@ -1,5 +1,7 @@
 # TorrentCore
 
+[![Build Status](https://travis-ci.org/SamuelFisher/torrentcore.svg?branch=master)](https://travis-ci.org/SamuelFisher/torrentcore)
+
 A BitTorrent library that runs on all platforms supporting the .NET Platform Standard 1.6.
 
 ### Feature progress :
