@@ -9,7 +9,8 @@ A BitTorrent library that runs on all platforms supporting the .NET Platform Sta
 - [x] Open .torrent files
 - [x] Upload/download torrents
 - [x] Contact HTTP trackers
-- [ ] Contact UDP trackers
+- [x] Compact peer lists [BEP 23](http://www.bittorrent.org/beps/bep_0023.html)
+- [ ] UDP trackers [BEP 15](http://www.bittorrent.org/beps/bep_0015.html)
 - [ ] UPnP port forwarding
 - [ ] IPv6 trackers [BEP 7](http://www.bittorrent.org/beps/bep_0007.html)
 - [ ] DHT for trackerless torrents [BEP 7](http://www.bittorrent.org/beps/bep_0005.html)
