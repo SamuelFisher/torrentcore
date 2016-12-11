@@ -37,6 +37,13 @@ namespace TorrentCore.Transport
             base.Write(value);
         }
 
+        public override void Write(ushort value)
+        {
+            int networkOrderInt = IPAddress.HostToNetworkOrder((int)value);
+            byte[] bytes = BitConverter.GetBytes(networkOrderInt);
+            base.Write(bytes, 2, 2);
+        }
+
         public override void Write(int value)
         {
             value = IPAddress.HostToNetworkOrder(value);

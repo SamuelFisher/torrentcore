@@ -58,29 +58,34 @@ namespace TorrentCore.Tracker
 
         private async Task<Stream> SendRequest(AnnounceRequest request)
         {
+            byte[] peerId = new byte[20];
+            Array.Copy(Encoding.UTF8.GetBytes("-AZ5501-"), peerId, 8);
+            byte[] rand = new byte[12];
+            Random r = new Random();
+            r.NextBytes(rand);
+            Array.Copy(rand, 0, peerId, 8, 12);
+
+            // Prepare query
+            StringBuilder queryBuilder = new StringBuilder();
+            queryBuilder.Append("?event=started");
+            queryBuilder.Append(string.Format("&ip={0}", request.ListenAddress));
+            queryBuilder.Append(string.Format("&port={0}", request.ListenPort));
+            queryBuilder.Append(string.Format("&peer_id={0}", Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(peerId, 0, peerId.Length))));
+            queryBuilder.Append(string.Format("&left={0}", request.Remaining));
+            queryBuilder.Append(string.Format("&uploaded={0}", 0));
+            queryBuilder.Append(string.Format("&downloaded={0}", 0));
+            queryBuilder.Append(string.Format("&compact=1", 0));
+            queryBuilder.Append("&info_hash=" + Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(request.InfoHash.Value, 0, request.InfoHash.Value.Length)));
+
+            return await HttpGet(BaseUrl.AbsoluteUri + queryBuilder);
+        }
+
+        protected virtual async Task<Stream> HttpGet(string requestUri)
+        {
             using (var client = new HttpClient())
             {
-                byte[] peerId = new byte[20];
-                Array.Copy(Encoding.UTF8.GetBytes("-AZ5501-"), peerId, 8);
-                byte[] rand = new byte[12];
-                Random r = new Random();
-                r.NextBytes(rand);
-                Array.Copy(rand, 0, peerId, 8, 12);
-
-                // Prepare query
-                StringBuilder queryBuilder = new StringBuilder();
-                queryBuilder.Append("?event=started");
-                queryBuilder.Append(string.Format("&ip={0}", request.ListenAddress));
-                queryBuilder.Append(string.Format("&port={0}", request.ListenPort));
-                queryBuilder.Append(string.Format("&peer_id={0}", Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(peerId, 0, peerId.Length))));
-                queryBuilder.Append(string.Format("&left={0}", request.Remaining));
-                queryBuilder.Append(string.Format("&uploaded={0}", 0));
-                queryBuilder.Append(string.Format("&downloaded={0}", 0));
-                queryBuilder.Append(string.Format("&compact=1", 0));
-                queryBuilder.Append("&info_hash=" + Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(request.InfoHash.Value, 0, request.InfoHash.Value.Length)));
-
                 // Send query
-                var result = await client.GetAsync(BaseUrl.AbsoluteUri + queryBuilder);
+                var result = await client.GetAsync(requestUri);
                 return await result.Content.ReadAsStreamAsync();
             }
         }
@@ -116,6 +121,7 @@ namespace TorrentCore.Tracker
                         byte[] peerIp = reader.ReadBytes(4);
                         byte firstB = reader.ReadByte();
                         byte secondB = reader.ReadByte();
+                        // TODO fix endian encoding (assumes host is little endian)
                         ushort port = BitConverter.ToUInt16(new[] {secondB, firstB}, 0);
 
                         string ip = $"{peerIp[0]}.{peerIp[1]}.{peerIp[2]}.{peerIp[3]}";
