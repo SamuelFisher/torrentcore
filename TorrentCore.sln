@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "TorrentCore.Test", "src\TorrentCore.Test\TorrentCore.Test.xproj", "{C0DEF776-8A3E-4FE1-9892-1E694317B902}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "TorrentCore", "src\TorrentCore\TorrentCore.xproj", "{2E79205C-2AC3-4E44-9BBD-E9B0BE47B6BE}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "TorrentCore.Cli", "src\TorrentCore.Cli\TorrentCore.Cli.xproj", "{C25DF62A-172C-48B3-A900-934818CC6420}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5BD8F3F0-5E3F-40CB-9534-CA78C50E88EF}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.md = LICENSE.md
+		NuGet.config = NuGet.config
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1F138FBF-37A5-4F78-BAE9-A9EA664783BF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C0DEF776-8A3E-4FE1-9892-1E694317B902}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0DEF776-8A3E-4FE1-9892-1E694317B902}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0DEF776-8A3E-4FE1-9892-1E694317B902}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0DEF776-8A3E-4FE1-9892-1E694317B902}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E79205C-2AC3-4E44-9BBD-E9B0BE47B6BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E79205C-2AC3-4E44-9BBD-E9B0BE47B6BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E79205C-2AC3-4E44-9BBD-E9B0BE47B6BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E79205C-2AC3-4E44-9BBD-E9B0BE47B6BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C25DF62A-172C-48B3-A900-934818CC6420}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C25DF62A-172C-48B3-A900-934818CC6420}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C25DF62A-172C-48B3-A900-934818CC6420}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C25DF62A-172C-48B3-A900-934818CC6420}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C0DEF776-8A3E-4FE1-9892-1E694317B902} = {1F138FBF-37A5-4F78-BAE9-A9EA664783BF}
+		{2E79205C-2AC3-4E44-9BBD-E9B0BE47B6BE} = {1F138FBF-37A5-4F78-BAE9-A9EA664783BF}
+		{C25DF62A-172C-48B3-A900-934818CC6420} = {1F138FBF-37A5-4F78-BAE9-A9EA664783BF}
+	EndGlobalSection
+EndGlobal
