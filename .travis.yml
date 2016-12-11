@@ -1,0 +1,12 @@
+language: csharp
+dist: trusty
+sudo: required
+dotnet: 1.0.0-preview2-003131
+mono: none
+
+solution: TorrentCore.sln
+
+script:
+  - dotnet restore
+  - dotnet build src/TorrentCore
+  - dotnet test src/TorrentCore.Test
