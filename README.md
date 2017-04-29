@@ -27,3 +27,7 @@ var download = client.Add("sintel.torrent",
 download.Start();
 await download.WaitForCompletion();
 ```
+
+## Contributing:
+
+Contributions welcome! Please submit a pull request.
