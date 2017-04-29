@@ -1,7 +1,7 @@
 language: csharp
 dist: trusty
 sudo: required
-dotnet: 1.0.0-preview2-003131
+dotnet: 1.1.1
 mono: none
 
 solution: TorrentCore.sln
