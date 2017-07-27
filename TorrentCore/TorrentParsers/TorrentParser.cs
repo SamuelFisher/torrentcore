@@ -70,7 +70,7 @@ namespace TorrentCore.TorrentParsers
             return new Metainfo(new Sha1Hash(torrent.GetInfoHashBytes()),
                                 files,
                                 pieces,
-                                new Uri(torrent.Trackers.First().First()));
+                                torrent.Trackers.Select(x => x.Select(y => new Uri(y))));
         }
     }
 }

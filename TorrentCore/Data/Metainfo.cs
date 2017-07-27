@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -36,8 +37,8 @@ namespace TorrentCore.Data
         /// <param name="infoHash">SHA-1 hash of the metadata.</param>
         /// <param name="files">List of files to include.</param>
         /// <param name="pieces">List of pieces to include.</param>
-        /// <param name="tracker">URL of the tracker.</param>
-        public Metainfo(Sha1Hash infoHash, IEnumerable<ContainedFile> files, IEnumerable<Piece> pieces, Uri tracker)
+        /// <param name="trackers">URLs of the trackers.</param>
+        public Metainfo(Sha1Hash infoHash, IEnumerable<ContainedFile> files, IEnumerable<Piece> pieces, IEnumerable<IEnumerable<Uri>> trackers)
         {
             this.pieces = new List<Piece>();
             this.pieces.AddRange(pieces);
@@ -45,7 +46,7 @@ namespace TorrentCore.Data
             Files = new List<ContainedFile>();
             Files.AddRange(files);
             TotalSize = Files.Any() ? Files.Sum(f => f.Size) : 0;
-            Tracker = tracker;
+            Trackers = trackers.Select(x => (IReadOnlyList<Uri>)new ReadOnlyCollection<Uri>(x.ToList())).ToList().AsReadOnly();
             PieceSize = this.pieces.First().Size;
         }
 
@@ -65,9 +66,9 @@ namespace TorrentCore.Data
         public long TotalSize { get; }
 
         /// <summary>
-        /// Gets the uri of the tracker managing downloads for this set of files.
+        /// Gets the uris of the trackers managing downloads for this set of files.
         /// </summary>
-        public Uri Tracker { get; }
+        public IReadOnlyList<IReadOnlyList<Uri>> Trackers { get; }
 
         /// <summary>
         /// Gets a value indicating the number of bytes in each piece.
