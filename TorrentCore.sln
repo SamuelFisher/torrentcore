@@ -11,13 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1F138FBF-37A5-4F78-BAE9-A9EA664783BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore", "TorrentCore\TorrentCore.csproj", "{2B783296-CA07-4AC2-B699-C1462BD1D8EB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore", "src\TorrentCore\TorrentCore.csproj", "{2B783296-CA07-4AC2-B699-C1462BD1D8EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore.Cli", "TorrentCore.Cli\TorrentCore.Cli.csproj", "{CC5BF4A7-3451-43B5-91A4-2DD8B78EBD76}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore.Cli", "src\TorrentCore.Cli\TorrentCore.Cli.csproj", "{CC5BF4A7-3451-43B5-91A4-2DD8B78EBD76}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore.Test", "src\TorrentCore.Test\TorrentCore.Test.csproj", "{0574AFDA-618A-4C17-8FE3-D2B822D158F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore.Test", "TorrentCore.Test\TorrentCore.Test.csproj", "{0574AFDA-618A-4C17-8FE3-D2B822D158F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,10 +38,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{2B783296-CA07-4AC2-B699-C1462BD1D8EB} = {1F138FBF-37A5-4F78-BAE9-A9EA664783BF}
-		{CC5BF4A7-3451-43B5-91A4-2DD8B78EBD76} = {1F138FBF-37A5-4F78-BAE9-A9EA664783BF}
-		{0574AFDA-618A-4C17-8FE3-D2B822D158F5} = {1F138FBF-37A5-4F78-BAE9-A9EA664783BF}
 	EndGlobalSection
 EndGlobal

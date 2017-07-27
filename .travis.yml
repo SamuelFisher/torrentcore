@@ -7,5 +7,5 @@ mono: none
 solution: TorrentCore.sln
 
 script:
-  - dotnet restore src/TorrentCore.Test/TorrentCore.Test.csproj
-  - dotnet test src/TorrentCore.Test/TorrentCore.Test.csproj
+  - dotnet restore TorrentCore.Test/TorrentCore.Test.csproj
+  - dotnet test TorrentCore.Test/TorrentCore.Test.csproj

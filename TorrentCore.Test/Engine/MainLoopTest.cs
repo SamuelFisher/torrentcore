@@ -41,7 +41,7 @@ namespace TorrentCore.Test.Engine
             int invoked = 0;
             mainLoop.AddRegularTask(() => invoked++);
 
-            Task.Delay(TimeSpan.FromMilliseconds(200)).Wait();
+            Task.Delay(TimeSpan.FromMilliseconds(500)).Wait();
 
             Assert.That(invoked, Is.GreaterThan(0));
         }

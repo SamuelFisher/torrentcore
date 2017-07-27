@@ -13,7 +13,7 @@ A BitTorrent library that runs on all platforms supporting the .NET Platform Sta
 - [ ] UDP trackers [BEP 15](http://www.bittorrent.org/beps/bep_0015.html)
 - [ ] UPnP port forwarding
 - [ ] IPv6 trackers [BEP 7](http://www.bittorrent.org/beps/bep_0007.html)
-- [ ] DHT for trackerless torrents [BEP 7](http://www.bittorrent.org/beps/bep_0005.html)
+- [ ] DHT for trackerless torrents [BEP 5](http://www.bittorrent.org/beps/bep_0005.html) _(in progress)_
 - [ ] uTorrent Transport Protocol [BEP 29](http://www.bittorrent.org/beps/bep_0029.html)
 
 ## Usage:
