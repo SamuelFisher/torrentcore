@@ -25,6 +25,7 @@ using BencodeNET.Objects;
 using NUnit.Framework;
 using TorrentCore.Data;
 using TorrentCore.Tracker;
+using TorrentCore.Tracker.Http;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Test.Tracker
@@ -32,13 +33,10 @@ namespace TorrentCore.Test.Tracker
     [TestFixture]
     public class HttpTrackerTest
     {
-        private readonly AnnounceRequest request = new AnnounceRequest
-        {
-            InfoHash = Sha1Hash.Empty,
-            ListenAddress = IPAddress.Loopback,
-            ListenPort = 5000,
-            Remaining = 1000
-        };
+        private readonly AnnounceRequest request = new AnnounceRequest(IPAddress.Loopback,
+                                                                       5000,
+                                                                       1000,
+                                                                       Sha1Hash.Empty);
 
         [TestCase(false, Description = "Announce with normal response")]
         [TestCase(true, Description = "Announce with compact response")]

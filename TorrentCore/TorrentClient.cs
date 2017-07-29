@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Sam Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -37,6 +37,7 @@ namespace TorrentCore
         private readonly IDictionary<Sha1Hash, TorrentDownload> downloads;
         private readonly MainLoop mainLoop;
         private readonly TcpTransportProtocol transport;
+        private readonly ITrackerClientFactory trackerClientFactory;
 
         public TorrentClient(int listenPort)
             : this(new TorrentClientSettings {ListenPort = listenPort})
@@ -52,6 +53,7 @@ namespace TorrentCore
                                                  settings.ListenPort,
                                                  settings.AdapterAddress,
                                                  AcceptConnection);
+            trackerClientFactory = new TrackerClientFactory();
         }
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());
@@ -69,7 +71,7 @@ namespace TorrentCore
 
         public TorrentDownload Add(Metainfo metainfo, string downloadDirectory)
         {
-            return Add(metainfo, new HttpTracker(metainfo.Trackers[0][0]), new DiskFileHandler(downloadDirectory));
+            return Add(metainfo, trackerClientFactory.CreateTrackerClient(metainfo.Trackers.First().First()), new DiskFileHandler(downloadDirectory));
         }
 
         internal TorrentDownload Add(Metainfo metainfo, ITracker tracker, IFileHandler fileHandler)

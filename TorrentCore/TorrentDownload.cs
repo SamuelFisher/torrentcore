@@ -33,6 +33,10 @@ namespace TorrentCore
 
         internal TorrentDownloadManager Manager => download;
 
+        public DownloadState State => Manager.State;
+
+        public double Progress => Manager.Progress;
+
         public Task Start()
         {
             return download.Start();
@@ -43,26 +47,26 @@ namespace TorrentCore
             download.Stop();
         }
 
-        public Task WaitForCompletion(TimeSpan? timeout = null)
+        public Task WaitForCompletionAsync(TimeSpan? timeout = null)
         {
             return Task.Run(() =>
-                            {
-                                bool completed = false;
-                                var completionEvent = new ManualResetEvent(false);
-                                download.Completed += (sender, args) =>
-                                {
-                                    completed = true;
-                                    completionEvent.Set();
-                                };
+            {
+                bool completed = false;
+                var completionEvent = new ManualResetEvent(false);
+                download.Completed += (sender, args) =>
+                {
+                    completed = true;
+                    completionEvent.Set();
+                };
 
-                                if (timeout == null)
-                                    completionEvent.WaitOne();
-                                else
-                                    completionEvent.WaitOne(timeout.Value);
+                if (timeout == null)
+                    completionEvent.WaitOne();
+                else
+                    completionEvent.WaitOne(timeout.Value);
 
-                                if (!completed)
-                                    throw new TimeoutException("Download did not complete within the specified timeout.");
-                            });
+                if (!completed)
+                    throw new TimeoutException("Download did not complete within the specified timeout.");
+            });
         }
     }
 }

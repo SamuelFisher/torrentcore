@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Sam Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -16,18 +16,26 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
+using TorrentCore.Tracker.Http;
+using TorrentCore.Tracker.Udp;
 
 namespace TorrentCore.Tracker
 {
-    public class AnnounceResult
+    class TrackerClientFactory : ITrackerClientFactory
     {
-        public AnnounceResult(IEnumerable<AnnounceResultPeer> peers)
+        public ITracker CreateTrackerClient(Uri trackerUri)
         {
-            Peers = peers.ToArray();
+            switch (trackerUri.Scheme)
+            {
+                case "http":
+                    return new HttpTracker(trackerUri);
+                case "udp":
+                    return new UdpTracker(trackerUri);
+                default:
+                    // Unknown protocol
+                    return null;
+            }
         }
-
-        public IReadOnlyList<AnnounceResultPeer> Peers { get; }
     }
 }

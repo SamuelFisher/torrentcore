@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Sam Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -16,18 +16,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TorrentCore.Tracker
+namespace TorrentCore.Tracker.Udp
 {
-    public class AnnounceResult
+    class ConnectionResponseMessage : UdpTrackerResponseMessage
     {
-        public AnnounceResult(IEnumerable<AnnounceResultPeer> peers)
+        public ConnectionResponseMessage()
         {
-            Peers = peers.ToArray();
+            Action = MessageAction.Connect;
         }
 
-        public IReadOnlyList<AnnounceResultPeer> Peers { get; }
+        public long ConnectionId { get; set; }
+
+        public override void ReadFrom(BinaryReader reader)
+        {
+            int action = reader.ReadInt32();
+            if (action != (int)Action)
+                throw new InvalidDataException($"Unexpected action: {action}");
+
+            TransactionId = reader.ReadInt32();
+            ConnectionId = reader.ReadInt64();
+        }
     }
 }

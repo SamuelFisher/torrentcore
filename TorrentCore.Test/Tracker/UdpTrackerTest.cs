@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Sam Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -16,18 +16,26 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
+using System.Text;
+using NUnit.Framework;
+using TorrentCore.Data;
+using TorrentCore.Tracker;
+using TorrentCore.Tracker.Udp;
 
-namespace TorrentCore.Tracker
+namespace TorrentCore.Test.Tracker
 {
-    public class AnnounceResult
+    [TestFixture]
+    public class UdpTrackerTest
     {
-        public AnnounceResult(IEnumerable<AnnounceResultPeer> peers)
+        [Test]
+        public void Test()
         {
-            Peers = peers.ToArray();
+            var t = new UdpTracker(new Uri("udp://127.0.0.1:8100/announce"));
+            var r = t.Announce(new AnnounceRequest(IPAddress.Loopback,
+                                                   0,
+                                                   0,
+                                                   Sha1Hash.Empty)).Result;
         }
-
-        public IReadOnlyList<AnnounceResultPeer> Peers { get; }
     }
 }

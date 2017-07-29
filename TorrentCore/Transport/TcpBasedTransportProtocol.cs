@@ -69,7 +69,7 @@ namespace TorrentCore.Transport
         /// <summary>
         /// Gets the port on which incoming connections can be made.
         /// </summary>
-        public int Port { get; private set; }
+        public int Port { get; }
 
         /// <summary>
         /// Gets the local address used for connections.

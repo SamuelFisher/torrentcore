@@ -27,26 +27,37 @@ namespace TorrentCore.Tracker
     /// <summary>
     /// Represents an announce request made to a tracker.
     /// </summary>
-    class AnnounceRequest
+    public class AnnounceRequest
     {
+        public AnnounceRequest(IPAddress listenAddress,
+                               int listenPort,
+                               long remaining,
+                               Sha1Hash infoHash)
+        {
+            ListenAddress = listenAddress;
+            ListenPort = listenPort;
+            Remaining = remaining;
+            InfoHash = infoHash;
+        }
+
         /// <summary>
         /// Gets or sets the address the client is listening on for incoming connections from other peers.
         /// </summary>
-        public IPAddress ListenAddress { get; set; }
+        public IPAddress ListenAddress { get; }
 
         /// <summary>
         /// Gets or sets the port the client is listening on for incoming connections from other peers.
         /// </summary>
-        public int ListenPort { get; set; }
+        public int ListenPort { get; }
 
         /// <summary>
         /// Gets or sets the number of bytes left to download.
         /// </summary>
-        public long Remaining { get; set; }
+        public long Remaining { get; }
 
         /// <summary>
         /// Gets or sets the infohash of the torrent being downloaded.
         /// </summary>
-        public Sha1Hash InfoHash { get; set; }
+        public Sha1Hash InfoHash { get; }
     }
 }

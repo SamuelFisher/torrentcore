@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 using BencodeNET.Objects;
 using BencodeNET.Parsing;
 
-namespace TorrentCore.Tracker
+namespace TorrentCore.Tracker.Http
 {
     /// <summary>
     /// Manages the communication with a remote tracker.
@@ -68,7 +68,8 @@ namespace TorrentCore.Tracker
             // Prepare query
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder.Append("?event=started");
-            queryBuilder.Append(string.Format("&ip={0}", request.ListenAddress));
+            if (request.ListenAddress != null)
+                queryBuilder.Append(string.Format("&ip={0}", request.ListenAddress));
             queryBuilder.Append(string.Format("&port={0}", request.ListenPort));
             queryBuilder.Append(string.Format("&peer_id={0}", Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(peerId, 0, peerId.Length))));
             queryBuilder.Append(string.Format("&left={0}", request.Remaining));

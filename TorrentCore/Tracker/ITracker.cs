@@ -26,7 +26,7 @@ namespace TorrentCore.Tracker
     /// <summary>
     /// Manages the communication with a remote tracker.
     /// </summary>
-    interface ITracker
+    public interface ITracker
     {
         /// <summary>
         /// Sends the specified announce request to the tracker.

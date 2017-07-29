@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace TorrentCore.Tracker
 {
-    class AnnounceResultPeer
+    public class AnnounceResultPeer
     {
         public AnnounceResultPeer(IPAddress ipAddress, int port)
         {

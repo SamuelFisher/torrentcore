@@ -84,10 +84,7 @@ namespace TorrentCore
         /// <summary>
         /// Gets the number of bytes still to be downloaded.
         /// </summary>
-        public long Remaining
-        {
-            get { return Description.TotalSize - Downloaded; }
-        }
+        public long Remaining => Description.TotalSize - Downloaded;
 
         /// <summary>
         /// Gets a value indicating the percentage progress.
@@ -176,33 +173,33 @@ namespace TorrentCore
         private Task HashPiecesData()
         {
             return Task.Run(() =>
-                            {
-                                Progress = 0;
-                                Downloaded = 0;
-                                CompletedPieces.Clear();
-                                using (var sha1 = SHA1.Create())
-                                {
-                                    foreach (Piece piece in Description.Pieces)
-                                    {
-                                        // Verify piece hash
-                                        long pieceOffset = Description.PieceOffset(piece);
-                                        byte[] pieceData;
-                                        if (!dataHandler.TryReadBlockData(pieceOffset, piece.Size, out pieceData))
-                                        {
-                                            Progress = (piece.Index + 1d) / Description.Pieces.Count;
-                                            continue;
-                                        }
+            {
+                Progress = 0;
+                Downloaded = 0;
+                CompletedPieces.Clear();
+                using (var sha1 = SHA1.Create())
+                {
+                    foreach (Piece piece in Description.Pieces)
+                    {
+                        // Verify piece hash
+                        long pieceOffset = Description.PieceOffset(piece);
+                        byte[] pieceData;
+                        if (!dataHandler.TryReadBlockData(pieceOffset, piece.Size, out pieceData))
+                        {
+                            Progress = (piece.Index + 1d) / Description.Pieces.Count;
+                            continue;
+                        }
 
-                                        var hash = new Sha1Hash(sha1.ComputeHash(pieceData));
-                                        if (hash == piece.Hash)
-                                        {
-                                            Downloaded += piece.Size;
-                                            CompletedPieces.Add(piece);
-                                        }
-                                        Progress = (piece.Index + 1d) / Description.Pieces.Count;
-                                    }
-                                }
-                            });
+                        var hash = new Sha1Hash(sha1.ComputeHash(pieceData));
+                        if (hash == piece.Hash)
+                        {
+                            Downloaded += piece.Size;
+                            CompletedPieces.Add(piece);
+                        }
+                        Progress = (piece.Index + 1d) / Description.Pieces.Count;
+                    }
+                }
+            });
         }
 
         private async Task ContactTracker()
@@ -211,13 +208,10 @@ namespace TorrentCore
 
             try
             {
-                AnnounceRequest request = new AnnounceRequest
-                {
-                    ListenAddress = IPAddress.Loopback,
-                    ListenPort = ((TcpTransportProtocol)TransportProtocol).Port,
-                    Remaining = Remaining,
-                    InfoHash = Description.InfoHash
-                };
+                var request = new AnnounceRequest(IPAddress.Loopback,
+                                                  ((TcpTransportProtocol)TransportProtocol).Port,
+                                                  Remaining,
+                                                  Description.InfoHash);
 
                 var result = await Tracker.Announce(request);
 

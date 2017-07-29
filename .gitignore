@@ -5,3 +5,4 @@ obj/
 *.user
 TestResult.xml
 project.lock.json
+launchSettings.json
