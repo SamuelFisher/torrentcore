@@ -16,26 +16,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Text;
-using NUnit.Framework;
-using TorrentCore.Data;
-using TorrentCore.Tracker;
-using TorrentCore.Tracker.Udp;
 
-namespace TorrentCore.Test.Tracker
+namespace TorrentCore.Application.BitTorrent
 {
-    [TestFixture]
-    public class UdpTrackerTest
+    public sealed class BitTorrentPeerDetails
     {
-        [Test]
-        public void Test()
+        public BitTorrentPeerDetails(string address)
         {
-            var t = new UdpTracker(new Uri("udp://127.0.0.1:8100/announce"));
-            var r = t.Announce(new AnnounceRequest(IPAddress.Loopback,
-                                                   0,
-                                                   0,
-                                                   Sha1Hash.Empty)).Result;
+            Address = address;
         }
+
+        public string Address { get; }
     }
 }

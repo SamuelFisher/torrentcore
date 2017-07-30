@@ -19,3 +19,4 @@ using System.Runtime.InteropServices;
 [assembly: Guid("2e79205c-2ac3-4e44-9bbd-e9b0be47b6be")]
 [assembly: InternalsVisibleTo("TorrentCore.Test")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+[assembly: InternalsVisibleTo("TorrentCore.Web")]

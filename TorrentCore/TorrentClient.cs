@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
@@ -38,6 +39,7 @@ namespace TorrentCore
         private readonly MainLoop mainLoop;
         private readonly TcpTransportProtocol transport;
         private readonly ITrackerClientFactory trackerClientFactory;
+        private Timer updateStatisticsTimer;
 
         public TorrentClient(int listenPort)
             : this(new TorrentClientSettings {ListenPort = listenPort})
@@ -54,6 +56,15 @@ namespace TorrentCore
                                                  settings.AdapterAddress,
                                                  AcceptConnection);
             trackerClientFactory = new TrackerClientFactory();
+            updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+        }
+
+        internal TcpTransportProtocol Transport => transport;
+
+        private void UpdateStatistics(object state)
+        {
+            foreach (var dl in downloads)
+                dl.Value.Manager.UpdateStatistics();
         }
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());

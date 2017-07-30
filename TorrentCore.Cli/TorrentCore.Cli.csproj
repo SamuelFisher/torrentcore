@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
-    <AssemblyName>TorrentCore.Cli</AssemblyName>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <AssemblyName>torrentcorecli</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>TorrentCore.Cli</PackageId>
     <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
@@ -13,13 +13,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TorrentCore.Web\TorrentCore.Web.csproj" />
     <ProjectReference Include="..\TorrentCore\TorrentCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="1.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="1.1.1" />
-    <PackageReference Include="System.CommandLine" Version="0.1.0-e161129-1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="1.1.2" />
+    <PackageReference Include="System.CommandLine" Version="0.1.0-e170729-1" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
   </ItemGroup>
 

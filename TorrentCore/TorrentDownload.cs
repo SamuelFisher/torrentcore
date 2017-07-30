@@ -19,10 +19,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TorrentCore.Data;
 
 namespace TorrentCore
 {
-    public class TorrentDownload
+    public sealed class TorrentDownload
     {
         private readonly TorrentDownloadManager download;
 
@@ -32,6 +33,8 @@ namespace TorrentCore
         }
 
         internal TorrentDownloadManager Manager => download;
+
+        public Metainfo Description => Manager.Description;
 
         public DownloadState State => Manager.State;
 

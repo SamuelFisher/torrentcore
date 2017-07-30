@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore.Cli", "TorrentC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore.Test", "TorrentCore.Test\TorrentCore.Test.csproj", "{0574AFDA-618A-4C17-8FE3-D2B822D158F5}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TorrentCore.Web", "TorrentCore.Web\TorrentCore.Web.csproj", "{C6B1DE74-65C8-4400-88EC-C4929CBACB29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{0574AFDA-618A-4C17-8FE3-D2B822D158F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0574AFDA-618A-4C17-8FE3-D2B822D158F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0574AFDA-618A-4C17-8FE3-D2B822D158F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6B1DE74-65C8-4400-88EC-C4929CBACB29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6B1DE74-65C8-4400-88EC-C4929CBACB29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6B1DE74-65C8-4400-88EC-C4929CBACB29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6B1DE74-65C8-4400-88EC-C4929CBACB29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

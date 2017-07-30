@@ -58,6 +58,10 @@ namespace TorrentCore.Application.BitTorrent
 
         public ITorrentDownloadManager Manager { get; }
 
+        public IReadOnlyCollection<BitTorrentPeerDetails> Peers => peers.Select(x => new BitTorrentPeerDetails(x.Key.Address)).ToList();
+
+        public IEnumerable<BlockRequest> OutstandingBlockRequests => peers.SelectMany(x => x.Value.Requested);
+
         /// <summary>
         /// Called when new peers become available to connect to.
         /// </summary>
@@ -259,23 +263,23 @@ namespace TorrentCore.Application.BitTorrent
                     TrackerStreams.Remove(peer);
                     connectingPeers.Add(peer);
                     peer.Connect().ContinueWith(antecedent =>
-                                                {
-                                                    if (antecedent.Status != TaskStatus.RanToCompletion
-                                                        || !peer.IsConnected)
-                                                    {
-                                                        Log.LogInformation($"Failed to connect to peer at {peer.Address}");
+                    {
+                        if (antecedent.Status != TaskStatus.RanToCompletion
+                            || !peer.IsConnected)
+                        {
+                            Log.LogInformation($"Failed to connect to peer at {peer.Address}");
 
-                                                        // Connection failed
-                                                        connectingPeers.Remove(peer);
-                                                        return;
-                                                    }
+                            // Connection failed
+                            connectingPeers.Remove(peer);
+                            return;
+                        }
 
-                                                    Log.LogInformation($"Connected to peer at {peer.Address}");
+                        Log.LogInformation($"Connected to peer at {peer.Address}");
 
-                                                    peers.TryAdd(peer, new PeerInformation(Manager.Description));
-                                                    connectingPeers.Remove(peer);
-                                                    SendMessage(peer, new BitfieldMessage(new Bitfield(Manager.Description.Pieces.Count, Manager.CompletedPieces)));
-                                                });
+                        peers.TryAdd(peer, new PeerInformation(Manager.Description));
+                        connectingPeers.Remove(peer);
+                        SendMessage(peer, new BitfieldMessage(new Bitfield(Manager.Description.Pieces.Count, Manager.CompletedPieces)));
+                    });
                 }
                 catch
                 {

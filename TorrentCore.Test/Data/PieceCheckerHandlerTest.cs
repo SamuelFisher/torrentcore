@@ -40,7 +40,8 @@ namespace TorrentCore.Test.Data
             using (var sha1 = SHA1.Create())
                 hash = new Sha1Hash(sha1.ComputeHash(Enumerable.Repeat((byte)0, 50).ToArray()));
 
-            var metainfo = new Metainfo(Sha1Hash.Empty,
+            var metainfo = new Metainfo("test",
+                                        Sha1Hash.Empty,
                                         new[]
                                         {
                                             new ContainedFile("File1.txt", 100),

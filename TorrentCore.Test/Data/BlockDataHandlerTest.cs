@@ -45,7 +45,8 @@ namespace TorrentCore.Test.Data
             fileHandler.Setup(x => x.GetFileStream("File2.txt"))
                        .Returns(file2Stream);
 
-            var metainfo = new Metainfo(Sha1Hash.Empty,
+            var metainfo = new Metainfo("test",
+                                        Sha1Hash.Empty,
                                         new[]
                                         {
                                             new ContainedFile("File1.txt", 100),

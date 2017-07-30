@@ -28,9 +28,8 @@ namespace TorrentCore.Engine
     /// </summary>
     public class RateMeasurer
     {
-        const int MeasurePoints = 40;
-
-        private readonly Stopwatch stopwatch = new Stopwatch();
+        private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
+        
         private readonly LinkedList<RateMeasurement> measurements = new LinkedList<RateMeasurement>();
 
         /// <summary>
@@ -46,15 +45,11 @@ namespace TorrentCore.Engine
         /// <param name="value">Change since last call to AddMeasure.</param>
         public void AddMeasure(long value)
         {
-            if (!stopwatch.IsRunning)
-                stopwatch.Start();
-
             lock (measurements)
             {
-                measurements.AddLast(new RateMeasurement(stopwatch.ElapsedMilliseconds, value));
+                measurements.AddLast(new RateMeasurement(DateTime.UtcNow, value));
 
-                if (measurements.Count > MeasurePoints)
-                    measurements.RemoveFirst();
+                Clean();
             }
         }
 
@@ -63,9 +58,6 @@ namespace TorrentCore.Engine
         /// </summary>
         public void Reset()
         {
-            if (stopwatch.IsRunning)
-                stopwatch.Stop();
-
             lock (measurements)
             {
                 measurements.Clear();
@@ -83,28 +75,32 @@ namespace TorrentCore.Engine
                 if (measurements.Count < 2)
                     return 0;
 
-                RateMeasurement last = measurements.Last.Value;
-                RateMeasurement first = measurements.First.Value;
-
-                long duration = last.Milliseconds - first.Milliseconds;
-
+                Clean();
+                
                 long sum = 0;
                 foreach (var measurement in measurements)
                     sum += measurement.Measurement;
 
-                long bytesPerMillisecond = sum / duration;
+                long bytesPerMillisecond = (long)(sum / Interval.TotalMilliseconds);
                 return bytesPerMillisecond * 1000;
             }
         }
 
+        private void Clean()
+        {
+            var minTime = DateTime.UtcNow - Interval;
+            while (measurements.First().Time < minTime)
+                measurements.RemoveFirst();
+        }
+
         class RateMeasurement
         {
-            public long Milliseconds { get; private set; }
-            public long Measurement { get; private set; }
+            public DateTime Time { get; }
+            public long Measurement { get; }
 
-            public RateMeasurement(long milliseconds, long measurement)
+            public RateMeasurement(DateTime time, long measurement)
             {
-                Milliseconds = milliseconds;
+                Time = time;
                 Measurement = measurement;
             }
         }

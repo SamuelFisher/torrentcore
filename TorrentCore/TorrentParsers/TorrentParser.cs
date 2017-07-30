@@ -66,8 +66,9 @@ namespace TorrentCore.TorrentParsers
                 Piece piece = new Piece(i, length, new Sha1Hash(hash));
                 pieces.Add(piece);
             }
-
-            return new Metainfo(new Sha1Hash(torrent.GetInfoHashBytes()),
+            
+            return new Metainfo(torrent.DisplayName,
+                                new Sha1Hash(torrent.GetInfoHashBytes()),
                                 files,
                                 pieces,
                                 torrent.Trackers.Select(x => x.Select(y => new Uri(y))));

@@ -56,6 +56,7 @@ namespace TorrentCore
             TransportProtocol = transportProtocol(this);
             ApplicationProtocol = applicationProtocol(this);
             dataHandler = new PieceCheckerHandler(new BlockDataHandler(handler, description));
+            dataHandler.PieceCompleted += args => CompletedPieces.Add(args.Piece);
             Description = description;
             Tracker = tracker;
             State = DownloadState.Stopped;

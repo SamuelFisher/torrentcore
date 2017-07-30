@@ -17,11 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using TorrentCore.Web;
 
 namespace TorrentCore.Cli
 {
@@ -30,15 +32,20 @@ namespace TorrentCore.Cli
         public static void Main(string[] args)
         {
             int port = 5000;
+            int uiPort = 5001;
+            bool runWebUi = false;
             string input = null;
             string output = null;
             bool verbose = false;
             ArgumentSyntax.Parse(args, syntax =>
             {
                 syntax.DefineOption("p|port", ref port, "Port to listen for incoming connections on.");
-                syntax.DefineOption("i|input", ref input, "Path to torrent file to download.");
                 syntax.DefineOption("o|output", ref output, "Path to save downloaded files to.");
-                syntax.DefineOption("v|verbose", ref verbose, "Show more detailed information.");
+                syntax.DefineOption("v|verbose", ref verbose, "Show detailed logging information.");
+                var uiPortArgument = syntax.DefineOption("ui", ref uiPort, false, "Run a web UI, optionally specifying the port to listen on (default: 5001).");
+                runWebUi = uiPortArgument.IsSpecified;
+
+                syntax.DefineParameter("input", ref input, "Path of torrent file to download.");
             });
 
             if (verbose)
@@ -47,26 +54,20 @@ namespace TorrentCore.Cli
                 LogManager.Configure(factory => factory.AddConsole(LogLevel.Information));
 
             var client = new TorrentClient(port);
+
+            if (runWebUi)
+            {
+                var uri = client.EnableWebUI(uiPort);
+                Console.WriteLine($"Web UI started at {uri}");
+            }
+
             var download = client.Add(input, output);
             download.Start().Wait();
 
             Console.WriteLine("Downloading...");
 
-            while (download.State == DownloadState.Downloading)
-            {
-                WriteProgressBar(Console.Out, download.Progress);
-                Thread.Sleep(1000);
-            }
-
-            Console.WriteLine();
-            Console.WriteLine("Completed.");
-        }
-
-        private static void WriteProgressBar(TextWriter writer, double progress)
-        {
-            const int totalWidth = 20;
-            int width = (int)Math.Floor(progress * totalWidth);
-            writer.Write($"\r[{new string('=', width)}{new string(' ', totalWidth - width)}] {progress:P0}");
+            download.WaitForCompletionAsync().Wait();
+            Console.ReadKey();
         }
     }
 }

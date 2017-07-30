@@ -34,12 +34,14 @@ namespace TorrentCore.Data
         /// <summary>
         /// Creates a new Metainfo with the specified data.
         /// </summary>
+        /// <param name="name">The name of the torrent.</param>
         /// <param name="infoHash">SHA-1 hash of the metadata.</param>
         /// <param name="files">List of files to include.</param>
         /// <param name="pieces">List of pieces to include.</param>
         /// <param name="trackers">URLs of the trackers.</param>
-        public Metainfo(Sha1Hash infoHash, IEnumerable<ContainedFile> files, IEnumerable<Piece> pieces, IEnumerable<IEnumerable<Uri>> trackers)
+        public Metainfo(string name, Sha1Hash infoHash, IEnumerable<ContainedFile> files, IEnumerable<Piece> pieces, IEnumerable<IEnumerable<Uri>> trackers)
         {
+            Name = name;
             this.pieces = new List<Piece>();
             this.pieces.AddRange(pieces);
             InfoHash = infoHash;
@@ -49,6 +51,11 @@ namespace TorrentCore.Data
             Trackers = trackers.Select(x => (IReadOnlyList<Uri>)new ReadOnlyCollection<Uri>(x.ToList())).ToList().AsReadOnly();
             PieceSize = this.pieces.First().Size;
         }
+
+        /// <summary>
+        /// Gets the name of the torrent.
+        /// </summary>
+        public string Name { get; }
 
         /// <summary>
         /// Gets a hash of the data for this set of files.
