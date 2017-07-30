@@ -40,9 +40,13 @@ client.EnableWebUI();
 
 This starts a web interface on `http://localhost:5001/`.
 
-## Command-line Client
+![/webui-screenshot.png](/webui-screenshot.png)
 
-In addition to the library, TorrentCore provides a basic command-line client for downloading torrents. Usage is as follows:
+The web interface requires .NET Platform Standard 1.6.
+
+## Command-Line Client
+
+In addition to a library, TorrentCore provides a basic command-line client for downloading torrents. Usage is as follows:
 
 ```
 torrentcorecli --help
