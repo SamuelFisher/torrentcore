@@ -129,7 +129,7 @@ export default class TorrentDetails extends React.Component<Props, State> {
   }
 
   private getPeers() {
-    axios.get(`/api/torrents/` + this.props.match.params.infoHash)
+    axios.get(process.env.REACT_APP_API_BASE + `/api/torrents/` + this.props.match.params.infoHash)
       .then(res => {
         this.setState({ torrent: res.data });
       });

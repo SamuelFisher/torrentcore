@@ -3,6 +3,7 @@ import './App.css';
 import Torrents from './components/Torrents';
 import TorrentDetails from './components/TorrentDetails';
 import Peers from './components/Peers';
+import About from './components/About';
 import {
   BrowserRouter as Router,
   Route,
@@ -23,13 +24,16 @@ class App extends React.Component<{}, {}> {
                       aria-expanded="false" aria-label="Toggle navigation">
                 <span className="navbar-toggler-icon" />
               </button>
-              <a className="navbar-brand" href="#">TorrentCore</a>
+              <span className="navbar-brand">TorrentCore</span>
               <ul className="navbar-nav mr-auto">
                 <li className="nav-item">
                   <NavLink to="/torrents" className="nav-link">Torrents</NavLink>
                 </li>
                 <li className="nav-item">
                   <NavLink to="/peers" className="nav-link">Peers</NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink to="/about" className="nav-link">About</NavLink>
                 </li>
               </ul>
             </nav>
@@ -45,6 +49,7 @@ class App extends React.Component<{}, {}> {
               <Route exact={true} path="/torrents" component={Torrents} />
               <Route path="/torrents/:infoHash" component={TorrentDetails} />
               <Route path="/peers" component={Peers} />
+              <Route path="/about" component={About} />
             </div>
           </div>
         </Router>

@@ -54,7 +54,7 @@ export default class Peers extends React.Component<Props, State> {
   }
 
   private getPeers() {
-    axios.get(`/api/peers`)
+    axios.get(process.env.REACT_APP_API_BASE + `/api/peers`)
       .then(res => {
         const peers = res.data;
         this.setState({ peers });
