@@ -41,6 +41,8 @@ namespace TorrentCore.Tracker.Http
             BaseUrl = baseUrl;
         }
 
+        public string Type => "http";
+
         /// <summary>
         /// Gets the base URL for the remote tracker.
         /// </summary>

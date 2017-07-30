@@ -20,6 +20,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TorrentCore.Data;
+using TorrentCore.Tracker;
 
 namespace TorrentCore
 {
@@ -39,6 +40,8 @@ namespace TorrentCore
         public DownloadState State => Manager.State;
 
         public double Progress => Manager.Progress;
+
+        public IReadOnlyCollection<ITrackerDetails> Trackers => (Manager.Tracker as AggregatedTracker)?.Trackers;
 
         public Task Start()
         {

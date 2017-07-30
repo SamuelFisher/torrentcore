@@ -40,6 +40,8 @@ namespace TorrentCore.Tracker.Udp
             client = new UdpClient(0);
         }
 
+        public string Type => "udp";
+
         public async Task<AnnounceResult> Announce(AnnounceRequest request)
         {
             if (request == null)

@@ -82,7 +82,7 @@ namespace TorrentCore
 
         public TorrentDownload Add(Metainfo metainfo, string downloadDirectory)
         {
-            return Add(metainfo, trackerClientFactory.CreateTrackerClient(metainfo.Trackers.First().First()), new DiskFileHandler(downloadDirectory));
+            return Add(metainfo, new AggregatedTracker(trackerClientFactory, metainfo.Trackers), new DiskFileHandler(downloadDirectory));
         }
 
         internal TorrentDownload Add(Metainfo metainfo, ITracker tracker, IFileHandler fileHandler)

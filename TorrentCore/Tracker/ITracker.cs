@@ -33,5 +33,10 @@ namespace TorrentCore.Tracker
         /// </summary>
         /// <param name="request">The request to send.</param>
         Task<AnnounceResult> Announce(AnnounceRequest request);
+
+        /// <summary>
+        /// Gets the type of this tracker.
+        /// </summary>
+        string Type { get; }
     }
 }

@@ -74,7 +74,8 @@ namespace TorrentCore.Web.Controllers
                     x.PieceIndex,
                     x.Offset,
                     x.Length
-                })
+                }),
+                Trackers = torrent.Trackers
             };
         }
     }
