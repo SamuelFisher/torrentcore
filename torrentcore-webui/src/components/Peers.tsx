@@ -32,8 +32,6 @@ export default class Peers extends React.Component<Props, State> {
             <tr>
               <th>Address</th>
               <th>Hostname</th>
-              <th>Last Name</th>
-              <th>Username</th>
             </tr>
           </thead>
           <tbody>
@@ -42,8 +40,6 @@ export default class Peers extends React.Component<Props, State> {
                   <tr>
                     <td>{o.address}</td>
                     <td>{o.host}</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
                   </tr>
                 );
             })}

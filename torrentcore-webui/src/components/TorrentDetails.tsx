@@ -50,9 +50,9 @@ export default class TorrentDetails extends React.Component<Props, State> {
         <h3>{this.state.torrent.name}</h3>
 
         <p>
-          <strong>Downloaded:</strong> {this.humanFileSize(torrent.downloaded, false)} / {this.humanFileSize(torrent.size, false)}<br />
-          <strong>DL Rate:</strong> {this.humanFileSize(torrent.downloadRate, true)}/s<br />
-          <strong>UL Rate:</strong> {this.humanFileSize(torrent.uploadRate, true)}/s<br />
+          <strong>Downloaded:</strong> {this.formatBytes(torrent.downloaded, false)} / {this.formatBytes(torrent.size, false)}<br />
+          <strong>DL Rate:</strong> {this.formatBytes(torrent.downloadRate, true)}/s<br />
+          <strong>UL Rate:</strong> {this.formatBytes(torrent.uploadRate, true)}/s<br />
         </p>
 
         <h3>Peers ({this.state.torrent.peers.length})</h3>
@@ -146,19 +146,22 @@ export default class TorrentDetails extends React.Component<Props, State> {
       return output;
   }
 
-  private humanFileSize(bytes: number, si: boolean) {
-    var thresh = si ? 1000 : 1024;
-    if (Math.abs(bytes) < thresh) {
+  private formatBytes(bytes: number, si: boolean) {
+    let th = si ? 1000 : 1024;
+    if (Math.abs(bytes) < th) {
         return bytes + ' B';
     }
+
     var units = si
         ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
         : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+
     var u = -1;
     do {
-        bytes /= thresh;
+        bytes /= th;
         ++u;
-    } while(Math.abs(bytes) >= thresh && u < units.length - 1);
+    } while(Math.abs(bytes) >= th && u < units.length - 1);
+
     return bytes.toFixed(1) + ' ' + units[u];
   }
 }

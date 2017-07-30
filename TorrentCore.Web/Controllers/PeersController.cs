@@ -45,9 +45,17 @@ namespace TorrentCore.Web.Controllers
             internal PeerDetails(PeerStream x)
             {
                 Address = x.Address;
+                string ipAddress = Address.Split(':').First();
 
-                var hostEntry = Dns.GetHostEntryAsync(Address.Split(':').First()).Result;
-                Host = hostEntry.HostName;
+                try
+                {
+                    var hostEntry = Dns.GetHostEntryAsync(ipAddress).Result;
+                    Host = hostEntry.HostName;
+                }
+                catch
+                {
+                    Host = ipAddress;
+                }
             }
 
             public string Address { get; }

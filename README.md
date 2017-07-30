@@ -6,6 +6,8 @@ A BitTorrent library that runs on all platforms supporting the .NET Platform Sta
 
 ## Feature progress:
 
+This project is currently work-in-progress and there are likely to be bugs and missing features.
+
 - [x] Open .torrent files
 - [x] Upload/download torrents
 - [x] Contact HTTP trackers
