@@ -39,6 +39,11 @@ namespace TorrentCore.Transport
         public new TcpTransportProtocol TransportProtocol => (TcpTransportProtocol)base.TransportProtocol;
 
         /// <summary>
+        /// Gets the ID for this peer.
+        /// </summary>
+        public PeerId PeerId { get; private set; }
+
+        /// <summary>
         /// Gets the info hash used by the stream.
         /// </summary>
         public Sha1Hash InfoHash { get; private set; }
@@ -46,7 +51,7 @@ namespace TorrentCore.Transport
         /// <summary>
         /// Gets an address that uniquely identifies the peer this stream connects to.
         /// </summary>
-        public string Address { get; }
+        public new string Address { get; }
 
         /// <summary>
         /// Creates a new PeerStream which can later connect to the remote peer at the specified address and port.
@@ -151,7 +156,7 @@ namespace TorrentCore.Transport
             var infoHash = new Sha1Hash(Reader.ReadBytes(20));
 
             // Peer ID
-            byte[] peerID = Reader.ReadBytes(20);
+            PeerId = new PeerId(Reader.ReadBytes(20));
 
             // Check info hash matches
             if (InfoHash == null)

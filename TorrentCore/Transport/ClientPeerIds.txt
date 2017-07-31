@@ -1,0 +1,8 @@
+﻿AZ=Azureus
+DE=Deluge
+lt=libtorrent
+qB=qBittorrent
+TR=Transmission
+UT=uTorrent
+WD=WebTorrent Desktop
+WW=WebTorrent

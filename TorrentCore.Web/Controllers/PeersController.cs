@@ -45,6 +45,9 @@ namespace TorrentCore.Web.Controllers
             internal PeerDetails(PeerStream x)
             {
                 Address = x.Address;
+                PeerId = x.PeerId.ToString();
+                Client = x.PeerId.ClientName;
+                ClientVersion = x.PeerId.ClientVersion;
                 string ipAddress = Address.Split(':').First();
 
                 try
@@ -60,6 +63,9 @@ namespace TorrentCore.Web.Controllers
 
             public string Address { get; }
             public string Host { get; }
+            public string PeerId { get; }
+            public string Client { get; }
+            public int? ClientVersion { get; }
         }
     }
 }

@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Transport\ClientPeerIds.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BencodeNET" Version="2.2.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="1.1.1" />

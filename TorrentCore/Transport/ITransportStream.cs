@@ -30,6 +30,11 @@ namespace TorrentCore.Transport
     interface ITransportStream : IDisposable
     {
         /// <summary>
+        /// Gets the ID for this peer.
+        /// </summary>
+        PeerId PeerId { get; }
+
+        /// <summary>
         /// Gets a value indicating whether this connection is active.
         /// </summary>
         bool IsConnected { get; }
