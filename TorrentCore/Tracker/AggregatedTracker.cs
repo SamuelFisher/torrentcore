@@ -87,27 +87,4 @@ namespace TorrentCore.Tracker
             public string Type { get; set; }
         }
     }
-
-    public interface ITrackerDetails
-    {
-        /// <summary>
-        /// Gets the URI of this tracker.
-        /// </summary>
-        Uri Uri { get; }
-
-        /// <summary>
-        /// Gets the number of peers obtained from this tracker.
-        /// </summary>
-        int Peers { get; }
-
-        /// <summary>
-        /// Gets the time of the last announce to this tracker.
-        /// </summary>
-        DateTime? LastAnnounce { get; }
-
-        /// <summary>
-        /// Gets the type of this tracker.
-        /// </summary>
-        string Type { get; }
-    }
 }

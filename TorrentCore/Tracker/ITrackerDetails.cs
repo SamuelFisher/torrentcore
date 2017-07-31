@@ -20,16 +20,26 @@ using System.Text;
 
 namespace TorrentCore.Tracker
 {
-    /// <summary>
-    /// Given the URI of a tracker, creates an appropriate client for contacting it.
-    /// </summary>
-    public interface ITrackerClientFactory
+    public interface ITrackerDetails
     {
         /// <summary>
-        /// Creates a client for communicating with the tracker at the supplied URI.
+        /// Gets the URI of this tracker.
         /// </summary>
-        /// <param name="trackerUri">URI of the tracker.</param>
-        /// <returns>A client object for communicating with the tracker, or null if the uri is not supported.</returns>
-        ITracker CreateTrackerClient(Uri trackerUri);
+        Uri Uri { get; }
+
+        /// <summary>
+        /// Gets the number of peers obtained from this tracker.
+        /// </summary>
+        int Peers { get; }
+
+        /// <summary>
+        /// Gets the time of the last announce to this tracker.
+        /// </summary>
+        DateTime? LastAnnounce { get; }
+
+        /// <summary>
+        /// Gets the type of this tracker.
+        /// </summary>
+        string Type { get; }
     }
 }
