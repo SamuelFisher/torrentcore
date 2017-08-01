@@ -44,6 +44,11 @@ namespace TorrentCore.Transport
         public PeerId PeerId { get; private set; }
 
         /// <summary>
+        /// Gets the protocol extensions supported by this peer.
+        /// </summary>
+        public ProtocolExtension SupportedExtensions { get; private set; }
+
+        /// <summary>
         /// Gets the info hash used by the stream.
         /// </summary>
         public Sha1Hash InfoHash { get; private set; }
@@ -150,7 +155,8 @@ namespace TorrentCore.Transport
             string protocol = new string(Reader.ReadChars(protocolStringLength));
 
             // Reserved bytes
-            Reader.ReadBytes(8);
+            var reserved = Reader.ReadBytes(8);
+            SupportedExtensions = ProtocolExtensions.DetermineSupportedProcotolExtensions(reserved);
 
             // Info hash
             var infoHash = new Sha1Hash(Reader.ReadBytes(20));

@@ -35,6 +35,11 @@ namespace TorrentCore.Transport
         PeerId PeerId { get; }
 
         /// <summary>
+        /// Gets the protocol extensions supported by this peer.
+        /// </summary>
+        ProtocolExtension SupportedExtensions { get; }
+
+        /// <summary>
         /// Gets a value indicating whether this connection is active.
         /// </summary>
         bool IsConnected { get; }

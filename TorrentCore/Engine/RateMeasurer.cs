@@ -89,7 +89,7 @@ namespace TorrentCore.Engine
         private void Clean()
         {
             var minTime = DateTime.UtcNow - Interval;
-            while (measurements.First().Time < minTime)
+            while (measurements != null && measurements.First().Time < minTime)
                 measurements.RemoveFirst();
         }
 

@@ -49,6 +49,7 @@ namespace TorrentCore.Web.Controllers
                 Client = x.PeerId.ClientName;
                 ClientVersion = x.PeerId.ClientVersion;
                 string ipAddress = Address.Split(':').First();
+                SupportedExtensions = GetProtocolExtensions(x.SupportedExtensions);
 
                 try
                 {
@@ -66,6 +67,18 @@ namespace TorrentCore.Web.Controllers
             public string PeerId { get; }
             public string Client { get; }
             public int? ClientVersion { get; }
+            public IReadOnlyList<string> SupportedExtensions { get; }
+
+            private List<string> GetProtocolExtensions(ProtocolExtension extensions)
+            {
+                var results = new List<string>();
+                foreach (ProtocolExtension e in Enum.GetValues(typeof(ProtocolExtension)))
+                {
+                    if ((extensions & e) != 0)
+                        results.Add(e.ToString());
+                }
+                return results;
+            }
         }
     }
 }
