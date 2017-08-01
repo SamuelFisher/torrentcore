@@ -50,22 +50,23 @@ namespace TorrentCore
         {
             downloads = new Dictionary<Sha1Hash, TorrentDownload>();
             mainLoop = new MainLoop();
+            LocalPeerId = settings.PeerId;
             transport = new TcpTransportProtocol(this,
                                                  mainLoop,
                                                  settings.ListenPort,
                                                  settings.AdapterAddress,
+                                                 LocalPeerId,
                                                  AcceptConnection);
             trackerClientFactory = new TrackerClientFactory();
             updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
         }
 
-        internal TcpTransportProtocol Transport => transport;
+        /// <summary>
+        /// Gets the Peer ID for the local client.
+        /// </summary>
+        public PeerId LocalPeerId { get; }
 
-        private void UpdateStatistics(object state)
-        {
-            foreach (var dl in downloads)
-                dl.Value.Manager.UpdateStatistics();
-        }
+        internal TcpTransportProtocol Transport => transport;
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());
 
@@ -111,6 +112,12 @@ namespace TorrentCore
             Log.LogDebug("A peer wants to connect");
 
             downloads[e.Stream.InfoHash].Manager.ApplicationProtocol.AcceptConnection(e);
+        }
+
+        private void UpdateStatistics(object state)
+        {
+            foreach (var dl in downloads)
+                dl.Value.Manager.UpdateStatistics();
         }
 
         public void Dispose()

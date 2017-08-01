@@ -41,7 +41,12 @@ namespace TorrentCore.Transport
         /// <param name="mainLoop">The main loop to use for queuing incoming and outgoing messages.</param>
         /// <param name="port">Port to listen on for incoming connections.</param>
         /// <param name="localAddress">The local address to use for connections.</param>
-        protected TcpBasedTransportProtocol(IMessageHandler messageHandler, IMainLoop mainLoop, int port, IPAddress localAddress)
+        /// <param name="localPeerId">The Peer ID of the local client.</param>
+        protected TcpBasedTransportProtocol(IMessageHandler messageHandler,
+                                            IMainLoop mainLoop,
+                                            int port,
+                                            IPAddress localAddress,
+                                            PeerId localPeerId)
         {
             Port = port;
             LocalAddress = localAddress;
@@ -49,7 +54,13 @@ namespace TorrentCore.Transport
             MainLoop = mainLoop;
             listener = new TcpListener(localAddress, port);
             RateLimiter = new RateLimiter();
+            LocalPeerId = localPeerId ?? throw new ArgumentException("Local peer ID cannot be null.", nameof(localPeerId));
         }
+
+        /// <summary>
+        /// Gets the Peer ID of the local client.
+        /// </summary>
+        public PeerId LocalPeerId { get; }
 
         /// <summary>
         /// Gets the MainLoop to which this TcpTransportProtocol belongs.

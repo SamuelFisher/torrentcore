@@ -65,7 +65,10 @@ namespace TorrentCore.Transport
         /// <param name="infoHash">Info hash used by the stream.</param>
         /// <param name="address">IP address of remote peer.</param>
         /// <param name="port">Port of remote peer.</param>
-        public PeerStream(TcpTransportProtocol owner, Sha1Hash infoHash, IPAddress address, int port)
+        public PeerStream(TcpTransportProtocol owner,
+                          Sha1Hash infoHash,
+                          IPAddress address,
+                          int port)
             : base(owner, address, port)
         {
             Address = $"{address}:{port}";
@@ -92,38 +95,38 @@ namespace TorrentCore.Transport
         public void SendData(byte[] data)
         {
             TransportProtocol.MainLoop.AddTask(() =>
-                                               {
-                                                   if (!IsConnected)
-                                                       return;
+            {
+                if (!IsConnected)
+                    return;
 
-                                                   Writer.Write(data.Length);
-                                                   Writer.Write(data);
-                                                   Writer.Flush();
-                                               });
+                Writer.Write(data.Length);
+                Writer.Write(data);
+                Writer.Flush();
+            });
         }
 
         public override void ReceiveData()
         {
             Task.Factory.StartNew(() =>
-                                  {
-                                      try
-                                      {
-                                          while (true)
-                                          {
-                                              // Read message length
-                                              int length = Reader.ReadInt32();
+            {
+                try
+                {
+                    while (true)
+                    {
+                        // Read message length
+                        int length = Reader.ReadInt32();
 
-                                              // Read data
-                                              byte[] data = Reader.ReadBytes(length);
+                        // Read data
+                        byte[] data = Reader.ReadBytes(length);
 
-                                              TransportProtocol.MessageReceived(this, data);
-                                          }
-                                      }
-                                      catch (IOException)
-                                      {
-                                          // Disconnected
-                                      }
-                                  }, TaskCreationOptions.LongRunning);
+                        TransportProtocol.MessageReceived(this, data);
+                    }
+                }
+                catch (IOException)
+                {
+                    // Disconnected
+                }
+            }, TaskCreationOptions.LongRunning);
         }
 
         public override void SendConnectionHeader()
@@ -141,7 +144,7 @@ namespace TorrentCore.Transport
             Writer.Write(InfoHash);
 
             // Peer ID
-            Writer.Write(new byte[20]);
+            Writer.Write(TransportProtocol.LocalPeerId.Value.ToArray());
 
             Writer.Flush();
         }

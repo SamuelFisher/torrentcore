@@ -37,8 +37,9 @@ namespace TorrentCore.Transport
                                     IMainLoop mainLoop,
                                     int port,
                                     IPAddress localAddress,
+                                    PeerId localPeerId,
                                     Action<AcceptConnectionEventArgs> acceptConnectionHandler)
-            : base(messageHandler, mainLoop, port, localAddress)
+            : base(messageHandler, mainLoop, port, localAddress, localPeerId)
         {
             PeerStreams = new ConcurrentBag<PeerStream>();
             AcceptConnectionHandler = acceptConnectionHandler;

@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Sam Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using TorrentCore.Transport;
 
 namespace TorrentCore
 {
@@ -26,9 +27,15 @@ namespace TorrentCore
     {
         public TorrentClientSettings()
         {
+            PeerId = PeerId.CreateNew();
             ListenPort = 6881;
             AdapterAddress = IPAddress.Any;
         }
+
+        /// <summary>
+        /// Gets or sets the Peer ID for the local client.
+        /// </summary>
+        public PeerId PeerId { get; set; }
 
         /// <summary>
         /// Gets or sets the port to listen for incoming connections on.

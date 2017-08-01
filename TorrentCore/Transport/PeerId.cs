@@ -83,5 +83,18 @@ namespace TorrentCore.Transport
         {
             return Encoding.UTF8.GetString(Value.ToArray());
         }
+
+        /// <summary>
+        /// Creates a new, random PeerId.
+        /// </summary>
+        public static PeerId CreateNew()
+        {
+            var rand = new Random();
+            byte[] identifier = Encoding.ASCII.GetBytes("-TC0001-");
+            byte[] randomData = new byte[20 - identifier.Length];
+            rand.NextBytes(randomData);
+            var data = identifier.Concat(randomData).ToArray();
+            return new PeerId(data);
+        }
     }
 }

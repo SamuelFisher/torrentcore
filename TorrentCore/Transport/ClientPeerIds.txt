@@ -2,6 +2,7 @@
 DE=Deluge
 lt=libtorrent
 qB=qBittorrent
+TC=TorrentCore
 TR=Transmission
 UT=uTorrent
 WD=WebTorrent Desktop
