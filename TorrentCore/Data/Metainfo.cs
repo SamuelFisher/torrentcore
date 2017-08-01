@@ -39,7 +39,11 @@ namespace TorrentCore.Data
         /// <param name="files">List of files to include.</param>
         /// <param name="pieces">List of pieces to include.</param>
         /// <param name="trackers">URLs of the trackers.</param>
-        public Metainfo(string name, Sha1Hash infoHash, IEnumerable<ContainedFile> files, IEnumerable<Piece> pieces, IEnumerable<IEnumerable<Uri>> trackers)
+        public Metainfo(string name,
+                        Sha1Hash infoHash,
+                        IEnumerable<ContainedFile> files,
+                        IEnumerable<Piece> pieces,
+                        IEnumerable<IEnumerable<Uri>> trackers)
         {
             Name = name;
             this.pieces = new List<Piece>();

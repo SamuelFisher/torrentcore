@@ -56,15 +56,15 @@ namespace TorrentCore.TorrentParsers
             // Construct pieces
             var pieces = new List<Piece>();
             byte[] pieceHashes = torrent.Pieces;
-            int numPieces = torrent.NumberOfPieces;
-            int lastPieceLength = (int)(torrent.TotalSize % torrent.PieceSize);
-            for (int i = 0; i < torrent.NumberOfPieces; i++)
+            int pieceIndex = 0;
+            for (long offset = 0; offset + torrent.PieceSize <= torrent.TotalSize; offset += torrent.PieceSize)
             {
-                int length = (int)(i < numPieces - 1 ? torrent.PieceSize : lastPieceLength);
+                int length = (int)Math.Min(torrent.PieceSize, torrent.TotalSize - offset);
                 byte[] hash = new byte[Sha1Hash.Length];
-                Array.Copy(pieceHashes, i * Sha1Hash.Length, hash, 0, Sha1Hash.Length);
-                Piece piece = new Piece(i, length, new Sha1Hash(hash));
+                Array.Copy(pieceHashes, pieceIndex * Sha1Hash.Length, hash, 0, Sha1Hash.Length);
+                Piece piece = new Piece(pieceIndex, length, new Sha1Hash(hash));
                 pieces.Add(piece);
+                pieceIndex++;
             }
             
             return new Metainfo(torrent.DisplayName,
