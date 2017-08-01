@@ -69,7 +69,7 @@ namespace TorrentCore.Transport
         /// <summary>
         /// Gets the port on which incoming connections can be made.
         /// </summary>
-        public int Port { get; }
+        public int Port { get; private set; }
 
         /// <summary>
         /// Gets the local address used for connections.
@@ -93,6 +93,8 @@ namespace TorrentCore.Transport
         public void Start()
         {
             listener.Start();
+            // If port=0 was supplied, set the actual port we are listening on.
+            Port = ((IPEndPoint)listener.LocalEndpoint).Port;
             AcceptConnection();
         }
 

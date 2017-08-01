@@ -152,11 +152,10 @@ namespace TorrentCore
 
             SetDownloadProgress();
 
-            if (State != DownloadState.Completed)
-                await ContactTracker();
-
             // Listen for incoming connections
             TransportProtocol.Start();
+
+            await ContactTracker();
 
             // Start main loop
             mainLoop.AddRegularTask(() => ApplicationProtocol.Iterate());
@@ -218,7 +217,8 @@ namespace TorrentCore
 
                 Log.LogInformation($"{result.Peers.Count} peers available");
 
-                ApplicationProtocol.PeersAvailable(result.Peers.Select(x => TransportProtocol.CreateTransportStream(x.IPAddress, x.Port, Description.InfoHash)));
+                if (State != DownloadState.Completed)
+                    ApplicationProtocol.PeersAvailable(result.Peers.Select(x => TransportProtocol.CreateTransportStream(x.IPAddress, x.Port, Description.InfoHash)));
             }
             catch (System.Net.Http.HttpRequestException)
             {

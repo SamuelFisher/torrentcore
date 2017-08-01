@@ -41,7 +41,7 @@ namespace TorrentCore.Data
             Empty = new Sha1Hash(new byte[Length]);
         }
 
-        public byte[] Value { get; private set; }
+        public byte[] Value { get; }
 
         /// <summary>
         /// Creates a new hash with the specified value.
@@ -70,7 +70,13 @@ namespace TorrentCore.Data
 
         public override int GetHashCode()
         {
-            return this.Value.GetHashCode();
+            unchecked
+            {
+                int hash = 17;
+                foreach (byte el in Value)
+                    hash = hash * 31 + el.GetHashCode();
+                return hash;
+            }
         }
 
         public static bool operator ==(Sha1Hash x, Sha1Hash y)
