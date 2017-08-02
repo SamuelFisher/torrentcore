@@ -16,20 +16,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using TorrentCore.Application.BitTorrent;
 
 namespace TorrentCore.Transport
 {
-    public interface IMessageHandler
+    public class AcceptConnectionEventArgs
     {
-        /// <summary>
-        /// Invoked when a message is received from a connected stream.
-        /// </summary>
-        /// <param name="peer">Peer the message was received from.</param>
-        /// <param name="data">Received message data.</param>
-        void MessageReceived(PeerConnection peer, byte[] data);
+        public AcceptConnectionEventArgs(ITransportStream ts, Action accept)
+        {
+            TransportStream = ts;
+            Accept = accept;
+        }
+
+        public ITransportStream TransportStream { get; }
+        public Action Accept { get; }
     }
 }

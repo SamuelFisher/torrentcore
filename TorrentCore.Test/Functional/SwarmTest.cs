@@ -46,6 +46,7 @@ namespace TorrentCore.Test.Functional
 
             var seed = new TorrentClient(0);
             var seedDownload = seed.Add(metainfo, tracker.CreateTrackerClient(null), sourceFiles);
+            tracker.RegisterPeer(seed.Transport.Port);
 
             var peer = new TorrentClient(0);
             var peerFileHandler = new MemoryFileHandler();

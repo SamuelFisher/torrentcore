@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 
 namespace TorrentCore.Transport
 {
-    abstract class TcpBasedTransportStream
+    class TcpTransportStream : ITransportStream
     {
         private readonly ManualResetEvent connectionEvent = new ManualResetEvent(false);
         private readonly TcpClient client;
@@ -34,52 +34,39 @@ namespace TorrentCore.Transport
         /// <summary>
         /// Creates a new TcpTransportStream which can later connect to the remote peer at the specified address and port.
         /// </summary>
-        /// <param name="owner">The TcpTransportProtocol that controls the stream.</param>
-        /// <param name="address">IP address of remote peer.</param>
+        /// <param name="localAddress">Local IP address of the adapter to bind to.</param>
+        /// <param name="remoteAddress">IP address of remote peer.</param>
         /// <param name="port">Port of remote peer.</param>
-        protected TcpBasedTransportStream(TcpBasedTransportProtocol owner, IPAddress address, int port)
+        public TcpTransportStream(IPAddress localAddress, IPAddress remoteAddress, int port)
         {
-            TransportProtocol = owner;
-            client = new TcpClient(address.AddressFamily);
+            client = new TcpClient(localAddress.AddressFamily);
 
             // Use the adapter for the IPAddress specified
-            client.Client.Bind(new IPEndPoint(owner.LocalAddress, 0));
+            client.Client.Bind(new IPEndPoint(localAddress, 0));
 
-            Address = address;
-            Port = port;
+            RemoteEndPoint = new IPEndPoint(remoteAddress, port);
         }
 
         /// <summary>
         /// Creates a new TcpTransportStream from the existing TcpClient.
         /// </summary>
-        /// <param name="owner">The TcpTransportProtocol that controls the stream.</param>
         /// <param name="client">Existing connection.</param>
-        protected TcpBasedTransportStream(TcpBasedTransportProtocol owner, TcpClient client)
+        public TcpTransportStream(TcpClient client)
         {
-            TransportProtocol = owner;
             this.client = client;
-            Stream = new RateLimitedStream(client.GetStream(), TransportProtocol.RateLimiter);
-            Reader = new BigEndianBinaryReader(Stream);
-            Writer = new BigEndianBinaryWriter(Stream);
+            Stream = new RateLimitedStream(client.GetStream());
         }
 
-        protected RateLimitedStream Stream { get; private set; }
-        protected BinaryReader Reader { get; private set; }
-        protected BinaryWriter Writer { get; private set; }
-        protected IPAddress Address { get; }
-        protected int Port { get; }
+        public Stream Stream { get; private set; }
 
-        protected bool IsHeaderReceived { get; set; }
+        public IPEndPoint RemoteEndPoint { get; }
 
-        /// <summary>
-        /// Gets the <see cref="TcpBasedTransportProtocol"/> instance that controls this stream.
-        /// </summary>
-        public TcpBasedTransportProtocol TransportProtocol { get; }
-
+        string ITransportStream.Address => RemoteEndPoint.ToString();
+        
         /// <summary>
         /// Gets a value indicating whether this connection is active.
         /// </summary>
-        public bool IsConnected => IsHeaderReceived && client.Connected;
+        public bool IsConnected => client.Connected;
 
         /// <summary>
         /// Gets a value indicating whether a connection attempt is in progress for this stream.
@@ -95,7 +82,7 @@ namespace TorrentCore.Transport
             if (IsConnected)
                 throw new InvalidOperationException("Already connected.");
 
-            if (Address == null)
+            if (RemoteEndPoint == null)
                 throw new InvalidOperationException("Address and port have not been specified.");
 
             if (IsConnecting)
@@ -108,7 +95,7 @@ namespace TorrentCore.Transport
 
             try
             {
-                await client.ConnectAsync(Address, Port);
+                await client.ConnectAsync(RemoteEndPoint.Address, RemoteEndPoint.Port);
             }
             finally
             {
@@ -116,23 +103,8 @@ namespace TorrentCore.Transport
                 connectionEvent.Set();
             }
 
-            Stream = new RateLimitedStream(client.GetStream(), TransportProtocol.RateLimiter);
-            Reader = new BigEndianBinaryReader(Stream);
-            Writer = new BigEndianBinaryWriter(Stream);
-
-            SendConnectionHeader();
-
-            bool success = ReceiveConnectionHeader();
-
-            if (!success)
-            {
-                throw new IOException("Connection header mismatch.");
-            }
-            else
-            {
-                ReceiveData();
-            }
-
+            Stream = new RateLimitedStream(client.GetStream());
+            
             IsConnecting = false;
             connectionEvent.Set();
         }
@@ -142,10 +114,9 @@ namespace TorrentCore.Transport
             client.Dispose();
         }
 
-        public abstract void SendConnectionHeader();
-
-        public abstract bool ReceiveConnectionHeader();
-
-        public abstract void ReceiveData();
+        public void Dispose()
+        {
+            Disconnect();
+        }
     }
 }

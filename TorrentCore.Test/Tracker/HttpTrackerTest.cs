@@ -27,14 +27,14 @@ using TorrentCore.Data;
 using TorrentCore.Tracker;
 using TorrentCore.Tracker.Http;
 using TorrentCore.Transport;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Test.Tracker
 {
     [TestFixture]
     public class HttpTrackerTest
     {
-        private readonly AnnounceRequest request = new AnnounceRequest(IPAddress.Loopback,
-                                                                       5000,
+        private readonly AnnounceRequest request = new AnnounceRequest(PeerId.CreateNew(),
                                                                        1000,
                                                                        Sha1Hash.Empty);
 
@@ -42,25 +42,26 @@ namespace TorrentCore.Test.Tracker
         [TestCase(true, Description = "Announce with compact response")]
         public void Announce(bool compact)
         {
-            var tracker = new MockHttpTracker(compact, new Uri("http://example.com/announce"));
+            var tracker = new MockHttpTracker(new LocalTcpConnectionDetails(5000, IPAddress.Loopback, IPAddress.Loopback), compact, new Uri("http://example.com/announce"));
             
             var response = tracker.Announce(request).Result;
-            var peers = response.Peers.ToArray();
+            var peers = response.Peers.Cast<TcpTransportStream>().ToArray();
 
             Assert.That(peers, Has.Length.EqualTo(2));
 
-            var peer1 = peers.Single(x => x.Port == 5001);
-            Assert.That(peer1.IPAddress, Is.EqualTo(IPAddress.Parse("192.168.0.1")));
+            var peer1 = peers.Single(x => x.RemoteEndPoint.Port == 5001);
+            Assert.That(peer1.RemoteEndPoint.Address, Is.EqualTo(IPAddress.Parse("192.168.0.1")));
 
-            var peer2 = peers.Single(x => x.Port == 5002);
-            Assert.That(peer2.IPAddress, Is.EqualTo(IPAddress.Parse("192.168.0.2")));
+            var peer2 = peers.Single(x => x.RemoteEndPoint.Port == 5002);
+            Assert.That(peer2.RemoteEndPoint.Address, Is.EqualTo(IPAddress.Parse("192.168.0.2")));
         }
 
         private class MockHttpTracker : HttpTracker
         {
             private readonly bool compact;
 
-            public MockHttpTracker(bool compact, Uri baseUrl) : base(baseUrl)
+            public MockHttpTracker(LocalTcpConnectionDetails tcpConnectionDetails, bool compact, Uri baseUrl)
+                : base(tcpConnectionDetails, baseUrl)
             {
                 this.compact = compact;
             }

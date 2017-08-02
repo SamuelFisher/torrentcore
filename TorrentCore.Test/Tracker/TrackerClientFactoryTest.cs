@@ -21,13 +21,14 @@ using NUnit.Framework;
 using TorrentCore.Tracker;
 using TorrentCore.Tracker.Http;
 using TorrentCore.Tracker.Udp;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Test.Tracker
 {
     [TestFixture]
     public class TrackerClientFactoryTest
     {
-        private readonly TrackerClientFactory factory = new TrackerClientFactory();
+        private readonly TrackerClientFactory factory = new TrackerClientFactory(new LocalTcpConnectionDetails(0, null, null));
 
         [Test]
         public void HttpTracker()

@@ -27,18 +27,8 @@ namespace TorrentCore.Transport
     /// <summary>
     /// Represents a communication channel between two peers.
     /// </summary>
-    interface ITransportStream : IDisposable
+    public interface ITransportStream : IDisposable
     {
-        /// <summary>
-        /// Gets the ID for this peer.
-        /// </summary>
-        PeerId PeerId { get; }
-
-        /// <summary>
-        /// Gets the protocol extensions supported by this peer.
-        /// </summary>
-        ProtocolExtension SupportedExtensions { get; }
-
         /// <summary>
         /// Gets a value indicating whether this connection is active.
         /// </summary>
@@ -50,20 +40,14 @@ namespace TorrentCore.Transport
         string Address { get; }
 
         /// <summary>
-        /// Gets the info hash the stream can be used for.
-        /// </summary>
-        Sha1Hash InfoHash { get; }
-
-        /// <summary>
         /// Attempts to initiate this connection.
         /// </summary>
         /// <returns>Task which completes when the connection is made.</returns>
         Task Connect();
 
         /// <summary>
-        /// Sends the specified block of data.
+        /// Gets the stream used for communication.
         /// </summary>
-        /// <param name="data">Data to send.</param>
-        void SendData(byte[] data);
+        Stream Stream { get; }
     }
 }

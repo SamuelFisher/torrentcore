@@ -24,6 +24,8 @@ using System.Text;
 using System.Threading.Tasks;
 using BencodeNET.Objects;
 using BencodeNET.Parsing;
+using TorrentCore.Transport;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Tracker.Http
 {
@@ -32,12 +34,15 @@ namespace TorrentCore.Tracker.Http
     /// </summary>
     class HttpTracker : ITracker
     {
+        private readonly LocalTcpConnectionDetails tcpConnectionDetails;
+
         /// <summary>
         /// Creates a new Tracker with the remote tracker at the specified URL.
         /// </summary>
         /// <param name="baseUrl">URL of the remote tracker.</param>
-        public HttpTracker(Uri baseUrl)
+        public HttpTracker(LocalTcpConnectionDetails tcpConnectionDetails, Uri baseUrl)
         {
+            this.tcpConnectionDetails = tcpConnectionDetails;
             BaseUrl = baseUrl;
         }
 
@@ -70,9 +75,9 @@ namespace TorrentCore.Tracker.Http
             // Prepare query
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder.Append("?event=started");
-            if (request.ListenAddress != null)
-                queryBuilder.Append(string.Format("&ip={0}", request.ListenAddress));
-            queryBuilder.Append(string.Format("&port={0}", request.ListenPort));
+            if (tcpConnectionDetails.PublicAddress != null)
+                queryBuilder.Append(string.Format("&ip={0}", tcpConnectionDetails.PublicAddress));
+            queryBuilder.Append(string.Format("&port={0}", tcpConnectionDetails.Port)); // TODO: use public port
             queryBuilder.Append(string.Format("&peer_id={0}", Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(peerId, 0, peerId.Length))));
             queryBuilder.Append(string.Format("&left={0}", request.Remaining));
             queryBuilder.Append(string.Format("&uploaded={0}", 0));
@@ -133,7 +138,7 @@ namespace TorrentCore.Tracker.Http
                 }
             }
 
-            return new AnnounceResult(resultPeers);
+            return new AnnounceResult(resultPeers.Select(x => new TcpTransportStream(tcpConnectionDetails.BindAddress, x.IPAddress, x.Port)));
         }
     }
 }

@@ -16,11 +16,13 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Transport;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Tracker.Udp
 {
@@ -28,12 +30,14 @@ namespace TorrentCore.Tracker.Udp
     {
         private const long ConnectionProtocolId = 0x41727101980L;
 
+        private readonly LocalTcpConnectionDetails tcpConnectionDetails;
         private readonly Uri trackerUri;
         private readonly Random rand;
         private readonly UdpClient client;
 
-        public UdpTracker(Uri trackerUri)
+        public UdpTracker(LocalTcpConnectionDetails tcpConnectionDetails, Uri trackerUri)
         {
+            this.tcpConnectionDetails = tcpConnectionDetails;
             this.trackerUri = trackerUri;
             rand = new Random();
             // TODO don't listen until needed
@@ -70,16 +74,16 @@ namespace TorrentCore.Tracker.Udp
                 LeftToDownload = request.Remaining,
                 Uploaded = 0, // todo
                 Event = AnnounceRequestMessage.EventType.Started,
-                IPAddress = request.ListenAddress,
+                IPAddress = tcpConnectionDetails.PublicAddress,
                 Key = rand.Next(),
                 NumWant = -1, // default
-                Port = (ushort)request.ListenPort
+                Port = (ushort)tcpConnectionDetails.Port
             });
             
             if (announceResponse.TransactionId != transactionId)
                 throw new InvalidDataException("Mismatching transaction ID");
 
-            return new AnnounceResult(announceResponse.Peers);
+            return new AnnounceResult(announceResponse.Peers.Select(x => new TcpTransportStream(tcpConnectionDetails.BindAddress, x.IPAddress, x.Port)));
         }
 
         protected async Task<T> SendAndWaitForResponse<T>(UdpTrackerRequestMessage request) where T : UdpTrackerResponseMessage, new()

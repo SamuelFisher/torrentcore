@@ -25,13 +25,13 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Application
 {
-    interface IApplicationProtocol : IMessageHandler
+    public interface IApplicationProtocol<TConnection>
     {
         /// <summary>
         /// Handles new incoming connection requests.
         /// </summary>
         /// <param name="e">Event args for handling the request.</param>
-        void AcceptConnection(AcceptConnectionEventArgs e);
+        void AcceptConnection(AcceptPeerConnectionEventArgs<TConnection> e);
 
         /// <summary>
         /// Performs actions in each cycle of the main loop.

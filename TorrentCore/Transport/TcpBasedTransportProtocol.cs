@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Samuel Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -15,14 +15,16 @@
 // along with TorrentCore.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using TorrentCore.Data;
-using TorrentCore.Engine;
+using Microsoft.Extensions.Logging;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Transport
 {
@@ -30,9 +32,12 @@ namespace TorrentCore.Transport
     /// Base class for transport protocols using TCP.
     /// Provides a TCP listener for incoming connections.
     /// </summary>
-    abstract class TcpBasedTransportProtocol : ITransportProtocol
+    class TcpBasedTransportProtocol : ITransportProtocol
     {
+        private static readonly ILogger Log = LogManager.GetLogger<TcpBasedTransportProtocol>();
+
         private readonly bool bindToNextAvailablePort;
+        private readonly ConcurrentBag<TcpTransportStream> streams;
 
         private TcpListener listener;
 
@@ -43,43 +48,31 @@ namespace TorrentCore.Transport
         /// <param name="mainLoop">The main loop to use for queuing incoming and outgoing messages.</param>
         /// <param name="port">Port to listen on for incoming connections.</param>
         /// <param name="bindToNextAvailablePort">If the specified port is in use, attempts to bind to the next available port.</param>
-        /// <param name="localAddress">The local address to use for connections.</param>
+        /// <param name="localBindAddress">The local address to use for connections.</param>
         /// <param name="localPeerId">The Peer ID of the local client.</param>
-        protected TcpBasedTransportProtocol(IMessageHandler messageHandler,
-                                            IMainLoop mainLoop,
-                                            int port,
-                                            bool bindToNextAvailablePort,
-                                            IPAddress localAddress,
-                                            PeerId localPeerId)
+        public TcpBasedTransportProtocol(int port,
+                                         bool bindToNextAvailablePort,
+                                         IPAddress localBindAddress,
+                                         PeerId localPeerId,
+                                         Action<AcceptConnectionEventArgs> acceptConnectionHandler)
         {
+            streams = new ConcurrentBag<TcpTransportStream>();
+            AcceptConnectionHandler = acceptConnectionHandler;
             this.bindToNextAvailablePort = bindToNextAvailablePort;
             Port = port;
-            LocalAddress = localAddress;
-            MessageHandler = messageHandler;
-            MainLoop = mainLoop;
+            LocalBindAddress = localBindAddress;
+            LocalConection = new LocalTcpConnectionDetails(port, null, localBindAddress);
             RateLimiter = new RateLimiter();
-            LocalPeerId = localPeerId ?? throw new ArgumentException("Local peer ID cannot be null.", nameof(localPeerId));
         }
 
-        /// <summary>
-        /// Gets the Peer ID of the local client.
-        /// </summary>
-        public PeerId LocalPeerId { get; }
-
-        /// <summary>
-        /// Gets the MainLoop to which this TcpTransportProtocol belongs.
-        /// </summary>
-        public IMainLoop MainLoop { get; }
+        public Action<AcceptConnectionEventArgs> AcceptConnectionHandler { get; }
 
         /// <summary>
         /// Gets or sets the maximum upload and download rates for all streams using this transport protocol.
         /// </summary>
         public RateLimiter RateLimiter { get; set; }
 
-        /// <summary>
-        /// Gets or sets the message handler.
-        /// </summary>
-        public IMessageHandler MessageHandler { get; set; }
+        public LocalTcpConnectionDetails LocalConection { get; private set; }
 
         /// <summary>
         /// Gets the port on which incoming connections can be made.
@@ -87,20 +80,47 @@ namespace TorrentCore.Transport
         public int Port { get; private set; }
 
         /// <summary>
-        /// Gets the local address used for connections.
+        /// Gets the public address that is used to listen for incoming connections.
         /// </summary>
-        public IPAddress LocalAddress { get; }
+        public IPAddress PublicListenAddress { get; }
+
+        /// <summary>
+        /// Gets the address of the local adapter used for connections.
+        /// </summary>
+        public IPAddress LocalBindAddress { get; }
 
         /// <summary>
         /// Gets a collection of the active transport streams.
         /// </summary>
-        public abstract IEnumerable<ITransportStream> Streams { get; }
+        public IEnumerable<TcpTransportStream> Streams => streams;
+
+        /// <summary>
+        /// Gets a collection of the active transport streams.
+        /// </summary>
+        IEnumerable<ITransportStream> ITransportProtocol.Streams => streams;
 
         /// <summary>
         /// Handles new incoming connection requests.
         /// </summary>
         /// <param name="e">Event args for handling the request.</param>
-        public abstract void AcceptConnection(TransportConnectionEventArgs e);
+        public void AcceptConnection(TransportConnectionEventArgs e)
+        {
+            var stream = new TcpTransportStream(e.Client);
+
+            // Notify application protocol
+            bool accepted = false;
+            var applicationEE = new AcceptConnectionEventArgs(stream, () =>
+            {
+                Log.LogInformation($"Accepted connection from {stream.RemoteEndPoint}");
+
+                accepted = true;
+                streams.Add(stream);
+            });
+            AcceptConnectionHandler(applicationEE);
+
+            if (!accepted)
+                e.Client.Dispose();
+        }
 
         /// <summary>
         /// Starts the transport protocol.
@@ -112,11 +132,11 @@ namespace TorrentCore.Transport
             {
                 try
                 {
-                    listener = new TcpListener(LocalAddress, port + attempt);
+                    listener = new TcpListener(LocalBindAddress, port + attempt);
                     listener.Start();
                 }
                 catch (SocketException ex)
-                when (ex.SocketErrorCode == SocketError.AddressAlreadyInUse && bindToNextAvailablePort)
+                    when (ex.SocketErrorCode == SocketError.AddressAlreadyInUse && bindToNextAvailablePort)
                 {
                     // Try next available port
                     continue;
@@ -127,27 +147,20 @@ namespace TorrentCore.Transport
 
             // If port=0 was supplied, set the actual port we are listening on.
             Port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            LocalConection = new LocalTcpConnectionDetails(Port, null, LocalBindAddress);
             AcceptConnection();
         }
 
         /// <summary>
         /// Stops the transport protocol.
         /// </summary>
-        public virtual void Stop()
+        public void Stop()
         {
+            // Stop listening for new connections
             listener.Stop();
-        }
 
-        public abstract ITransportStream CreateTransportStream(IPAddress address, int port, Sha1Hash infoHash);
-
-        /// <summary>
-        /// Called by ITransportStreams when a message is received.
-        /// </summary>
-        /// <param name="stream">Stream which received the message.</param>
-        /// <param name="data">Message data.</param>
-        public void MessageReceived(ITransportStream stream, byte[] data)
-        {
-            MainLoop.AddTask(() => MessageHandler.MessageReceived(stream, data));
+            foreach (var stream in streams)
+                stream.Disconnect();
         }
 
         void AcceptConnection()

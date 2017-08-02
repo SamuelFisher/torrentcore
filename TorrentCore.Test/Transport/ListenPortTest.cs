@@ -33,20 +33,20 @@ namespace TorrentCore.Test.Transport
         {
             var client1 = CreateTransportProtocol();
             client1.Start();
+            Assert.That(client1.LocalConection.Port, Is.EqualTo(6881));
 
             var client2 = CreateTransportProtocol();
             client2.Start();
+            Assert.That(client2.LocalConection.Port, Is.EqualTo(6882));
         }
 
-        private static TcpTransportProtocol CreateTransportProtocol()
+        private static TcpBasedTransportProtocol CreateTransportProtocol()
         {
-            return new TcpTransportProtocol(Mock.Of<IMessageHandler>(),
-                                                   Mock.Of<IMainLoop>(),
-                                                   6881,
-                                                   true,
-                                                   IPAddress.Loopback,
-                                                   PeerId.CreateNew(),
-                                                   _ => { });
+            return new TcpBasedTransportProtocol(6881,
+                                                 true,
+                                                 IPAddress.Loopback,
+                                                 PeerId.CreateNew(),
+                                                 _ => { });
         }
     }
 }

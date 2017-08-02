@@ -25,7 +25,7 @@ namespace TorrentCore.Application.BitTorrent
     /// <summary>
     /// Represents a region of a piece with a specified offset and length, without data.
     /// </summary>
-    class BlockRequest
+    public class BlockRequest
     {
         /// <summary>
         /// Creates a new block with the specified piece index and offset.
@@ -33,7 +33,7 @@ namespace TorrentCore.Application.BitTorrent
         /// <param name="pieceIndex">Index of the piece the block belongs to.</param>
         /// <param name="offset">Offset into the piece at which the data starts.</param>
         /// <param name="length">Length of the block.</param>
-        public BlockRequest(int pieceIndex, int offset, int length)
+        internal BlockRequest(int pieceIndex, int offset, int length)
         {
             PieceIndex = pieceIndex;
             Offset = offset;

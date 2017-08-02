@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Samuel Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -24,15 +24,15 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Application
 {
-    class AcceptConnectionEventArgs : EventArgs
+    public class AcceptPeerConnectionEventArgs<TConnection> : EventArgs
     {
-        public ITransportStream Stream { get; private set; }
-        public Action Accept { get; private set; }
-
-        public AcceptConnectionEventArgs(ITransportStream ts, Action accept)
+        public AcceptPeerConnectionEventArgs(ITransportStream ts, Func<TConnection> accept)
         {
-            Stream = ts;
+            TransportStream = ts;
             Accept = accept;
         }
+
+        public ITransportStream TransportStream { get; }
+        public Func<TConnection> Accept { get; }
     }
 }

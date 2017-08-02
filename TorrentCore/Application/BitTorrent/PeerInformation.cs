@@ -23,7 +23,7 @@ using TorrentCore.Data;
 
 namespace TorrentCore.Application.BitTorrent
 {
-    class PeerInformation
+    class PeerInformation1
     {
         public bool IsRemotePeerInterested { get; set; }
 
@@ -39,7 +39,7 @@ namespace TorrentCore.Application.BitTorrent
 
         public HashSet<BlockRequest> Requested { get; private set; }
 
-        public PeerInformation(Metainfo meta)
+        public PeerInformation1(Metainfo meta)
         {
             Available = new Bitfield(meta.Pieces.Count);
             RequestedByRemotePeer = new HashSet<BlockRequest>();

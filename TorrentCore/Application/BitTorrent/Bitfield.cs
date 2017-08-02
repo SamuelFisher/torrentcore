@@ -26,7 +26,7 @@ namespace TorrentCore.Application.BitTorrent
     /// <summary>
     /// Represents the pieces a client has available.
     /// </summary>
-    class Bitfield
+    public class Bitfield
     {
         private byte[] data;
 

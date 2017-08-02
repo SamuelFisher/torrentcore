@@ -25,6 +25,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
+using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Tracker;
@@ -39,21 +40,22 @@ namespace TorrentCore
     {
         private static readonly ILogger Log = LogManager.GetLogger<TorrentDownloadManager>();
 
+        private readonly PeerId localPeerId;
         private readonly IMainLoop mainLoop;
         private readonly PieceCheckerHandler dataHandler;
 
         private volatile int recentlyDownloaded;
         private volatile int recentlyUploaded;
 
-        internal TorrentDownloadManager(IMainLoop loop,
-                                        Func<ITorrentDownloadManager, ITransportProtocol> transportProtocol,
-                                        Func<ITorrentDownloadManager, IApplicationProtocol> applicationProtocol,
+        internal TorrentDownloadManager(PeerId localPeerId,
+                                        IMainLoop mainLoop,
+                                        Func<ITorrentDownloadManager, IApplicationProtocol<PeerConnection>> applicationProtocol,
                                         ITracker tracker,
                                         IFileHandler handler,
                                         Metainfo description)
         {
-            mainLoop = loop;
-            TransportProtocol = transportProtocol(this);
+            this.localPeerId = localPeerId;
+            this.mainLoop = mainLoop;
             ApplicationProtocol = applicationProtocol(this);
             dataHandler = new PieceCheckerHandler(new BlockDataHandler(handler, description));
             dataHandler.PieceCompleted += args => CompletedPieces.Add(args.Piece);
@@ -65,10 +67,8 @@ namespace TorrentCore
             DownloadRateMeasurer = new RateMeasurer();
             UploadRateMeasurer = new RateMeasurer();
         }
-
-        internal ITransportProtocol TransportProtocol { get; }
-
-        internal IApplicationProtocol ApplicationProtocol { get; }
+        
+        internal IApplicationProtocol<PeerConnection> ApplicationProtocol { get; }
 
         internal ITracker Tracker { get; }
 
@@ -128,13 +128,7 @@ namespace TorrentCore
         {
             if (State != DownloadState.Stopped)
                 throw new InvalidOperationException("Already started.");
-
-            Log.LogInformation("Starting download");
-
-            // Make sure loop is not already running
-            if (mainLoop.IsRunning)
-                return;
-
+            
             Log.LogInformation("Checking downloaded data...");
 
             State = DownloadState.Checking;
@@ -151,15 +145,11 @@ namespace TorrentCore
                 State = DownloadState.Completed;
 
             SetDownloadProgress();
-
-            // Listen for incoming connections
-            TransportProtocol.Start();
-
+            
             await ContactTracker();
 
             // Start main loop
             mainLoop.AddRegularTask(() => ApplicationProtocol.Iterate());
-            mainLoop.Start();
         }
 
         private void SetDownloadProgress()
@@ -208,7 +198,7 @@ namespace TorrentCore
 
             try
             {
-                var request = new AnnounceRequest(((TcpTransportProtocol)TransportProtocol).Port,
+                var request = new AnnounceRequest(localPeerId,
                                                   Remaining,
                                                   Description.InfoHash);
 
@@ -217,7 +207,7 @@ namespace TorrentCore
                 Log.LogInformation($"{result.Peers.Count} peers available");
 
                 if (State != DownloadState.Completed)
-                    ApplicationProtocol.PeersAvailable(result.Peers.Select(x => TransportProtocol.CreateTransportStream(x.IPAddress, x.Port, Description.InfoHash)));
+                    ApplicationProtocol.PeersAvailable(result.Peers);
             }
             catch (System.Net.Http.HttpRequestException)
             {
@@ -229,9 +219,8 @@ namespace TorrentCore
 
         public void Stop()
         {
+            // TODO
             State = DownloadState.Stopped;
-            TransportProtocol.Stop();
-            mainLoop.Stop();
         }
 
         public void Dispose()

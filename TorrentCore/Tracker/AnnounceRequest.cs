@@ -21,6 +21,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Data;
+using TorrentCore.Transport;
 
 namespace TorrentCore.Tracker
 {
@@ -29,33 +30,19 @@ namespace TorrentCore.Tracker
     /// </summary>
     public class AnnounceRequest
     {
-        public AnnounceRequest(int listenPort,
-                               long remaining,
-                               Sha1Hash infoHash)
-            : this(null, listenPort, remaining, infoHash)
-        {
-        }
-
-        public AnnounceRequest(IPAddress listenAddress,
-                               int listenPort,
+        public AnnounceRequest(PeerId peerId,
                                long remaining,
                                Sha1Hash infoHash)
         {
-            ListenAddress = listenAddress;
-            ListenPort = listenPort;
+            PeerId = peerId;
             Remaining = remaining;
             InfoHash = infoHash;
         }
 
         /// <summary>
-        /// Gets or sets the address the client is listening on for incoming connections from other peers.
+        /// Gets the ID of the peer making the announce request.
         /// </summary>
-        public IPAddress ListenAddress { get; }
-
-        /// <summary>
-        /// Gets or sets the port the client is listening on for incoming connections from other peers.
-        /// </summary>
-        public int ListenPort { get; }
+        public PeerId PeerId { get; }
 
         /// <summary>
         /// Gets or sets the number of bytes left to download.

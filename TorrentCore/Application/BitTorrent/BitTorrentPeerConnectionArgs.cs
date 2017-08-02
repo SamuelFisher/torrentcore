@@ -16,20 +16,28 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using TorrentCore.Application.BitTorrent;
+using TorrentCore.Data;
+using TorrentCore.Engine;
+using TorrentCore.Transport;
 
-namespace TorrentCore.Transport
+namespace TorrentCore.Application.BitTorrent
 {
-    public interface IMessageHandler
+    class BitTorrentPeerConnectionArgs
     {
-        /// <summary>
-        /// Invoked when a message is received from a connected stream.
-        /// </summary>
-        /// <param name="peer">Peer the message was received from.</param>
-        /// <param name="data">Received message data.</param>
-        void MessageReceived(PeerConnection peer, byte[] data);
+        public BitTorrentPeerConnectionArgs(PeerId localPeerId,
+                                            Metainfo metainfo,
+                                            IMessageHandler messageHandler)
+        {
+            LocalPeerId = localPeerId;
+            Metainfo = metainfo;
+            MessageHandler = messageHandler;
+        }
+
+        public PeerId LocalPeerId { get; }
+
+        public Metainfo Metainfo { get; }
+
+        public IMessageHandler MessageHandler { get; }
     }
 }

@@ -18,16 +18,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TorrentCore.Transport;
 
 namespace TorrentCore.Tracker
 {
     public class AnnounceResult
     {
-        public AnnounceResult(IEnumerable<AnnounceResultPeer> peers)
+        public AnnounceResult(IEnumerable<ITransportStream> peers)
         {
             Peers = peers.ToArray();
         }
 
-        public IReadOnlyList<AnnounceResultPeer> Peers { get; }
+        public IReadOnlyList<ITransportStream> Peers { get; }
     }
 }

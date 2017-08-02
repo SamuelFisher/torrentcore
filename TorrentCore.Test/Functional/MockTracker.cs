@@ -21,16 +21,22 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Tracker;
+using TorrentCore.Transport;
 
 namespace TorrentCore.Test.Functional
 {
-    public class MockTracker : ITrackerClientFactory
+    class MockTracker : ITrackerClientFactory
     {
         private readonly List<IPEndPoint> peers = new List<IPEndPoint>();
 
         public ITracker CreateTrackerClient(Uri trackerUri)
         {
             return new TrackerClient(peers);
+        }
+
+        public void RegisterPeer(int port)
+        {
+            peers.Add(new IPEndPoint(IPAddress.Loopback, port));
         }
 
         private class TrackerClient : ITracker
@@ -46,8 +52,7 @@ namespace TorrentCore.Test.Functional
 
             public Task<AnnounceResult> Announce(AnnounceRequest request)
             {
-                var result = new AnnounceResult(peers.Select(x => new AnnounceResultPeer(x.Address, x.Port)));
-                peers.Add(new IPEndPoint(request.ListenAddress ?? IPAddress.Loopback, request.ListenPort));
+                var result = new AnnounceResult(peers.Select(x => new TcpTransportStream(IPAddress.Loopback, x.Address, x.Port)));
                 return Task.FromResult(result);
             }
         }

@@ -47,7 +47,5 @@ namespace TorrentCore.Transport
         /// Stops the transport protocol.
         /// </summary>
         void Stop();
-
-        ITransportStream CreateTransportStream(IPAddress address, int port, Sha1Hash infoHash);
     }
 }

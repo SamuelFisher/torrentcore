@@ -31,14 +31,15 @@ using TorrentCore.Transport;
 
 namespace TorrentCore
 {
-    public class TorrentClient : IMessageHandler, IDisposable
+    public class TorrentClient : IDisposable
     {
         private static readonly ILogger Log = LogManager.GetLogger<TorrentClient>();
 
         private readonly IDictionary<Sha1Hash, TorrentDownload> downloads;
         private readonly MainLoop mainLoop;
-        private readonly TcpTransportProtocol transport;
+        private readonly TcpBasedTransportProtocol transport;
         private readonly ITrackerClientFactory trackerClientFactory;
+        private readonly BitTorrentPeerInitiator peerInitiator;
         private Timer updateStatisticsTimer;
 
         public TorrentClient()
@@ -55,16 +56,28 @@ namespace TorrentCore
         {
             downloads = new Dictionary<Sha1Hash, TorrentDownload>();
             mainLoop = new MainLoop();
+            mainLoop.Start();
+            peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol)downloads[infoHash].Manager.ApplicationProtocol);
             LocalPeerId = settings.PeerId;
-            transport = new TcpTransportProtocol(this,
-                                                 mainLoop,
-                                                 settings.ListenPort,
-                                                 settings.FindAvailablePort,
-                                                 settings.AdapterAddress,
-                                                 LocalPeerId,
-                                                 AcceptConnection);
-            trackerClientFactory = new TrackerClientFactory();
+            transport = new TcpBasedTransportProtocol(settings.ListenPort,
+                                                      settings.FindAvailablePort,
+                                                      settings.AdapterAddress,
+                                                      LocalPeerId,
+                                                      AcceptConnection);
+            transport.Start();
+            trackerClientFactory = new TrackerClientFactory(transport.LocalConection);
             updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+        }
+
+        private void AcceptConnection(AcceptConnectionEventArgs e)
+        {
+            var applicationProtocol = peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream);
+            applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
+            {
+                e.Accept();
+                var c = new BitTorrentPeerConnectionArgs(LocalPeerId, applicationProtocol.Manager.Description, new QueueingMessageHandler(mainLoop, applicationProtocol));
+                return peerInitiator.AcceptIncomingConnection(e.TransportStream, c);
+            }));
         }
 
         /// <summary>
@@ -72,7 +85,7 @@ namespace TorrentCore
         /// </summary>
         public PeerId LocalPeerId { get; }
 
-        internal TcpTransportProtocol Transport => transport;
+        internal TcpBasedTransportProtocol Transport => transport;
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());
 
@@ -94,9 +107,9 @@ namespace TorrentCore
 
         internal TorrentDownload Add(Metainfo metainfo, ITracker tracker, IFileHandler fileHandler)
         {
-            var downloadManager = new TorrentDownloadManager(mainLoop,
-                                                             manager => transport,
-                                                             manager => new BitTorrentApplicationProtocol(manager),
+            var downloadManager = new TorrentDownloadManager(LocalPeerId,
+                                                             mainLoop,
+                                                             manager => new BitTorrentApplicationProtocol(LocalPeerId, manager, peerInitiator, m => new QueueingMessageHandler(mainLoop, m)),
                                                              tracker,
                                                              fileHandler,
                                                              metainfo);
@@ -105,19 +118,6 @@ namespace TorrentCore
 
             downloads.Add(metainfo.InfoHash, download);
             return download;
-        }
-
-        void IMessageHandler.MessageReceived(ITransportStream stream, byte[] data)
-        {
-            // Route to the ApplicationProtocol responsible for this infohash
-            downloads[stream.InfoHash].Manager.ApplicationProtocol.MessageReceived(stream, data);
-        }
-
-        private void AcceptConnection(AcceptConnectionEventArgs e)
-        {
-            Log.LogDebug("A peer wants to connect");
-
-            downloads[e.Stream.InfoHash].Manager.ApplicationProtocol.AcceptConnection(e);
         }
 
         private void UpdateStatistics(object state)
