@@ -3,6 +3,7 @@ import './App.css';
 import Torrents from './components/Torrents';
 import TorrentDetails from './components/TorrentDetails';
 import Peers from './components/Peers';
+import PeerDetails from './components/PeerDetails';
 import About from './components/About';
 import {
   BrowserRouter as Router,
@@ -48,7 +49,8 @@ class App extends React.Component<{}, {}> {
               />
               <Route exact={true} path="/torrents" component={Torrents} />
               <Route path="/torrents/:infoHash" component={TorrentDetails} />
-              <Route path="/peers" component={Peers} />
+              <Route exact={true} path="/peers" component={Peers} />
+              <Route path="/peers/:peerId" component={PeerDetails} />
               <Route path="/about" component={About} />
             </div>
           </div>

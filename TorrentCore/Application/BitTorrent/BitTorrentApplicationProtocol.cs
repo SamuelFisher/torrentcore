@@ -58,7 +58,7 @@ namespace TorrentCore.Application.BitTorrent
 
         public ITorrentDownloadManager Manager { get; }
 
-        public IReadOnlyCollection<BitTorrentPeerDetails> Peers => peers.Select(x => new BitTorrentPeerDetails(x.Key.Address)).ToList();
+        public IReadOnlyCollection<BitTorrentPeerDetails> Peers => peers.Select(x => new BitTorrentPeerDetails(x.Key.Address, x.Key.PeerId)).ToList();
 
         public IEnumerable<BlockRequest> OutstandingBlockRequests => peers.SelectMany(x => x.Value.Requested);
 

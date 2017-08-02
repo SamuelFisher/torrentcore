@@ -17,16 +17,20 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent
 {
     public sealed class BitTorrentPeerDetails
     {
-        public BitTorrentPeerDetails(string address)
+        public BitTorrentPeerDetails(string address, PeerId peerId)
         {
             Address = address;
+            PeerId = peerId;
         }
 
         public string Address { get; }
+
+        public PeerId PeerId { get; }
     }
 }

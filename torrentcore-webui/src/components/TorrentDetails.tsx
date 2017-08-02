@@ -1,5 +1,6 @@
 import * as React from 'react';
 import axios from 'axios';
+import {Link} from 'react-router-dom';
 
 export interface Props {
   match: any;
@@ -73,7 +74,7 @@ export default class TorrentDetails extends React.Component<Props, State> {
             {this.state.torrent.peers.map(function(p: any, i: number){
                 return (
                   <tr>
-                    <td>{p.address}</td>
+                    <td><Link to={'/peers/' + p.peerId}>{p.address}</Link></td>
                   </tr>
                 );
             })}

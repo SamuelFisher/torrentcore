@@ -61,7 +61,8 @@ namespace TorrentCore.Web.Controllers
                 UploadRate = torrent.Manager.UploadRateMeasurer.AverageRate(),
                 Peers = (torrent.Manager.ApplicationProtocol as BitTorrentApplicationProtocol).Peers.Select(p => new
                 {
-                    p.Address
+                    p.Address,
+                    PeerId = Convert.ToBase64String(p.PeerId.Value.ToArray())
                 }),
                 Pieces = torrent.Description.Pieces.Select(x => new
                 {
@@ -75,7 +76,7 @@ namespace TorrentCore.Web.Controllers
                     x.Offset,
                     x.Length
                 }),
-                Trackers = torrent.Trackers
+                torrent.Trackers
             };
         }
     }

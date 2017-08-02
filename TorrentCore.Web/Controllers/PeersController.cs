@@ -40,12 +40,18 @@ namespace TorrentCore.Web.Controllers
             return client.Transport.PeerStreams.Where(x => x.IsConnected).Select(x => new PeerDetails(x)).ToList();
         }
 
+        [HttpGet("{peerId}")]
+        public PeerDetails GetPeer(string peerId)
+        {
+            return Get().First(x => x.PeerId == peerId);
+        }
+
         public class PeerDetails
         {
             internal PeerDetails(PeerStream x)
             {
                 Address = x.Address;
-                PeerId = x.PeerId.ToString();
+                PeerId = Convert.ToBase64String(x.PeerId.Value.ToArray());
                 Client = x.PeerId.ClientName;
                 ClientVersion = x.PeerId.ClientVersion;
                 string ipAddress = Address.Split(':').First();

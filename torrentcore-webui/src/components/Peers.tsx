@@ -1,5 +1,6 @@
 import * as React from 'react';
 import axios from 'axios';
+import {Link} from 'react-router-dom';
 
 export interface Props {
 }
@@ -34,18 +35,16 @@ export default class Peers extends React.Component<Props, State> {
               <th>Hostname</th>
               <th>Client</th>
               <th>Version</th>
-              <th>ID</th>
             </tr>
           </thead>
           <tbody>
             {peers.map(function(o: any, i: number){
                 return (
                   <tr>
-                    <td>{o.address}</td>
+                    <td><Link to={'/peers/' + o.peerId}>{o.address}</Link></td>
                     <td>{o.host}</td>
                     <td>{o.client}</td>
                     <td>{o.clientVersion}</td>
-                    <td>{o.peerId}</td>
                   </tr>
                 );
             })}
