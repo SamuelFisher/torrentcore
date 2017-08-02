@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using TorrentCore.Application.BitTorrent;
 
 namespace TorrentCore.Web.Controllers
 {
@@ -40,7 +39,7 @@ namespace TorrentCore.Web.Controllers
             {
                 x.Description.Name,
                 InfoHash = x.Description.InfoHash.ToString(),
-                Peers = (x.Manager.ApplicationProtocol as BitTorrentApplicationProtocol).Peers.Count,
+                Peers = x.Manager.ApplicationProtocol.Peers.Count,
                 x.Progress,
                 State = x.State.ToString()
             });
@@ -59,7 +58,7 @@ namespace TorrentCore.Web.Controllers
                 torrent.Manager.Downloaded,
                 DownloadRate = torrent.Manager.DownloadRateMeasurer.AverageRate(),
                 UploadRate = torrent.Manager.UploadRateMeasurer.AverageRate(),
-                Peers = (torrent.Manager.ApplicationProtocol as BitTorrentApplicationProtocol).Peers.Select(p => new
+                Peers = torrent.Manager.ApplicationProtocol.Peers.Select(p => new
                 {
                     p.Address,
                     PeerId = Convert.ToBase64String(p.PeerId.Value.ToArray())
@@ -69,12 +68,6 @@ namespace TorrentCore.Web.Controllers
                     x.Index,
                     x.Size,
                     Completed = torrent.Manager.CompletedPieces.Contains(x)
-                }),
-                BlockRequests = (torrent.Manager.ApplicationProtocol as BitTorrentApplicationProtocol).OutstandingBlockRequests.Select(x => new
-                {
-                    x.PieceIndex,
-                    x.Offset,
-                    x.Length
                 }),
                 torrent.Trackers
             };

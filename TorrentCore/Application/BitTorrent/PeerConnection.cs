@@ -34,12 +34,14 @@ namespace TorrentCore.Application.BitTorrent
 
         internal PeerConnection(Metainfo meta,
                                 PeerId peerId,
+                                ProtocolExtension supportedExtensions,
                                 IMessageHandler messageHandler,
                                 ITransportStream transportStream)
         {
             this.messageHandler = messageHandler;
             this.transportStream = transportStream;
             PeerId = peerId;
+            SupportedExtensions = supportedExtensions;
             InfoHash = meta.InfoHash;
             reader = new BigEndianBinaryReader(transportStream.Stream);
             writer = new BigEndianBinaryWriter(transportStream.Stream);
@@ -61,6 +63,11 @@ namespace TorrentCore.Application.BitTorrent
         public PeerId PeerId { get; }
 
         /// <summary>
+        /// Gets the address of this peer.
+        /// </summary>
+        public string Address => transportStream.Address;
+
+        /// <summary>
         /// Gets the protocol extensions supported by this peer.
         /// </summary>
         public ProtocolExtension SupportedExtensions { get; }
@@ -70,15 +77,15 @@ namespace TorrentCore.Application.BitTorrent
         /// </summary>
         public Sha1Hash InfoHash { get; }
 
-        public bool IsRemotePeerInterested { get; set; }
+        public bool IsRemotePeerInterested { get; internal set; }
 
-        public bool IsInterestedInRemotePeer { get; set; }
+        public bool IsInterestedInRemotePeer { get; internal set; }
 
-        public bool IsChokedByRemotePeer { get; set; }
+        public bool IsChokedByRemotePeer { get; internal set; }
 
-        public bool IsChokingRemotePeer { get; set; }
+        public bool IsChokingRemotePeer { get; internal set; }
 
-        public Bitfield Available { get; set; }
+        public Bitfield Available { get; internal set; }
 
         public HashSet<BlockRequest> RequestedByRemotePeer { get; }
 

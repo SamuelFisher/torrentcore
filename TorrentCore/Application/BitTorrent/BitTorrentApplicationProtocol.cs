@@ -24,6 +24,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using TorrentCore.Application.BitTorrent.Connection;
 using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Transport;
@@ -33,12 +34,12 @@ namespace TorrentCore.Application.BitTorrent
     /// <summary>
     /// Represents the network protocol for BitTorrent.
     /// </summary>
-    class BitTorrentApplicationProtocol : IApplicationProtocol<PeerConnection>, IMessageHandler
+    class BitTorrentApplicationProtocol<TConnectionContext> : IApplicationProtocol<PeerConnection>, IMessageHandler
     {
         private readonly PeerId localPeerId;
-        private readonly IApplicationProtocolPeerInitiator<PeerConnection, BitTorrentPeerConnectionArgs> peerInitiator;
+        private readonly IApplicationProtocolPeerInitiator<PeerConnection, TConnectionContext, PeerConnectionArgs> peerInitiator;
         private readonly Func<IMessageHandler, IMessageHandler> messageHandlerFactory;
-        private static readonly ILogger Log = LogManager.GetLogger<BitTorrentApplicationProtocol>();
+        private static readonly ILogger Log = LogManager.GetLogger<BitTorrentApplicationProtocol<TConnectionContext>>();
 
         private readonly IPiecePicker picker;
         private readonly ConcurrentBag<PeerConnection> peers = new ConcurrentBag<PeerConnection>();
@@ -54,7 +55,7 @@ namespace TorrentCore.Application.BitTorrent
         /// </summary>
         public BitTorrentApplicationProtocol(PeerId localPeerId,
                                              ITorrentDownloadManager manager,
-                                             IApplicationProtocolPeerInitiator<PeerConnection, BitTorrentPeerConnectionArgs> peerInitiator,
+                                             IApplicationProtocolPeerInitiator<PeerConnection, TConnectionContext, PeerConnectionArgs> peerInitiator,
                                              Func<IMessageHandler, IMessageHandler> messageHandlerFactory)
         {
             this.localPeerId = localPeerId;
@@ -67,7 +68,7 @@ namespace TorrentCore.Application.BitTorrent
 
         public ITorrentDownloadManager Manager { get; }
 
-        public IReadOnlyCollection<BitTorrentPeerDetails> Peers => throw new NotImplementedException(); //peers.Select(x => new BitTorrentPeerDetails(x.Key.Address, x.Key.PeerId)).ToList();
+        public IReadOnlyCollection<PeerConnection> Peers => peers;
 
         public IEnumerable<BlockRequest> OutstandingBlockRequests => peers.SelectMany(x => x.Requested);
 
@@ -280,9 +281,9 @@ namespace TorrentCore.Application.BitTorrent
 
                         Log.LogInformation($"Connected to peer at {transportStream.Address}");
 
-                        var connectionSettings = new BitTorrentPeerConnectionArgs(localPeerId,
-                                                                                  Manager.Description,
-                                                                                  messageHandlerFactory(this));
+                        var connectionSettings = new PeerConnectionArgs(localPeerId,
+                                                                        Manager.Description,
+                                                                        messageHandlerFactory(this));
                         var peer = peerInitiator.InitiateOutgoingConnection(transportStream, connectionSettings);
                         peers.Add(peer);
                         connectingPeers.Remove(transportStream);

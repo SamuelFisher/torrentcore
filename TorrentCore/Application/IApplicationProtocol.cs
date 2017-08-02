@@ -28,6 +28,11 @@ namespace TorrentCore.Application
     public interface IApplicationProtocol<TConnection>
     {
         /// <summary>
+        /// Gets the peers that are currently connected.
+        /// </summary>
+        IReadOnlyCollection<TConnection> Peers { get; }
+
+        /// <summary>
         /// Handles new incoming connection requests.
         /// </summary>
         /// <param name="e">Event args for handling the request.</param>

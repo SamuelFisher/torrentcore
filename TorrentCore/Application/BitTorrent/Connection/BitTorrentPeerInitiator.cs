@@ -22,44 +22,49 @@ using System.Text;
 using TorrentCore.Data;
 using TorrentCore.Transport;
 
-namespace TorrentCore.Application.BitTorrent
+namespace TorrentCore.Application.BitTorrent.Connection
 {
-    class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator<PeerConnection, BitTorrentPeerConnectionArgs>
+    class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator<PeerConnection, BitTorrentPeerInitiator.IContext, PeerConnectionArgs>
     {
-        private readonly Func<Sha1Hash, BitTorrentApplicationProtocol> applicationProtocolLookup;
+        private readonly Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup;
         private const string BitTorrentProtocol = "BitTorrent protocol";
         private const int BitTorrentProtocolReservedBytes = 8;
 
-        public BitTorrentPeerInitiator(Func<Sha1Hash, BitTorrentApplicationProtocol> applicationProtocolLookup)
+        public BitTorrentPeerInitiator(Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup)
         {
             this.applicationProtocolLookup = applicationProtocolLookup;
         }
 
-        public BitTorrentApplicationProtocol PrepareAcceptIncomingConnection(ITransportStream transportStream)
+        public BitTorrentApplicationProtocol<IContext> PrepareAcceptIncomingConnection(ITransportStream transportStream, out IContext context)
         {
             var reader = new BigEndianBinaryReader(transportStream.Stream);
             var header = ReadConnectionHeader(reader);
+            context = new PeerConnectionPreparationContext(header.PeerId, header.SupportedExtensions);
             return applicationProtocolLookup(header.InfoHash);
         }
 
-        IApplicationProtocol<PeerConnection> IApplicationProtocolPeerInitiator<PeerConnection, BitTorrentPeerConnectionArgs>.PrepareAcceptIncomingConnection(ITransportStream transportStream)
+        IApplicationProtocol<PeerConnection> IApplicationProtocolPeerInitiator<PeerConnection, IContext, PeerConnectionArgs>.PrepareAcceptIncomingConnection(
+            ITransportStream transportStream,
+            out IContext context)
         {
-            return PrepareAcceptIncomingConnection(transportStream);
+            return PrepareAcceptIncomingConnection(transportStream, out context);
         }
 
         public PeerConnection AcceptIncomingConnection(ITransportStream transportStream,
-                                                       BitTorrentPeerConnectionArgs c)
+                                                       IContext context,
+                                                       PeerConnectionArgs c)
         {
             var writer = new BigEndianBinaryWriter(transportStream.Stream);
             WriteConnectionHeader(writer, c.Metainfo.InfoHash, c.LocalPeerId);
             return new PeerConnection(c.Metainfo,
-                                      null,
+                                      context.PeerId,
+                                      context.SupportedExtensions,
                                       c.MessageHandler,
                                       transportStream);
         }
 
         public PeerConnection InitiateOutgoingConnection(ITransportStream transportStream,
-                                                         BitTorrentPeerConnectionArgs c)
+                                                         PeerConnectionArgs c)
         {
             var writer = new BigEndianBinaryWriter(transportStream.Stream);
             var reader = new BigEndianBinaryReader(transportStream.Stream);
@@ -74,6 +79,7 @@ namespace TorrentCore.Application.BitTorrent
 
             return new PeerConnection(c.Metainfo,
                                       header.PeerId,
+                                      header.SupportedExtensions,
                                       c.MessageHandler,
                                       transportStream);
         }
@@ -128,6 +134,25 @@ namespace TorrentCore.Application.BitTorrent
             public Sha1Hash InfoHash { get; set; }
             public PeerId PeerId { get; set; }
             public ProtocolExtension SupportedExtensions { get; set; }
+        }
+
+        private class PeerConnectionPreparationContext : IContext
+        {
+            internal PeerConnectionPreparationContext(PeerId peerId, ProtocolExtension supportExtensions)
+            {
+                PeerId = peerId;
+                SupportedExtensions = supportExtensions;
+            }
+
+            public PeerId PeerId { get; }
+
+            public ProtocolExtension SupportedExtensions { get; }
+        }
+
+        public interface IContext
+        {
+            PeerId PeerId { get; }
+            ProtocolExtension SupportedExtensions { get; }
         }
     }
 }

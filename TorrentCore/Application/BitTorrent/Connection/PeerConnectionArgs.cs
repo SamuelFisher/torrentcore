@@ -21,11 +21,11 @@ using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Transport;
 
-namespace TorrentCore.Application.BitTorrent
+namespace TorrentCore.Application.BitTorrent.Connection
 {
-    class BitTorrentPeerConnectionArgs
+    class PeerConnectionArgs
     {
-        public BitTorrentPeerConnectionArgs(PeerId localPeerId,
+        public PeerConnectionArgs(PeerId localPeerId,
                                             Metainfo metainfo,
                                             IMessageHandler messageHandler)
         {

@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
+using TorrentCore.Application.BitTorrent.Connection;
 using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Tracker;
@@ -57,7 +58,7 @@ namespace TorrentCore
             downloads = new Dictionary<Sha1Hash, TorrentDownload>();
             mainLoop = new MainLoop();
             mainLoop.Start();
-            peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol)downloads[infoHash].Manager.ApplicationProtocol);
+            peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol);
             LocalPeerId = settings.PeerId;
             transport = new TcpBasedTransportProtocol(settings.ListenPort,
                                                       settings.FindAvailablePort,
@@ -71,12 +72,12 @@ namespace TorrentCore
 
         private void AcceptConnection(AcceptConnectionEventArgs e)
         {
-            var applicationProtocol = peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream);
+            var applicationProtocol = peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream, out BitTorrentPeerInitiator.IContext context);
             applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
             {
                 e.Accept();
-                var c = new BitTorrentPeerConnectionArgs(LocalPeerId, applicationProtocol.Manager.Description, new QueueingMessageHandler(mainLoop, applicationProtocol));
-                return peerInitiator.AcceptIncomingConnection(e.TransportStream, c);
+                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Manager.Description, new QueueingMessageHandler(mainLoop, applicationProtocol));
+                return peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
             }));
         }
 
@@ -109,7 +110,7 @@ namespace TorrentCore
         {
             var downloadManager = new TorrentDownloadManager(LocalPeerId,
                                                              mainLoop,
-                                                             manager => new BitTorrentApplicationProtocol(LocalPeerId, manager, peerInitiator, m => new QueueingMessageHandler(mainLoop, m)),
+                                                             manager => new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, manager, peerInitiator, m => new QueueingMessageHandler(mainLoop, m)),
                                                              tracker,
                                                              fileHandler,
                                                              metainfo);
