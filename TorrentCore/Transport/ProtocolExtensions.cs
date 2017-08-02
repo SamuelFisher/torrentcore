@@ -32,6 +32,9 @@ namespace TorrentCore.Transport
             if ((reserved[7] & 0x01) != 0)
                 protocols |= ProtocolExtension.Dht;
 
+            if ((reserved[5] & 0x10) != 0)
+                protocols |= ProtocolExtension.ExtensionProtocol;
+
             return protocols;
         }
     }
@@ -49,6 +52,11 @@ namespace TorrentCore.Transport
         /// <summary>
         /// BEP 5 Distributed Hash Table.
         /// </summary>
-        Dht = 2
+        Dht = 2,
+
+        /// <summary>
+        /// BEP 10 Extension Protocol.
+        /// </summary>
+        ExtensionProtocol = 3
     }
 }
