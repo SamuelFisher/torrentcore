@@ -29,6 +29,7 @@ using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Tracker;
 using TorrentCore.Transport;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore
 {
@@ -38,7 +39,7 @@ namespace TorrentCore
 
         private readonly IDictionary<Sha1Hash, TorrentDownload> downloads;
         private readonly MainLoop mainLoop;
-        private readonly TcpBasedTransportProtocol transport;
+        private readonly TcpTransportProtocol transport;
         private readonly ITrackerClientFactory trackerClientFactory;
         private readonly BitTorrentPeerInitiator peerInitiator;
         private Timer updateStatisticsTimer;
@@ -60,11 +61,10 @@ namespace TorrentCore
             mainLoop.Start();
             peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol);
             LocalPeerId = settings.PeerId;
-            transport = new TcpBasedTransportProtocol(settings.ListenPort,
-                                                      settings.FindAvailablePort,
-                                                      settings.AdapterAddress,
-                                                      LocalPeerId,
-                                                      AcceptConnection);
+            transport = new TcpTransportProtocol(settings.ListenPort,
+                                                 settings.FindAvailablePort,
+                                                 settings.AdapterAddress,
+                                                 AcceptConnection);
             transport.Start();
             trackerClientFactory = new TrackerClientFactory(transport.LocalConection);
             updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
@@ -86,7 +86,7 @@ namespace TorrentCore
         /// </summary>
         public PeerId LocalPeerId { get; }
 
-        internal TcpBasedTransportProtocol Transport => transport;
+        internal TcpTransportProtocol Transport => transport;
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());
 

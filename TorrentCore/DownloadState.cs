@@ -28,6 +28,8 @@ namespace TorrentCore
     [Flags]
     public enum DownloadState
     {
+        Pending = 0,
+
         /// <summary>
         /// The downloaded files are being hashed.
         /// </summary>

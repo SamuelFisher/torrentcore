@@ -20,7 +20,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Data;
-using TorrentCore.Engine;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent

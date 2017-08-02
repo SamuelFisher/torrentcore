@@ -61,7 +61,7 @@ namespace TorrentCore
             dataHandler.PieceCompleted += args => CompletedPieces.Add(args.Piece);
             Description = description;
             Tracker = tracker;
-            State = DownloadState.Stopped;
+            State = DownloadState.Pending;
             Downloaded = 0;
             CompletedPieces = new HashSet<Piece>();
             DownloadRateMeasurer = new RateMeasurer();
@@ -126,8 +126,14 @@ namespace TorrentCore
 
         public async Task Start()
         {
-            if (State != DownloadState.Stopped)
+            if (State != DownloadState.Pending && State != DownloadState.Stopped)
                 throw new InvalidOperationException("Already started.");
+
+            if (State == DownloadState.Stopped)
+            {
+                State = Remaining == 0 ? DownloadState.Completed : DownloadState.Downloading;
+                return;
+            }
             
             Log.LogInformation("Checking downloaded data...");
 
@@ -149,7 +155,11 @@ namespace TorrentCore
             await ContactTracker();
 
             // Start main loop
-            mainLoop.AddRegularTask(() => ApplicationProtocol.Iterate());
+            mainLoop.AddRegularTask(() =>
+            {
+                if (State != DownloadState.Stopped)
+                    ApplicationProtocol.Iterate();
+            });
         }
 
         private void SetDownloadProgress()
@@ -219,7 +229,6 @@ namespace TorrentCore
 
         public void Stop()
         {
-            // TODO
             State = DownloadState.Stopped;
         }
 

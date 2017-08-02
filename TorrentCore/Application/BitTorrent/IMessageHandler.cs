@@ -21,7 +21,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Application.BitTorrent;
 
-namespace TorrentCore.Transport
+namespace TorrentCore.Application.BitTorrent
 {
     public interface IMessageHandler
     {

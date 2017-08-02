@@ -21,7 +21,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Tracker;
-using TorrentCore.Transport;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Test.Functional
 {

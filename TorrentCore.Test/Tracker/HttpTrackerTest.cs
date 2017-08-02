@@ -23,6 +23,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BencodeNET.Objects;
 using NUnit.Framework;
+using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
 using TorrentCore.Tracker;
 using TorrentCore.Tracker.Http;

@@ -22,7 +22,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace TorrentCore.Transport
+namespace TorrentCore.Application.BitTorrent
 {
     public sealed class PeerId
     {

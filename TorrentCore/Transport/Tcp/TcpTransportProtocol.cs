@@ -24,17 +24,16 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using TorrentCore.Transport.Tcp;
 
-namespace TorrentCore.Transport
+namespace TorrentCore.Transport.Tcp
 {
     /// <summary>
     /// Base class for transport protocols using TCP.
     /// Provides a TCP listener for incoming connections.
     /// </summary>
-    class TcpBasedTransportProtocol : ITransportProtocol
+    class TcpTransportProtocol : ITransportProtocol
     {
-        private static readonly ILogger Log = LogManager.GetLogger<TcpBasedTransportProtocol>();
+        private static readonly ILogger Log = LogManager.GetLogger<TcpTransportProtocol>();
 
         private readonly bool bindToNextAvailablePort;
         private readonly ConcurrentBag<TcpTransportStream> streams;
@@ -49,12 +48,10 @@ namespace TorrentCore.Transport
         /// <param name="port">Port to listen on for incoming connections.</param>
         /// <param name="bindToNextAvailablePort">If the specified port is in use, attempts to bind to the next available port.</param>
         /// <param name="localBindAddress">The local address to use for connections.</param>
-        /// <param name="localPeerId">The Peer ID of the local client.</param>
-        public TcpBasedTransportProtocol(int port,
-                                         bool bindToNextAvailablePort,
-                                         IPAddress localBindAddress,
-                                         PeerId localPeerId,
-                                         Action<AcceptConnectionEventArgs> acceptConnectionHandler)
+        public TcpTransportProtocol(int port,
+                                    bool bindToNextAvailablePort,
+                                    IPAddress localBindAddress,
+                                    Action<AcceptConnectionEventArgs> acceptConnectionHandler)
         {
             streams = new ConcurrentBag<TcpTransportStream>();
             AcceptConnectionHandler = acceptConnectionHandler;

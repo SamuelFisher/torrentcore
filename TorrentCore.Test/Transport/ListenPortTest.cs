@@ -20,8 +20,7 @@ using System.Net;
 using System.Text;
 using Moq;
 using NUnit.Framework;
-using TorrentCore.Engine;
-using TorrentCore.Transport;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Test.Transport
 {
@@ -40,13 +39,12 @@ namespace TorrentCore.Test.Transport
             Assert.That(client2.LocalConection.Port, Is.EqualTo(6882));
         }
 
-        private static TcpBasedTransportProtocol CreateTransportProtocol()
+        private static TcpTransportProtocol CreateTransportProtocol()
         {
-            return new TcpBasedTransportProtocol(6881,
-                                                 true,
-                                                 IPAddress.Loopback,
-                                                 PeerId.CreateNew(),
-                                                 _ => { });
+            return new TcpTransportProtocol(6881,
+                                            true,
+                                            IPAddress.Loopback,
+                                            _ => { });
         }
     }
 }

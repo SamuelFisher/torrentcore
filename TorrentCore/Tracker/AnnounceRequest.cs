@@ -20,8 +20,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
-using TorrentCore.Transport;
 
 namespace TorrentCore.Tracker
 {

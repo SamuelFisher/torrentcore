@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TorrentCore.Transport
+namespace TorrentCore.Application.BitTorrent
 {
     static class ProtocolExtensions
     {

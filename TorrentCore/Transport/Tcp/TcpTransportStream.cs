@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Samuel Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -24,7 +24,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TorrentCore.Transport
+namespace TorrentCore.Transport.Tcp
 {
     class TcpTransportStream : ITransportStream
     {
@@ -62,7 +62,7 @@ namespace TorrentCore.Transport
         public IPEndPoint RemoteEndPoint { get; }
 
         string ITransportStream.Address => RemoteEndPoint.ToString();
-        
+
         /// <summary>
         /// Gets a value indicating whether this connection is active.
         /// </summary>
@@ -104,7 +104,7 @@ namespace TorrentCore.Transport
             }
 
             Stream = new RateLimitedStream(client.GetStream());
-            
+
             IsConnecting = false;
             connectionEvent.Set();
         }

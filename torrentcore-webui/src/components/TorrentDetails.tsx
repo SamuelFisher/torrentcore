@@ -16,7 +16,6 @@ interface State {
     uploadRate: number,
     peers: any[],
     pieces: any[],
-    blockRequests: any[],
     trackers: {
       uri: string,
       peers: number,
@@ -40,7 +39,6 @@ export default class TorrentDetails extends React.Component<Props, State> {
         uploadRate: 0,
         peers: [],
         pieces: [],
-        blockRequests: [],
         trackers: []
       }
     };
@@ -125,28 +123,6 @@ export default class TorrentDetails extends React.Component<Props, State> {
                     <td>{t.type}</td>
                     <td>{t.peers}</td>
                     <td>{t.lastAnnounce}</td>
-                  </tr>
-                );
-            })}
-          </tbody>
-        </table>
-
-        <h3>Oustanding Block Requests ({this.state.torrent.blockRequests.length})</h3>
-        <table className="table table-hover table-bordered">
-          <thead className="thead-default">
-            <tr>
-              <th>Piece</th>
-              <th>Offset (B)</th>
-              <th>Length (B)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {this.state.torrent.blockRequests.map(function(p: any, i: number){
-                return (
-                  <tr>
-                    <td>{p.pieceIndex}</td>
-                    <td>{p.offset}</td>
-                    <td>{p.length}</td>
                   </tr>
                 );
             })}
