@@ -47,7 +47,7 @@ namespace TorrentCore.Test.Functional
             public Task<AnnounceResult> Announce(AnnounceRequest request)
             {
                 var result = new AnnounceResult(peers.Select(x => new AnnounceResultPeer(x.Address, x.Port)));
-                peers.Add(new IPEndPoint(request.ListenAddress, request.ListenPort));
+                peers.Add(new IPEndPoint(request.ListenAddress ?? IPAddress.Loopback, request.ListenPort));
                 return Task.FromResult(result);
             }
         }

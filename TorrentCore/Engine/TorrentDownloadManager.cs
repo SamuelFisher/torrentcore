@@ -208,8 +208,7 @@ namespace TorrentCore
 
             try
             {
-                var request = new AnnounceRequest(IPAddress.Loopback,
-                                                  ((TcpTransportProtocol)TransportProtocol).Port,
+                var request = new AnnounceRequest(((TcpTransportProtocol)TransportProtocol).Port,
                                                   Remaining,
                                                   Description.InfoHash);
 

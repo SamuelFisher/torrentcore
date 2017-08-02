@@ -29,6 +29,13 @@ namespace TorrentCore.Tracker
     /// </summary>
     public class AnnounceRequest
     {
+        public AnnounceRequest(int listenPort,
+                               long remaining,
+                               Sha1Hash infoHash)
+            : this(null, listenPort, remaining, infoHash)
+        {
+        }
+
         public AnnounceRequest(IPAddress listenAddress,
                                int listenPort,
                                long remaining,
