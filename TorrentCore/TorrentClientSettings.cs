@@ -43,6 +43,11 @@ namespace TorrentCore
         public int ListenPort { get; set; }
 
         /// <summary>
+        /// If the specified listen port is already in use, attempts to find the next available port.
+        /// </summary>
+        public bool FindAvailablePort { get; set; }
+
+        /// <summary>
         /// Gets or sets the IP address of the local adapter to use for connections.
         /// </summary>
         public IPAddress AdapterAddress { get; set; }

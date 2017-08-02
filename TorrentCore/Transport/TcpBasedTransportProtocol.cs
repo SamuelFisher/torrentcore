@@ -32,7 +32,9 @@ namespace TorrentCore.Transport
     /// </summary>
     abstract class TcpBasedTransportProtocol : ITransportProtocol
     {
-        private readonly TcpListener listener;
+        private readonly bool bindToNextAvailablePort;
+
+        private TcpListener listener;
 
         /// <summary>
         /// Creates a new TcpTransportProtocol which will listen on the specified port.
@@ -40,19 +42,21 @@ namespace TorrentCore.Transport
         /// <param name="messageHandler">The message handler to use.</param>
         /// <param name="mainLoop">The main loop to use for queuing incoming and outgoing messages.</param>
         /// <param name="port">Port to listen on for incoming connections.</param>
+        /// <param name="bindToNextAvailablePort">If the specified port is in use, attempts to bind to the next available port.</param>
         /// <param name="localAddress">The local address to use for connections.</param>
         /// <param name="localPeerId">The Peer ID of the local client.</param>
         protected TcpBasedTransportProtocol(IMessageHandler messageHandler,
                                             IMainLoop mainLoop,
                                             int port,
+                                            bool bindToNextAvailablePort,
                                             IPAddress localAddress,
                                             PeerId localPeerId)
         {
+            this.bindToNextAvailablePort = bindToNextAvailablePort;
             Port = port;
             LocalAddress = localAddress;
             MessageHandler = messageHandler;
             MainLoop = mainLoop;
-            listener = new TcpListener(localAddress, port);
             RateLimiter = new RateLimiter();
             LocalPeerId = localPeerId ?? throw new ArgumentException("Local peer ID cannot be null.", nameof(localPeerId));
         }
@@ -103,7 +107,24 @@ namespace TorrentCore.Transport
         /// </summary>
         public void Start()
         {
-            listener.Start();
+            int port = Port;
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                try
+                {
+                    listener = new TcpListener(LocalAddress, port + attempt);
+                    listener.Start();
+                }
+                catch (SocketException ex)
+                when (ex.SocketErrorCode == SocketError.AddressAlreadyInUse && bindToNextAvailablePort)
+                {
+                    // Try next available port
+                    continue;
+                }
+
+                break;
+            }
+
             // If port=0 was supplied, set the actual port we are listening on.
             Port = ((IPEndPoint)listener.LocalEndpoint).Port;
             AcceptConnection();
@@ -132,20 +153,20 @@ namespace TorrentCore.Transport
         void AcceptConnection()
         {
             Task.Run(async () =>
-                     {
-                         try
-                         {
-                             while (true)
-                             {
-                                 var client = await listener.AcceptTcpClientAsync();
-                                 AcceptConnection(new TransportConnectionEventArgs(client));
-                             }
-                         }
-                         catch
-                         {
-                             // Socket closed
-                         }
-                     });
+            {
+                try
+                {
+                    while (true)
+                    {
+                        var client = await listener.AcceptTcpClientAsync();
+                        AcceptConnection(new TransportConnectionEventArgs(client));
+                    }
+                }
+                catch
+                {
+                    // Socket closed
+                }
+            });
         }
     }
 }

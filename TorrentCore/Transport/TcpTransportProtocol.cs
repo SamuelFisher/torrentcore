@@ -36,10 +36,11 @@ namespace TorrentCore.Transport
         public TcpTransportProtocol(IMessageHandler messageHandler,
                                     IMainLoop mainLoop,
                                     int port,
+                                    bool bindToNextAvailablePort,
                                     IPAddress localAddress,
                                     PeerId localPeerId,
                                     Action<AcceptConnectionEventArgs> acceptConnectionHandler)
-            : base(messageHandler, mainLoop, port, localAddress, localPeerId)
+            : base(messageHandler, mainLoop, port, bindToNextAvailablePort, localAddress, localPeerId)
         {
             PeerStreams = new ConcurrentBag<PeerStream>();
             AcceptConnectionHandler = acceptConnectionHandler;

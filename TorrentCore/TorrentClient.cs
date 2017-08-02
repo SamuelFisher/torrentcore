@@ -41,6 +41,11 @@ namespace TorrentCore
         private readonly ITrackerClientFactory trackerClientFactory;
         private Timer updateStatisticsTimer;
 
+        public TorrentClient()
+            : this (new TorrentClientSettings { FindAvailablePort = true})
+        {
+        }
+
         public TorrentClient(int listenPort)
             : this(new TorrentClientSettings {ListenPort = listenPort})
         {
@@ -54,6 +59,7 @@ namespace TorrentCore
             transport = new TcpTransportProtocol(this,
                                                  mainLoop,
                                                  settings.ListenPort,
+                                                 settings.FindAvailablePort,
                                                  settings.AdapterAddress,
                                                  LocalPeerId,
                                                  AcceptConnection);
