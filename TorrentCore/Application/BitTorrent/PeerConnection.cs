@@ -26,7 +26,7 @@ namespace TorrentCore.Application.BitTorrent
 {
     public class PeerConnection
     {
-        private readonly IMessageHandler messageHandler;
+        private readonly IPeerMessageHandler messageHandler;
         private readonly BigEndianBinaryReader reader;
         private readonly BigEndianBinaryWriter writer;
         private readonly ITransportStream transportStream;
@@ -35,7 +35,7 @@ namespace TorrentCore.Application.BitTorrent
                                 PeerId peerId,
                                 IReadOnlyList<byte> reservedBytes,
                                 ProtocolExtension supportedExtensions,
-                                IMessageHandler messageHandler,
+                                IPeerMessageHandler messageHandler,
                                 ITransportStream transportStream)
         {
             this.messageHandler = messageHandler;
@@ -122,6 +122,7 @@ namespace TorrentCore.Application.BitTorrent
                 catch (IOException)
                 {
                     // Disconnected
+                    messageHandler.PeerDisconnected(this);
                 }
             }, TaskCreationOptions.LongRunning);
         }

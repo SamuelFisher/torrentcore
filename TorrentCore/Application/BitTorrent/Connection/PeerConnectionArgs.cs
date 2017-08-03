@@ -27,7 +27,7 @@ namespace TorrentCore.Application.BitTorrent.Connection
     {
         public PeerConnectionArgs(PeerId localPeerId,
                                             Metainfo metainfo,
-                                            IMessageHandler messageHandler)
+                                            IPeerMessageHandler messageHandler)
         {
             LocalPeerId = localPeerId;
             Metainfo = metainfo;
@@ -38,6 +38,6 @@ namespace TorrentCore.Application.BitTorrent.Connection
 
         public Metainfo Metainfo { get; }
 
-        public IMessageHandler MessageHandler { get; }
+        public IPeerMessageHandler MessageHandler { get; }
     }
 }

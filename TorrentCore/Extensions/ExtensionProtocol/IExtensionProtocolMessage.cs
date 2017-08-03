@@ -16,20 +16,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
-using TorrentCore.Application.BitTorrent;
 
-namespace TorrentCore.Application.BitTorrent
+namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    public interface IMessageHandler
+    public interface IExtensionProtocolMessage
     {
-        /// <summary>
-        /// Invoked when a message is received from a connected stream.
-        /// </summary>
-        /// <param name="peer">Peer the message was received from.</param>
-        /// <param name="data">Received message data.</param>
-        void MessageReceived(PeerConnection peer, byte[] data);
+        string MessageType { get; }
+        byte[] Serialize();
+        void Deserialize(byte[] data);
     }
 }

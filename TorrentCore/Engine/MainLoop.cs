@@ -29,7 +29,7 @@ namespace TorrentCore.Engine
         private readonly ConcurrentQueue<Action> queue = new ConcurrentQueue<Action>();
         private readonly List<Action> regularTasks = new List<Action>();
 
-        private Task mainLoop;
+        private Thread mainLoop;
         private CancellationTokenSource cancelToken;
         private Timer regularTaskTimer;
 
@@ -46,17 +46,22 @@ namespace TorrentCore.Engine
 
                 // Start main loop
                 cancelToken = new CancellationTokenSource();
-                mainLoop = Task.Factory.StartNew(() => Loop(cancelToken.Token), TaskCreationOptions.LongRunning);
+                mainLoop = new Thread(() =>
+                {
+                    Thread.CurrentThread.Name = "MainLoop";
+                    Loop(cancelToken.Token);
+                });
+                mainLoop.Start();
 
                 var scheduleRegularTasks = new Action(() =>
-                                                      {
-                                                          AddTask(() =>
-                                                                  {
-                                                                      foreach (var task in regularTasks)
-                                                                          task();
-                                                                      regularTaskTimer.Change(100, Timeout.Infinite);
-                                                                  });
-                                                      });
+                {
+                    AddTask(() =>
+                    {
+                        foreach (var task in regularTasks)
+                            task();
+                        regularTaskTimer.Change(100, Timeout.Infinite);
+                    });
+                });
                 regularTaskTimer = new Timer(state => scheduleRegularTasks(), null, -1, Timeout.Infinite);
                 scheduleRegularTasks();
             }

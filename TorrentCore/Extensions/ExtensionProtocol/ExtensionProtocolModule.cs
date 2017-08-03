@@ -16,8 +16,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using TorrentCore.ExtensionModule;
+using TorrentCore.Transport;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
@@ -26,29 +30,116 @@ namespace TorrentCore.Extensions.ExtensionProtocol
     /// </summary>
     public class ExtensionProtocolModule : IExtensionModule
     {
-        private const int ExtensionProtocolMessageId = 20;
-        private const string SupportsExtensionProtocol = "EXTENSION_PROTOCOL";
+        private const byte ExtensionProtocolMessageId = 20;
+        private const string ExtensionProtocolMessageIds = "EXTENSION_PROTOCOL_MESSAGE_IDS";
 
-        public void OnPrepareHandshake(IPrepareHandshakeContext context)
+        private static readonly ILogger Log = LogManager.GetLogger<ExtensionProtocolModule>();
+
+        private readonly Dictionary<string, byte> supportedMessages = new Dictionary<string, byte>();
+        private readonly Dictionary<byte, string> reverseSupportedMessages = new Dictionary<byte, string>();
+        private readonly Dictionary<byte, IExtensionProtocolMessageHandler> messageHandlers =
+            new Dictionary<byte, IExtensionProtocolMessageHandler>();
+
+        private byte nextMessageTypeId = 1;
+
+        public void RegisterMessageHandler(IExtensionProtocolMessageHandler messageHandler)
+        {
+            foreach (var messageType in messageHandler.SupportedMessageTypes)
+            {
+                Log.LogDebug($"Registering {messageHandler.GetType().Name} to receive {messageType.Key} messages using ID {nextMessageTypeId}");
+                messageHandlers.Add(nextMessageTypeId, messageHandler);
+                supportedMessages.Add(messageType.Key, nextMessageTypeId);
+                reverseSupportedMessages.Add(nextMessageTypeId, messageType.Key);
+                nextMessageTypeId++;
+            }
+        }
+
+        void IExtensionModule.OnPrepareHandshake(IPrepareHandshakeContext context)
         {
             // Advertise support for the extension protocol
             context.ReservedBytes[5] |= 0x10;
         }
 
-        public void OnPeerConnected(IPeerContext context)
+        void IExtensionModule.OnPeerConnected(IPeerContext context)
         {
             // Check for extension protocol support
-            context.SetValue(SupportsExtensionProtocol, (context.ReservedBytes[5] & 0x10) != 0);
-        }
-
-        public void OnMessageReceived(IMessageReceivedContext context)
-        {
-            if (context.MessageId != ExtensionProtocolMessageId)
+            bool supportsExtensionProtocol = (context.ReservedBytes[5] & 0x10) != 0;
+            if (!supportsExtensionProtocol)
                 return;
 
-            bool supportsExtensionProtocol = context.GetValue<bool>(SupportsExtensionProtocol);
+            // Register to receive extension protocol messages
+            context.RegisterMessageHandler(ExtensionProtocolMessageId);
 
-            context.Handle();
+            // Send handshake message
+            var handshake = new ExtensionProtocolHandshake
+            {
+                MessageIds = supportedMessages
+            };
+            SendMessage(context, writer =>
+            {
+                writer.Write((byte)0);
+                writer.Write(handshake.Serialize());
+            });
+        }
+
+        void IExtensionModule.OnMessageReceived(IMessageReceivedContext context)
+        {
+            // We only registered to receive extension protocol messages
+            // so we should only receive messages of this type.
+            if (context.MessageId != ExtensionProtocolMessageId)
+                throw new InvalidOperationException("Unsupported message type.");
+            
+            var messageTypeId = context.Reader.ReadByte();
+
+            if (messageTypeId == 0)
+            {
+                HandshakeMessageReceived(context);
+                return;
+            }
+
+            // Non-handshake message
+            var handler = messageHandlers[messageTypeId];
+            string messageTypeName = reverseSupportedMessages[messageTypeId];
+
+            // Deserialize
+            var message = handler.SupportedMessageTypes[messageTypeName]();
+            message.Deserialize(context.Reader.ReadBytes(context.MessageLength - 1));
+
+            var extensionMessageContext =
+                new ExtensionMessageReceivedContext(messageTypeName,
+                                                    message,
+                                                    reply => SendExtensionMessage(context, reply));
+            handler.MessageReceived(extensionMessageContext);
+        }
+
+        private void HandshakeMessageReceived(IMessageReceivedContext context)
+        {
+            var data = context.Reader.ReadBytes(context.MessageLength - 1);
+            var handshake = new ExtensionProtocolHandshake();
+            handshake.Deserialize(data);
+            context.SetValue(ExtensionProtocolMessageIds, handshake.MessageIds);
+        }
+
+        private void SendExtensionMessage(IPeerContext peerContext, IExtensionProtocolMessage message)
+        {
+            var peerMessageIds = peerContext.GetValue<Dictionary<string, byte>>(ExtensionProtocolMessageIds);
+            byte messageType = peerMessageIds[message.MessageType];
+            SendMessage(peerContext, writer =>
+            {
+                writer.Write(messageType);
+                writer.Write(message.Serialize());
+            });
+        }
+
+        private void SendMessage(IPeerContext peerContext, Action<BinaryWriter> constructMessage)
+        {
+            using (var ms = new MemoryStream())
+            {
+                BinaryWriter writer = new BigEndianBinaryWriter(ms);
+                constructMessage(writer);
+                writer.Flush();
+                peerContext.SendMessage(ExtensionProtocolMessageId, ms.ToArray());
+            }
         }
     }
 }

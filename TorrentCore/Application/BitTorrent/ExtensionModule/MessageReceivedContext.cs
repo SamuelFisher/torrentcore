@@ -25,16 +25,15 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
 {
     class MessageReceivedContext : PeerContext, IMessageReceivedContext
     {
-        private readonly BinaryReader reader;
-
         public MessageReceivedContext(PeerConnection peer,
                                       int messageId,
                                       int messageLength,
                                       BinaryReader reader,
-                                      Dictionary<string, object> customValues)
-            : base(peer, customValues)
+                                      Dictionary<string, object> customValues,
+                                      Action<byte> registerMessageHandler)
+            : base(peer, customValues, registerMessageHandler)
         {
-            this.reader = reader;
+            Reader = reader;
             Peer = peer;
             MessageId = messageId;
             MessageLength = messageLength;
@@ -46,12 +45,6 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
 
         public int MessageLength { get; }
 
-        public bool IsHandled { get; private set; }
-
-        public BinaryReader Handle()
-        {
-            IsHandled = true;
-            return reader;
-        }
+        public BinaryReader Reader { get; }
     }
 }

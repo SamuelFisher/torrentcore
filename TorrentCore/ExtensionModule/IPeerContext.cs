@@ -36,7 +36,20 @@ namespace TorrentCore.ExtensionModule
         /// <param name="key">Key of the value to retrieve.</param>
         /// <returns></returns>
         T GetValue<T>(string key);
-
+        
         void SetValue<T>(string key, T value);
+
+        /// <summary>
+        /// Registers the module to be called when a message of the specified type is received from a peer.
+        /// </summary>
+        /// <param name="messageId">The type of message to register for.</param>
+        void RegisterMessageHandler(byte messageId);
+
+        /// <summary>
+        /// Sends a message to this peer.
+        /// </summary>
+        /// <param name="messageId">The type of message being sent.</param>
+        /// <param name="data">The message data.</param>
+        void SendMessage(byte messageId, byte[] data);
     }
 }

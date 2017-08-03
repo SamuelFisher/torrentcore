@@ -18,18 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using TorrentCore.Application.BitTorrent;
 
 namespace TorrentCore.ExtensionModule
 {
-    public interface IMessageReceivedContext : IPeerContext
+    public interface ISerializableMessage
     {
-        PeerConnection Peer { get; }
-
-        int MessageId { get; }
-
-        int MessageLength { get; }
-
-        BinaryReader Reader { get; }
+        byte[] Serialize();
     }
 }

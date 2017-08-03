@@ -17,30 +17,31 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using TorrentCore.Engine;
-using TorrentCore.Transport;
+using TorrentCore.ExtensionModule;
 
-namespace TorrentCore.Application.BitTorrent
+namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    class QueueingMessageHandler : IPeerMessageHandler
+    class ExtensionMessageReceivedContext : IExtensionMessageReceivedContext
     {
-        private readonly IMainLoop mainLoop;
-        private readonly IPeerMessageHandler underlying;
+        private readonly Action<IExtensionProtocolMessage> sendMessage;
 
-        public QueueingMessageHandler(IMainLoop mainLoop, IPeerMessageHandler underlying)
+        public ExtensionMessageReceivedContext(string messageType,
+                                               IExtensionProtocolMessage message,
+                                               Action<IExtensionProtocolMessage> sendMessage)
         {
-            this.mainLoop = mainLoop;
-            this.underlying = underlying;
+            this.sendMessage = sendMessage;
+            MessageType = messageType;
+            Message = message;
+
         }
 
-        public void MessageReceived(PeerConnection peer, byte[] data)
-        {
-            mainLoop.AddTask(() => underlying.MessageReceived(peer, data));
-        }
+        public string MessageType { get; }
 
-        public void PeerDisconnected(PeerConnection peer)
+        public IExtensionProtocolMessage Message { get; }
+
+        public void SendMessage(IExtensionProtocolMessage message)
         {
-            mainLoop.AddTask(() => underlying.PeerDisconnected(peer));
+            sendMessage(message);
         }
     }
 }

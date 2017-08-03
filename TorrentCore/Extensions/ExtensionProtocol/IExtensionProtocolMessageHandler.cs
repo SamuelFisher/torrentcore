@@ -16,20 +16,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using TorrentCore.Application.BitTorrent;
 
-namespace TorrentCore.ExtensionModule
+namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    public interface IMessageReceivedContext : IPeerContext
+    public interface IExtensionProtocolMessageHandler
     {
-        PeerConnection Peer { get; }
-
-        int MessageId { get; }
-
-        int MessageLength { get; }
-
-        BinaryReader Reader { get; }
+        IReadOnlyDictionary<string, Func<IExtensionProtocolMessage>> SupportedMessageTypes { get; }
+        
+        void MessageReceived(IExtensionMessageReceivedContext context);
     }
 }

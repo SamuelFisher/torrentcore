@@ -55,7 +55,8 @@ namespace TorrentCore.Cli
                 LogManager.Configure(factory => factory.AddConsole(LogLevel.Information));
 
             var client = new TorrentClient(port);
-            client.Modules.Register(new ExtensionProtocolModule());
+            var extendionProtocolModule = new ExtensionProtocolModule();
+            client.Modules.Register(extendionProtocolModule);
 
             if (runWebUi)
             {
