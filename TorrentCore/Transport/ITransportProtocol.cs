@@ -31,13 +31,7 @@ namespace TorrentCore.Transport
         /// Gets a collection of the active transport streams.
         /// </summary>
         IEnumerable<ITransportStream> Streams { get; }
-
-        /// <summary>
-        /// Handles new incoming connection requests.
-        /// </summary>
-        /// <param name="e">Event args for handling the request.</param>
-        void AcceptConnection(TransportConnectionEventArgs e);
-
+        
         /// <summary>
         /// Starts the transport protocol.
         /// </summary>

@@ -93,12 +93,8 @@ namespace TorrentCore.Transport.Tcp
         /// Gets a collection of the active transport streams.
         /// </summary>
         IEnumerable<ITransportStream> ITransportProtocol.Streams => streams;
-
-        /// <summary>
-        /// Handles new incoming connection requests.
-        /// </summary>
-        /// <param name="e">Event args for handling the request.</param>
-        public void AcceptConnection(TransportConnectionEventArgs e)
+        
+        void AcceptConnection(TransportConnectionEventArgs e)
         {
             var stream = new TcpTransportStream(e.Client);
 
@@ -143,7 +139,7 @@ namespace TorrentCore.Transport.Tcp
             // If port=0 was supplied, set the actual port we are listening on.
             Port = ((IPEndPoint)listener.LocalEndpoint).Port;
             LocalConection = new LocalTcpConnectionDetails(Port, null, LocalBindAddress);
-            AcceptConnection();
+            ListenForIncomingConnections();
         }
 
         /// <summary>
@@ -158,7 +154,7 @@ namespace TorrentCore.Transport.Tcp
                 stream.Disconnect();
         }
 
-        void AcceptConnection()
+        void ListenForIncomingConnections()
         {
             Task.Run(async () =>
             {
