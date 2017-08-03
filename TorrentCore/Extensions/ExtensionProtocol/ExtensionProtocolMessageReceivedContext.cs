@@ -16,28 +16,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using TorrentCore.ExtensionModule;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    class ExtensionMessageReceivedContext : IExtensionMessageReceivedContext
+    class ExtensionProtocolMessageReceivedContext : IExtensionProtocolMessageReceivedContext
     {
+        private readonly IPeerContext peerContext;
         private readonly Action<IExtensionProtocolMessage> sendMessage;
 
-        public ExtensionMessageReceivedContext(string messageType,
-                                               IExtensionProtocolMessage message,
-                                               Action<IExtensionProtocolMessage> sendMessage)
+        public ExtensionProtocolMessageReceivedContext(IExtensionProtocolMessage message,
+                                                       IPeerContext peerContext,
+                                                       Action<IExtensionProtocolMessage> sendMessage)
         {
+            this.peerContext = peerContext;
             this.sendMessage = sendMessage;
-            MessageType = messageType;
             Message = message;
-
         }
 
-        public string MessageType { get; }
-
         public IExtensionProtocolMessage Message { get; }
+
+        public IReadOnlyCollection<string> SupportedMessageTypes =>
+            peerContext.GetValue<Dictionary<string, byte>>(ExtensionProtocolModule.ExtensionProtocolMessageIds).Select(x => x.Key).ToList();
 
         public void SendMessage(IExtensionProtocolMessage message)
         {

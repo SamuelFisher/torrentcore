@@ -31,7 +31,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
     public class ExtensionProtocolModule : IExtensionModule
     {
         private const byte ExtensionProtocolMessageId = 20;
-        private const string ExtensionProtocolMessageIds = "EXTENSION_PROTOCOL_MESSAGE_IDS";
+        internal const string ExtensionProtocolMessageIds = "EXTENSION_PROTOCOL_MESSAGE_IDS";
 
         private static readonly ILogger Log = LogManager.GetLogger<ExtensionProtocolModule>();
 
@@ -106,9 +106,9 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             message.Deserialize(context.Reader.ReadBytes(context.MessageLength - 1));
 
             var extensionMessageContext =
-                new ExtensionMessageReceivedContext(messageTypeName,
-                                                    message,
-                                                    reply => SendExtensionMessage(context, reply));
+                new ExtensionProtocolMessageReceivedContext(message,
+                                                            context,
+                                                            reply => SendExtensionMessage(context, reply));
             handler.MessageReceived(extensionMessageContext);
         }
 
@@ -123,7 +123,10 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         private void SendExtensionMessage(IPeerContext peerContext, IExtensionProtocolMessage message)
         {
             var peerMessageIds = peerContext.GetValue<Dictionary<string, byte>>(ExtensionProtocolMessageIds);
-            byte messageType = peerMessageIds[message.MessageType];
+
+            if (!peerMessageIds.TryGetValue(message.MessageType, out byte messageType))
+                throw new InvalidOperationException($"Peer does not support message type {message.MessageType}");
+
             SendMessage(peerContext, writer =>
             {
                 writer.Write(messageType);

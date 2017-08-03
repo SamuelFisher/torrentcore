@@ -20,19 +20,17 @@ using System.Text;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    public interface IExtensionProtocolMessageHandler
+    public interface IExtensionProtocolPeerContext
     {
-        IReadOnlyDictionary<string, Func<IExtensionProtocolMessage>> SupportedMessageTypes { get; }
+        /// <summary>
+        /// Gets the message types this peer has indicated support for.
+        /// </summary>
+        IReadOnlyCollection<string> SupportedMessageTypes { get; }
 
         /// <summary>
-        /// Invoked when a peer that has indicated support for one of the <see cref="SupportedMessageTypes"/>
-        /// has connected.
+        /// Sends a message to the peer the message was received from.
         /// </summary>
-        void PeerConnected(IExtensionProtocolPeerContext context);
-
-        /// <summary>
-        /// Invoked when an extension protocol message is received.
-        /// </summary>
-        void MessageReceived(IExtensionProtocolMessageReceivedContext context);
+        /// <param name="message">The message to send.</param>
+        void SendMessage(IExtensionProtocolMessage message);
     }
 }

@@ -21,22 +21,11 @@ using TorrentCore.ExtensionModule;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    public interface IExtensionMessageReceivedContext
+    public interface IExtensionProtocolMessageReceivedContext : IExtensionProtocolPeerContext
     {
         /// <summary>
-        /// Gets the type of message received.
-        /// </summary>
-        string MessageType { get; }
-
-        /// <summary>
-        /// Gets the data of the message received.
+        /// Gets received message.
         /// </summary>
         IExtensionProtocolMessage Message { get; }
-
-        /// <summary>
-        /// Sends a message to the peer the message was received from.
-        /// </summary>
-        /// <param name="message">The message to send.</param>
-        void SendMessage(IExtensionProtocolMessage message);
     }
 }
