@@ -72,7 +72,7 @@ namespace TorrentCore.Application.BitTorrent
         /// <summary>
         /// Gets the address of this peer.
         /// </summary>
-        public string Address => transportStream.Address;
+        public string Address => transportStream.DisplayAddress;
 
         /// <summary>
         /// Gets the protocol extensions supported by this peer.

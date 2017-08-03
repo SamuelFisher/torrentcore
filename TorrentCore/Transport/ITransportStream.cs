@@ -20,7 +20,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TorrentCore.Data;
 
 namespace TorrentCore.Transport
 {
@@ -37,7 +36,13 @@ namespace TorrentCore.Transport
         /// <summary>
         /// Gets an address that uniquely identifies the peer this transport stream.
         /// </summary>
-        string Address { get; }
+        string DisplayAddress { get; }
+
+        /// <summary>
+        /// Gets an address that uniquely identifies the peer this transport stream.
+        /// <remarks>This may be compared to other addresses to determine whether streams refer to the same peer.</remarks>
+        /// </summary>
+        object Address { get; }
 
         /// <summary>
         /// Attempts to initiate this connection.

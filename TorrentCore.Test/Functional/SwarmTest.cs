@@ -56,6 +56,9 @@ namespace TorrentCore.Test.Functional
             await peerDownload.Start();
             await peerDownload.WaitForCompletionAsync(TimeSpan.FromSeconds(10));
 
+            seed.Dispose();
+            peer.Dispose();
+
             // Verify downloaded data
             var resultFile = peerFileHandler.GetFileStream("file.dat") as MemoryStream;
             Assert.That(resultFile, Is.Not.Null, "Result file does not exist.");

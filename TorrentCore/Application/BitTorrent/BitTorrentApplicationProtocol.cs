@@ -48,7 +48,7 @@ namespace TorrentCore.Application.BitTorrent
         private readonly IPiecePicker picker;
         private readonly HashSet<PeerConnection> peers = new HashSet<PeerConnection>();
         private readonly List<ITransportStream> connectingPeers = new List<ITransportStream>();
-        private readonly List<ITransportStream> availablePeers = new List<ITransportStream>();
+        private readonly HashSet<ITransportStream> availablePeers = new HashSet<ITransportStream>(new TransportStreamAddressEqualityComparer());
         private readonly Dictionary<Tuple<PeerConnection, byte>, IModule> messageHandlerRegistrations = new Dictionary<Tuple<PeerConnection, byte>, IModule>();
         
         /// <summary>
@@ -71,15 +71,15 @@ namespace TorrentCore.Application.BitTorrent
         public ITorrentDownloadManager Manager { get; }
 
         public IReadOnlyCollection<PeerConnection> Peers => peers;
-
-        /// <summary>
-        /// Called when new peers become available to connect to.
-        /// </summary>
-        /// <param name="streams">Result containing information from the tracker.</param>
-        public void PeersAvailable(IEnumerable<ITransportStream> streams)
+        
+        public void PeersAvailable(IEnumerable<ITransportStream> newPeers)
         {
-            // TODO: check for duplicates
-            availablePeers.AddRange(streams);
+            foreach (var peer in newPeers)
+            {
+                bool added = availablePeers.Add(peer);
+                if (!added)
+                    Log.LogInformation($"Discarded duplicate peer {peer}");
+            }
         }
 
         /// <summary>
@@ -293,14 +293,14 @@ namespace TorrentCore.Application.BitTorrent
                         if (antecedent.Status != TaskStatus.RanToCompletion
                             || !transportStream.IsConnected)
                         {
-                            Log.LogInformation($"Failed to connect to peer at {transportStream.Address}");
+                            Log.LogInformation($"Failed to connect to peer at {transportStream.DisplayAddress}");
 
                             // Connection failed
                             connectingPeers.Remove(transportStream);
                             return;
                         }
 
-                        Log.LogInformation($"Connected to peer at {transportStream.Address}");
+                        Log.LogInformation($"Connected to peer at {transportStream.DisplayAddress}");
 
                         var connectionSettings = new PeerConnectionArgs(localPeerId,
                                                                         Manager.Description,

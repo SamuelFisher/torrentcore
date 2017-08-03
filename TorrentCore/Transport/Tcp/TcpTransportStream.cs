@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 
 namespace TorrentCore.Transport.Tcp
 {
-    class TcpTransportStream : ITransportStream
+    sealed class TcpTransportStream : ITransportStream
     {
         private readonly ManualResetEvent connectionEvent = new ManualResetEvent(false);
         private readonly TcpClient client;
@@ -55,13 +55,16 @@ namespace TorrentCore.Transport.Tcp
         {
             this.client = client;
             Stream = new RateLimitedStream(client.GetStream());
+            RemoteEndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
         }
 
         public Stream Stream { get; private set; }
 
         public IPEndPoint RemoteEndPoint { get; }
 
-        string ITransportStream.Address => RemoteEndPoint.ToString();
+        string ITransportStream.DisplayAddress => RemoteEndPoint.ToString();
+
+        object ITransportStream.Address => RemoteEndPoint;
 
         /// <summary>
         /// Gets a value indicating whether this connection is active.
