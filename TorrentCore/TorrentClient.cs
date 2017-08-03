@@ -78,15 +78,12 @@ namespace TorrentCore
         private void AcceptConnection(AcceptConnectionEventArgs e)
         {
             var applicationProtocol = peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream, out BitTorrentPeerInitiator.IContext context);
-            mainLoop.AddTask(() =>
+            applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
             {
-                applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
-                {
-                    e.Accept();
-                    var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Manager.Description, new QueueingMessageHandler(mainLoop, applicationProtocol));
-                    return peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
-                }));
-            });
+                e.Accept();
+                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Manager.Description, new QueueingMessageHandler(mainLoop, applicationProtocol));
+                return peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
+            }));
         }
 
         /// <summary>
@@ -146,6 +143,7 @@ namespace TorrentCore
         {
             foreach (var download in Downloads)
                 download.Stop();
+            mainLoop.Stop();
         }
     }
 }
