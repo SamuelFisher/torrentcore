@@ -43,8 +43,6 @@ namespace TorrentCore.Transport.Tcp
         /// <summary>
         /// Creates a new TcpTransportProtocol which will listen on the specified port.
         /// </summary>
-        /// <param name="messageHandler">The message handler to use.</param>
-        /// <param name="mainLoop">The main loop to use for queuing incoming and outgoing messages.</param>
         /// <param name="port">Port to listen on for incoming connections.</param>
         /// <param name="bindToNextAvailablePort">If the specified port is in use, attempts to bind to the next available port.</param>
         /// <param name="localBindAddress">The local address to use for connections.</param>

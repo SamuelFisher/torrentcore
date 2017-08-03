@@ -20,26 +20,31 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using TorrentCore.Data;
+using TorrentCore.ExtensionModule;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent.Connection
 {
     class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator<PeerConnection, BitTorrentPeerInitiator.IContext, PeerConnectionArgs>
     {
-        private readonly Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup;
         private const string BitTorrentProtocol = "BitTorrent protocol";
         private const int BitTorrentProtocolReservedBytes = 8;
 
-        public BitTorrentPeerInitiator(Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup)
+        private readonly Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup;
+        private readonly IModuleManager modules;
+
+        public BitTorrentPeerInitiator(Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup,
+                                       IModuleManager modules)
         {
             this.applicationProtocolLookup = applicationProtocolLookup;
+            this.modules = modules;
         }
 
         public BitTorrentApplicationProtocol<IContext> PrepareAcceptIncomingConnection(ITransportStream transportStream, out IContext context)
         {
             var reader = new BigEndianBinaryReader(transportStream.Stream);
             var header = ReadConnectionHeader(reader);
-            context = new PeerConnectionPreparationContext(header.PeerId, header.SupportedExtensions);
+            context = new PeerConnectionPreparationContext(header.PeerId, header.ReservedBytes, header.SupportedExtensions);
             return applicationProtocolLookup(header.InfoHash);
         }
 
@@ -58,6 +63,7 @@ namespace TorrentCore.Application.BitTorrent.Connection
             WriteConnectionHeader(writer, c.Metainfo.InfoHash, c.LocalPeerId);
             return new PeerConnection(c.Metainfo,
                                       context.PeerId,
+                                      context.ReservedBytes,
                                       context.SupportedExtensions,
                                       c.MessageHandler,
                                       transportStream);
@@ -79,6 +85,7 @@ namespace TorrentCore.Application.BitTorrent.Connection
 
             return new PeerConnection(c.Metainfo,
                                       header.PeerId,
+                                      header.ReservedBytes,
                                       header.SupportedExtensions,
                                       c.MessageHandler,
                                       transportStream);
@@ -95,7 +102,11 @@ namespace TorrentCore.Application.BitTorrent.Connection
             writer.Write(BitTorrentProtocol.ToCharArray());
 
             // Reserved bytes
-            writer.Write(new byte[BitTorrentProtocolReservedBytes]);
+            var reservedBytes = new byte[BitTorrentProtocolReservedBytes];
+            var prepareHandshakeContext = new PrepareHandshakeContext(reservedBytes);
+            foreach(var module in modules.Modules)
+                module.OnPrepareHandshake(prepareHandshakeContext);
+            writer.Write(prepareHandshakeContext.ReservedBytes);
 
             // Info hash
             writer.Write(infoHash.Value);
@@ -117,8 +128,8 @@ namespace TorrentCore.Application.BitTorrent.Connection
             string protocol = new string(reader.ReadChars(protocolStringLength));
 
             // Reserved bytes
-            var reserved = reader.ReadBytes(8);
-            result.SupportedExtensions = ProtocolExtensions.DetermineSupportedProcotolExtensions(reserved);
+            result.ReservedBytes = reader.ReadBytes(8);
+            result.SupportedExtensions = ProtocolExtensions.DetermineSupportedProcotolExtensions(result.ReservedBytes);
 
             // Info hash
             result.InfoHash = new Sha1Hash(reader.ReadBytes(20));
@@ -134,17 +145,23 @@ namespace TorrentCore.Application.BitTorrent.Connection
             public Sha1Hash InfoHash { get; set; }
             public PeerId PeerId { get; set; }
             public ProtocolExtension SupportedExtensions { get; set; }
+            public byte[] ReservedBytes { get; set; }
         }
 
         private class PeerConnectionPreparationContext : IContext
         {
-            internal PeerConnectionPreparationContext(PeerId peerId, ProtocolExtension supportExtensions)
+            internal PeerConnectionPreparationContext(PeerId peerId,
+                                                      byte[] reservedBytes,
+                                                      ProtocolExtension supportExtensions)
             {
                 PeerId = peerId;
+                ReservedBytes = reservedBytes;
                 SupportedExtensions = supportExtensions;
             }
 
             public PeerId PeerId { get; }
+
+            public byte[] ReservedBytes { get; }
 
             public ProtocolExtension SupportedExtensions { get; }
         }
@@ -152,7 +169,18 @@ namespace TorrentCore.Application.BitTorrent.Connection
         public interface IContext
         {
             PeerId PeerId { get; }
+            byte[] ReservedBytes { get; }
             ProtocolExtension SupportedExtensions { get; }
+        }
+
+        private class PrepareHandshakeContext : IPrepareHandshakeContext
+        {
+            public PrepareHandshakeContext(byte[] reservedBytes)
+            {
+                ReservedBytes = reservedBytes;
+            }
+
+            public byte[] ReservedBytes { get; }
         }
     }
 }

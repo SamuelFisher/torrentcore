@@ -23,6 +23,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using TorrentCore.Extensions.ExtensionProtocol;
 using TorrentCore.Web;
 
 namespace TorrentCore.Cli
@@ -54,6 +55,7 @@ namespace TorrentCore.Cli
                 LogManager.Configure(factory => factory.AddConsole(LogLevel.Information));
 
             var client = new TorrentClient(port);
+            client.Modules.Register(new ExtensionProtocolModule());
 
             if (runWebUi)
             {

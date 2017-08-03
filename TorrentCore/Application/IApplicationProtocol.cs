@@ -58,7 +58,7 @@ namespace TorrentCore.Application
         /// <summary>
         /// Called when an announce result is received from a tracker.
         /// </summary>
-        /// <param name="result">Result containing information from the tracker.</param>
-        void PeersAvailable(IEnumerable<ITransportStream> streams);
+        /// <param name="peerStreams">Peer streams received from the tracker.</param>
+        void PeersAvailable(IEnumerable<ITransportStream> peerStreams);
     }
 }

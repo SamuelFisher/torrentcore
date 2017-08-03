@@ -25,8 +25,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application.BitTorrent.Connection;
+using TorrentCore.Application.BitTorrent.ExtensionModule;
 using TorrentCore.Data;
 using TorrentCore.Engine;
+using TorrentCore.ExtensionModule;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent
@@ -36,41 +38,38 @@ namespace TorrentCore.Application.BitTorrent
     /// </summary>
     class BitTorrentApplicationProtocol<TConnectionContext> : IApplicationProtocol<PeerConnection>, IMessageHandler
     {
+        private static readonly ILogger Log = LogManager.GetLogger<BitTorrentApplicationProtocol<TConnectionContext>>();
+
         private readonly PeerId localPeerId;
         private readonly IApplicationProtocolPeerInitiator<PeerConnection, TConnectionContext, PeerConnectionArgs> peerInitiator;
         private readonly Func<IMessageHandler, IMessageHandler> messageHandlerFactory;
-        private static readonly ILogger Log = LogManager.GetLogger<BitTorrentApplicationProtocol<TConnectionContext>>();
-
+        private readonly IModuleManager modules;
         private readonly IPiecePicker picker;
         private readonly ConcurrentBag<PeerConnection> peers = new ConcurrentBag<PeerConnection>();
         private readonly List<ITransportStream> connectingPeers = new List<ITransportStream>();
-
-        /// <summary>
-        /// Gets a list of streams available to be initiated.
-        /// </summary>
-        internal List<ITransportStream> TrackerStreams { get; set; }
-
+        private readonly List<ITransportStream> availablePeers = new List<ITransportStream>();
+        private readonly PeerCustomValues peerCustomValues = new PeerCustomValues();
+        
         /// <summary>
         /// Creates a new instance of the BitTorrent protocol.
         /// </summary>
         public BitTorrentApplicationProtocol(PeerId localPeerId,
                                              ITorrentDownloadManager manager,
                                              IApplicationProtocolPeerInitiator<PeerConnection, TConnectionContext, PeerConnectionArgs> peerInitiator,
-                                             Func<IMessageHandler, IMessageHandler> messageHandlerFactory)
+                                             Func<IMessageHandler, IMessageHandler> messageHandlerFactory,
+                                             IModuleManager modules)
         {
             this.localPeerId = localPeerId;
             this.peerInitiator = peerInitiator;
             this.messageHandlerFactory = messageHandlerFactory;
+            this.modules = modules;
             Manager = manager;
             picker = new PiecePicker();
-            TrackerStreams = new List<ITransportStream>();
         }
 
         public ITorrentDownloadManager Manager { get; }
 
         public IReadOnlyCollection<PeerConnection> Peers => peers;
-
-        public IEnumerable<BlockRequest> OutstandingBlockRequests => peers.SelectMany(x => x.Requested);
 
         /// <summary>
         /// Called when new peers become available to connect to.
@@ -78,7 +77,7 @@ namespace TorrentCore.Application.BitTorrent
         /// <param name="streams">Result containing information from the tracker.</param>
         public void PeersAvailable(IEnumerable<ITransportStream> streams)
         {
-            TrackerStreams.AddRange(streams);
+            availablePeers.AddRange(streams);
         }
 
         /// <summary>
@@ -89,8 +88,16 @@ namespace TorrentCore.Application.BitTorrent
         {
             var peer = e.Accept();
             peers.Add(peer);
-
+            
             SendMessage(peer, new BitfieldMessage(new Bitfield(Manager.Description.Pieces.Count, Manager.CompletedPieces)));
+
+            foreach (var module in modules.Modules)
+            {
+                var context = new PeerContext(peer, peerCustomValues.Get(peer, module));
+                module.OnPeerConnected(context);
+            }
+
+            peer.ReceiveData();
         }
 
         /// <summary>
@@ -140,6 +147,23 @@ namespace TorrentCore.Application.BitTorrent
             var reader = new BigEndianBinaryReader(new MemoryStream(data));
 
             byte messageId = reader.ReadByte();
+            
+            foreach (var module in modules.Modules)
+            {
+                var customValues = peerCustomValues.Get(peer, module);
+                var messageReceivedContext = new MessageReceivedContext(peer,
+                                                                        messageId,
+                                                                        data.Length,
+                                                                        reader,
+                                                                        customValues);
+
+                module.OnMessageReceived(messageReceivedContext);
+                if (messageReceivedContext.IsHandled)
+                {
+                    Log.LogDebug($"Message of type {messageId} handled by module {module.GetType().Name}");
+                    return;
+                }
+            }
 
             // Read message
             CommonPeerMessage message = MessageHandler.ReadMessage(Manager.Description, reader, data.Length, messageId);
@@ -259,13 +283,13 @@ namespace TorrentCore.Application.BitTorrent
             if (Manager.State != DownloadState.Downloading)
                 return;
 
-            if (peers.Count + connectingPeers.Count < 5 && TrackerStreams.Count > 0)
+            if (peers.Count + connectingPeers.Count < 5 && availablePeers.Count > 0)
             {
-                var transportStream = TrackerStreams.First();
+                var transportStream = availablePeers.First();
 
                 try
                 {
-                    TrackerStreams.Remove(transportStream);
+                    availablePeers.Remove(transportStream);
                     connectingPeers.Add(transportStream);
                     transportStream.Connect().ContinueWith(antecedent =>
                     {
@@ -287,7 +311,16 @@ namespace TorrentCore.Application.BitTorrent
                         var peer = peerInitiator.InitiateOutgoingConnection(transportStream, connectionSettings);
                         peers.Add(peer);
                         connectingPeers.Remove(transportStream);
+                        
                         SendMessage(peer, new BitfieldMessage(new Bitfield(Manager.Description.Pieces.Count, Manager.CompletedPieces)));
+
+                        foreach (var module in modules.Modules)
+                        {
+                            var context = new PeerContext(peer, peerCustomValues.Get(peer, module));
+                            module.OnPeerConnected(context);
+                        }
+
+                        peer.ReceiveData();
                     });
                 }
                 catch

@@ -33,6 +33,7 @@ namespace TorrentCore.Application.BitTorrent
 
         internal PeerConnection(Metainfo meta,
                                 PeerId peerId,
+                                IReadOnlyList<byte> reservedBytes,
                                 ProtocolExtension supportedExtensions,
                                 IMessageHandler messageHandler,
                                 ITransportStream transportStream)
@@ -40,6 +41,7 @@ namespace TorrentCore.Application.BitTorrent
             this.messageHandler = messageHandler;
             this.transportStream = transportStream;
             PeerId = peerId;
+            ReservedBytes = reservedBytes;
             SupportedExtensions = supportedExtensions;
             InfoHash = meta.InfoHash;
             reader = new BigEndianBinaryReader(transportStream.Stream);
@@ -52,14 +54,17 @@ namespace TorrentCore.Application.BitTorrent
             IsInterestedInRemotePeer = false;
             IsChokedByRemotePeer = true;
             IsChokingRemotePeer = true;
-
-            ReceiveData();
         }
 
         /// <summary>
         /// Gets the ID for this peer.
         /// </summary>
         public PeerId PeerId { get; }
+
+        /// <summary>
+        /// Gets the reserved bytes sent by this peer in the connection handshake.
+        /// </summary>
+        public IReadOnlyList<byte> ReservedBytes { get; }
 
         /// <summary>
         /// Gets the address of this peer.
@@ -97,7 +102,7 @@ namespace TorrentCore.Application.BitTorrent
             writer.Flush();
         }
 
-        private void ReceiveData()
+        internal void ReceiveData()
         {
             Task.Factory.StartNew(() =>
             {

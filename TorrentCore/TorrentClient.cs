@@ -27,6 +27,7 @@ using TorrentCore.Application.BitTorrent;
 using TorrentCore.Application.BitTorrent.Connection;
 using TorrentCore.Data;
 using TorrentCore.Engine;
+using TorrentCore.ExtensionModule;
 using TorrentCore.Tracker;
 using TorrentCore.Transport;
 using TorrentCore.Transport.Tcp;
@@ -42,6 +43,7 @@ namespace TorrentCore
         private readonly TcpTransportProtocol transport;
         private readonly ITrackerClientFactory trackerClientFactory;
         private readonly BitTorrentPeerInitiator peerInitiator;
+        private readonly IModuleManager moduleManager;
         private Timer updateStatisticsTimer;
 
         public TorrentClient()
@@ -58,8 +60,9 @@ namespace TorrentCore
         {
             downloads = new Dictionary<Sha1Hash, TorrentDownload>();
             mainLoop = new MainLoop();
+            moduleManager = new ModuleManager();
             mainLoop.Start();
-            peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol);
+            peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol, moduleManager);
             LocalPeerId = settings.PeerId;
             transport = new TcpTransportProtocol(settings.ListenPort,
                                                  settings.FindAvailablePort,
@@ -86,6 +89,8 @@ namespace TorrentCore
         /// </summary>
         public PeerId LocalPeerId { get; }
 
+        public IModuleManager Modules => moduleManager;
+
         internal TcpTransportProtocol Transport => transport;
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());
@@ -110,7 +115,7 @@ namespace TorrentCore
         {
             var downloadManager = new TorrentDownloadManager(LocalPeerId,
                                                              mainLoop,
-                                                             manager => new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, manager, peerInitiator, m => new QueueingMessageHandler(mainLoop, m)),
+                                                             manager => new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, manager, peerInitiator, m => new QueueingMessageHandler(mainLoop, m), moduleManager),
                                                              tracker,
                                                              fileHandler,
                                                              metainfo);
