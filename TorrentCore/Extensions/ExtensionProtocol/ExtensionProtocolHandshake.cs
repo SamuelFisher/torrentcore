@@ -30,14 +30,14 @@ namespace TorrentCore.Extensions.ExtensionProtocol
 
         public string Client { get; set; }
 
-        public byte[] Serialize()
+        public BDictionary Serialize()
         {
             var dict = new BDictionary(MessageIds.ToDictionary(x => new BString(x.Key), x => (IBObject)new BNumber(x.Value)));
             return new BDictionary
             {
                 ["m"] = dict,
                 ["v"] = new BString(Client)
-            }.EncodeAsBytes();
+            };
         }
 
         public void Deserialize(IReadOnlyList<byte> data)

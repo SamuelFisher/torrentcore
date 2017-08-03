@@ -42,6 +42,10 @@ namespace TorrentCore.Extensions.PeerExchange
             this.adapterAddress = adapterAddress;
         }
 
+        public void PrepareExtensionProtocolHandshake(IPrepareExtensionProtocolHandshakeContext context)
+        {
+        }
+
         public void PeerConnected(IExtensionProtocolPeerContext context)
         {
         }

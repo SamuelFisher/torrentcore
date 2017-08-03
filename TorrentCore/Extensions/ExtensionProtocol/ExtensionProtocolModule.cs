@@ -39,6 +39,8 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         private readonly Dictionary<byte, string> reverseSupportedMessages = new Dictionary<byte, string>();
         private readonly Dictionary<byte, IExtensionProtocolMessageHandler> messageHandlers =
             new Dictionary<byte, IExtensionProtocolMessageHandler>();
+        private readonly HashSet<IExtensionProtocolMessageHandler> registeredHandlers =
+            new HashSet<IExtensionProtocolMessageHandler>();
 
         private byte nextMessageTypeId = 1;
 
@@ -52,6 +54,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
                 reverseSupportedMessages.Add(nextMessageTypeId, messageType.Key);
                 nextMessageTypeId++;
             }
+            registeredHandlers.Add(messageHandler);
         }
 
         void IModule.OnPrepareHandshake(IPrepareHandshakeContext context)
@@ -76,10 +79,16 @@ namespace TorrentCore.Extensions.ExtensionProtocol
                 MessageIds = supportedMessages,
                 Client = "TorrentCore 0.1" // todo
             };
+
+            var handshakeDict = handshake.Serialize();
+            var prepareHandshakeContext = new PrepareExtensionProtocolHandshakeContext(handshakeDict);
+            foreach (var handler in registeredHandlers)
+                handler.PrepareExtensionProtocolHandshake(prepareHandshakeContext);
+
             SendMessage(context, writer =>
             {
                 writer.Write((byte)0);
-                writer.Write(handshake.Serialize());
+                writer.Write(handshakeDict.EncodeAsBytes());
             });
         }
 

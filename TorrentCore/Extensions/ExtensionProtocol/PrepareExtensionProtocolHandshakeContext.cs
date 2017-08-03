@@ -17,27 +17,17 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using BencodeNET.Objects;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    public interface IExtensionProtocolMessageHandler
+    class PrepareExtensionProtocolHandshakeContext :  IPrepareExtensionProtocolHandshakeContext
     {
-        IReadOnlyDictionary<string, Func<IExtensionProtocolMessage>> SupportedMessageTypes { get; }
+        public PrepareExtensionProtocolHandshakeContext(BDictionary content)
+        {
+            ExtensionProtocolHandshakeContent = content;
+        }
 
-        /// <summary>
-        /// Invoked when an extension protocol handshake message is about to be sent.
-        /// </summary>
-        void PrepareExtensionProtocolHandshake(IPrepareExtensionProtocolHandshakeContext context);
-
-        /// <summary>
-        /// Invoked when a peer that has indicated support for one of the <see cref="SupportedMessageTypes"/>
-        /// has connected.
-        /// </summary>
-        void PeerConnected(IExtensionProtocolPeerContext context);
-
-        /// <summary>
-        /// Invoked when an extension protocol message is received.
-        /// </summary>
-        void MessageReceived(IExtensionProtocolMessageReceivedContext context);
+        public BDictionary ExtensionProtocolHandshakeContent { get; }
     }
 }
