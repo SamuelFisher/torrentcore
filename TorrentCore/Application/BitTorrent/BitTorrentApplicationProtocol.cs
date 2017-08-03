@@ -49,7 +49,6 @@ namespace TorrentCore.Application.BitTorrent
         private readonly HashSet<PeerConnection> peers = new HashSet<PeerConnection>();
         private readonly List<ITransportStream> connectingPeers = new List<ITransportStream>();
         private readonly List<ITransportStream> availablePeers = new List<ITransportStream>();
-        private readonly PeerCustomValues peerCustomValues = new PeerCustomValues();
         private readonly Dictionary<Tuple<PeerConnection, byte>, IExtensionModule> messageHandlerRegistrations = new Dictionary<Tuple<PeerConnection, byte>, IExtensionModule>();
         
         /// <summary>
@@ -142,7 +141,7 @@ namespace TorrentCore.Application.BitTorrent
 
             if (messageHandlerRegistrations.TryGetValue(Tuple.Create(peer, messageId), out IExtensionModule module))
             {
-                var customValues = peerCustomValues.Get(peer, module);
+                var customValues = peer.GetCustomValues(module);
                 var messageReceivedContext = new MessageReceivedContext(peer,
                                                                         messageId,
                                                                         data.Length - 1,
@@ -401,7 +400,7 @@ namespace TorrentCore.Application.BitTorrent
             foreach (var module in modules.Modules)
             {
                 var context = new PeerContext(peer,
-                                              peerCustomValues.Get(peer, module),
+                                              peer.GetCustomValues(module),
                                               messageId => RegisterModuleForMessageId(peer, module, messageId));
                 module.OnPeerConnected(context);
             }
@@ -412,7 +411,6 @@ namespace TorrentCore.Application.BitTorrent
         public void PeerDisconnected(PeerConnection peer)
         {
             peers.Remove(peer);
-            peerCustomValues.PeerDisconnected(peer);
             // TODO: optimise this
             foreach (var r in messageHandlerRegistrations.Where(x => x.Key.Item1 == peer).ToList())
                 messageHandlerRegistrations.Remove(r.Key);

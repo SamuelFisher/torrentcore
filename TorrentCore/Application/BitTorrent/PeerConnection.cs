@@ -20,6 +20,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Data;
+using TorrentCore.ExtensionModule;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent
@@ -30,6 +31,7 @@ namespace TorrentCore.Application.BitTorrent
         private readonly BigEndianBinaryReader reader;
         private readonly BigEndianBinaryWriter writer;
         private readonly ITransportStream transportStream;
+        private readonly Dictionary<IExtensionModule, Dictionary<string, object>> customValues;
 
         internal PeerConnection(Metainfo meta,
                                 PeerId peerId,
@@ -40,6 +42,7 @@ namespace TorrentCore.Application.BitTorrent
         {
             this.messageHandler = messageHandler;
             this.transportStream = transportStream;
+            customValues = new Dictionary<IExtensionModule, Dictionary<string, object>>();
             PeerId = peerId;
             ReservedBytes = reservedBytes;
             SupportedExtensions = supportedExtensions;
@@ -100,6 +103,17 @@ namespace TorrentCore.Application.BitTorrent
             writer.Write(data.Length);
             writer.Write(data);
             writer.Flush();
+        }
+
+        internal Dictionary<string, object> GetCustomValues(IExtensionModule module)
+        {
+            if (!customValues.TryGetValue(module, out Dictionary<string, object> moduleValues))
+            {
+                moduleValues = new Dictionary<string, object>();
+                customValues.Add(module, moduleValues);
+            }
+
+            return moduleValues;
         }
 
         internal void ReceiveData()
