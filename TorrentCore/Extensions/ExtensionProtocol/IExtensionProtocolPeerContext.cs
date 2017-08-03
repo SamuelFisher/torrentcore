@@ -17,10 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TorrentCore.Modularity;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    public interface IExtensionProtocolPeerContext
+    public interface IExtensionProtocolPeerContext : IPeerContext
     {
         /// <summary>
         /// Gets the message types this peer has indicated support for.

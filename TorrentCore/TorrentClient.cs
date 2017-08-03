@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -71,6 +72,7 @@ namespace TorrentCore
             transport.Start();
             trackerClientFactory = new TrackerClientFactory(transport.LocalConection);
             updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            AdapterAddress = settings.AdapterAddress;
         }
 
         private void AcceptConnection(AcceptConnectionEventArgs e)
@@ -91,6 +93,11 @@ namespace TorrentCore
         /// Gets the Peer ID for the local client.
         /// </summary>
         public PeerId LocalPeerId { get; }
+
+        /// <summary>
+        /// Gets the address of the adapter used for connections.
+        /// </summary>
+        public IPAddress AdapterAddress { get; }
 
         public IModuleManager Modules => moduleManager;
 

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TorrentCore.Modularity;
+using TorrentCore.Transport;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
@@ -45,5 +46,35 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         {
             sendMessage(message);
         }
+
+        #region IPeerContext Members
+
+        public void PeersAvailable(IEnumerable<ITransportStream> peers)
+        {
+            peerContext.PeersAvailable(peers);
+        }
+
+        public IReadOnlyList<byte> ReservedBytes => peerContext.ReservedBytes;
+
+        public T GetValue<T>(string key)
+        {
+            return peerContext.GetValue<T>(key);
+        }
+
+        public void SetValue<T>(string key, T value)
+        {
+            peerContext.SetValue(key, value);
+        }
+
+        public void RegisterMessageHandler(byte messageId)
+        {
+            peerContext.RegisterMessageHandler(messageId);
+        }
+
+        public void SendMessage(byte messageId, byte[] data)
+        {
+            peerContext.SendMessage(messageId, data);
+        }
+        #endregion
     }
 }

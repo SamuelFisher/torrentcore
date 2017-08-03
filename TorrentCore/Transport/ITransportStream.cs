@@ -27,7 +27,7 @@ namespace TorrentCore.Transport
     /// <summary>
     /// Represents a communication channel between two peers.
     /// </summary>
-    public interface ITransportStream : IDisposable
+    public interface ITransportStream
     {
         /// <summary>
         /// Gets a value indicating whether this connection is active.
@@ -49,5 +49,10 @@ namespace TorrentCore.Transport
         /// Gets the stream used for communication.
         /// </summary>
         Stream Stream { get; }
+
+        /// <summary>
+        /// Closes the connection.
+        /// </summary>
+        void Disconnect();
     }
 }

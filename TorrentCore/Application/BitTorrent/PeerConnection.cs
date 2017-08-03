@@ -105,6 +105,12 @@ namespace TorrentCore.Application.BitTorrent
             writer.Flush();
         }
 
+        public void Disconnect()
+        {
+            transportStream.Disconnect();
+            messageHandler.PeerDisconnected(this);
+        }
+
         internal Dictionary<string, object> GetCustomValues(IModule module)
         {
             if (!customValues.TryGetValue(module, out Dictionary<string, object> moduleValues))

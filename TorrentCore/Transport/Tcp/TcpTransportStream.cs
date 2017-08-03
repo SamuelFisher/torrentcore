@@ -34,15 +34,15 @@ namespace TorrentCore.Transport.Tcp
         /// <summary>
         /// Creates a new TcpTransportStream which can later connect to the remote peer at the specified address and port.
         /// </summary>
-        /// <param name="localAddress">Local IP address of the adapter to bind to.</param>
+        /// <param name="adapterAddress">Local IP address of the adapter to bind to.</param>
         /// <param name="remoteAddress">IP address of remote peer.</param>
         /// <param name="port">Port of remote peer.</param>
-        public TcpTransportStream(IPAddress localAddress, IPAddress remoteAddress, int port)
+        public TcpTransportStream(IPAddress adapterAddress, IPAddress remoteAddress, int port)
         {
-            client = new TcpClient(localAddress.AddressFamily);
+            client = new TcpClient(adapterAddress.AddressFamily);
 
             // Use the adapter for the IPAddress specified
-            client.Client.Bind(new IPEndPoint(localAddress, 0));
+            client.Client.Bind(new IPEndPoint(adapterAddress, 0));
 
             RemoteEndPoint = new IPEndPoint(remoteAddress, port);
         }
@@ -112,11 +112,6 @@ namespace TorrentCore.Transport.Tcp
         public void Disconnect()
         {
             client.Dispose();
-        }
-
-        public void Dispose()
-        {
-            Disconnect();
         }
     }
 }

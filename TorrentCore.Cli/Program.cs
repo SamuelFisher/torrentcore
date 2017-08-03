@@ -57,7 +57,7 @@ namespace TorrentCore.Cli
 
             var client = new TorrentClient(port);
             var extendionProtocolModule = new ExtensionProtocolModule();
-            extendionProtocolModule.RegisterMessageHandler(new PeerExchangeMessageHandler());
+            extendionProtocolModule.RegisterMessageHandler(new PeerExchangeMessageHandler(client.AdapterAddress));
             client.Modules.Register(extendionProtocolModule);
 
             if (runWebUi)
