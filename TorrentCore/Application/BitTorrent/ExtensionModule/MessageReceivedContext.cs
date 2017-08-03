@@ -19,7 +19,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using TorrentCore.ExtensionModule;
+using TorrentCore.Modularity;
+using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent.ExtensionModule
 {
@@ -30,8 +31,9 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
                                       int messageLength,
                                       BinaryReader reader,
                                       Dictionary<string, object> customValues,
-                                      Action<byte> registerMessageHandler)
-            : base(peer, customValues, registerMessageHandler)
+                                      Action<byte> registerMessageHandler,
+                                      Action<IEnumerable<ITransportStream>> peersAvailable)
+            : base(peer, customValues, registerMessageHandler, peersAvailable)
         {
             Reader = reader;
             Peer = peer;

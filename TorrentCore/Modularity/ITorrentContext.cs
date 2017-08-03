@@ -17,13 +17,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TorrentCore.Transport;
 
-namespace TorrentCore.ExtensionModule
+namespace TorrentCore.Modularity
 {
-    public interface IModuleManager
+    public interface ITorrentContext
     {
-        IEnumerable<IExtensionModule> Modules { get; }
-
-        void Register(IExtensionModule module);
+        void PeersAvailable(IEnumerable<ITransportStream> peers);
     }
 }

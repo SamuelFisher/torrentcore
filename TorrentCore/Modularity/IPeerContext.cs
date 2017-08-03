@@ -18,9 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TorrentCore.ExtensionModule
+namespace TorrentCore.Modularity
 {
-    public interface IPeerContext
+    public interface IPeerContext : ITorrentContext
     {
         /// <summary>
         /// Gets the reserved bytes sent by this peer in the connected handshake.

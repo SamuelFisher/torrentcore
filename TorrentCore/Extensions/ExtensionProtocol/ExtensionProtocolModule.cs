@@ -20,7 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using TorrentCore.ExtensionModule;
+using TorrentCore.Modularity;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
@@ -28,7 +28,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
     /// <summary>
     /// Provides support for BEP 10 Extension Protocol.
     /// </summary>
-    public class ExtensionProtocolModule : IExtensionModule
+    public class ExtensionProtocolModule : IModule
     {
         private const byte ExtensionProtocolMessageId = 20;
         internal const string ExtensionProtocolMessageIds = "EXTENSION_PROTOCOL_MESSAGE_IDS";
@@ -54,13 +54,13 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             }
         }
 
-        void IExtensionModule.OnPrepareHandshake(IPrepareHandshakeContext context)
+        void IModule.OnPrepareHandshake(IPrepareHandshakeContext context)
         {
             // Advertise support for the extension protocol
             context.ReservedBytes[5] |= 0x10;
         }
 
-        void IExtensionModule.OnPeerConnected(IPeerContext context)
+        void IModule.OnPeerConnected(IPeerContext context)
         {
             // Check for extension protocol support
             bool supportsExtensionProtocol = (context.ReservedBytes[5] & 0x10) != 0;
@@ -83,7 +83,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             });
         }
 
-        void IExtensionModule.OnMessageReceived(IMessageReceivedContext context)
+        void IModule.OnMessageReceived(IMessageReceivedContext context)
         {
             // We only registered to receive extension protocol messages
             // so we should only receive messages of this type.

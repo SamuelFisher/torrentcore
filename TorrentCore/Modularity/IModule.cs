@@ -16,13 +16,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
-namespace TorrentCore.ExtensionModule
+namespace TorrentCore.Modularity
 {
-    public interface ISerializableMessage
+    public interface IModule
     {
-        byte[] Serialize();
+        void OnPrepareHandshake(IPrepareHandshakeContext context);
+
+        void OnPeerConnected(IPeerContext context);
+
+        void OnMessageReceived(IMessageReceivedContext context);
     }
 }

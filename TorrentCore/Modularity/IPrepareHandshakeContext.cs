@@ -18,9 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TorrentCore.ExtensionModule
+namespace TorrentCore.Modularity
 {
-    public interface IExtensionContext
+    public interface IPrepareHandshakeContext
     {
+        byte[] ReservedBytes { get; }
     }
 }

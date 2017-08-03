@@ -27,7 +27,7 @@ using TorrentCore.Application.BitTorrent;
 using TorrentCore.Application.BitTorrent.Connection;
 using TorrentCore.Data;
 using TorrentCore.Engine;
-using TorrentCore.ExtensionModule;
+using TorrentCore.Modularity;
 using TorrentCore.Tracker;
 using TorrentCore.Transport;
 using TorrentCore.Transport.Tcp;

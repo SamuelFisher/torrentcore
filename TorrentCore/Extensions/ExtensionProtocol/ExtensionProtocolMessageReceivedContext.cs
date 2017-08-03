@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using TorrentCore.ExtensionModule;
+using TorrentCore.Modularity;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {

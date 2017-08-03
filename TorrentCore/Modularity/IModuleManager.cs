@@ -18,17 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TorrentCore.ExtensionModule
+namespace TorrentCore.Modularity
 {
-    class ModuleManager : IModuleManager
+    public interface IModuleManager
     {
-        private readonly List<IExtensionModule> modules = new List<IExtensionModule>();
+        IEnumerable<IModule> Modules { get; }
 
-        public IEnumerable<IExtensionModule> Modules => modules;
-
-        public void Register(IExtensionModule module)
-        {
-            modules.Add(module);
-        }
+        void Register(IModule module);
     }
 }

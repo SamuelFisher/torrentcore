@@ -28,7 +28,7 @@ using TorrentCore.Application.BitTorrent.Connection;
 using TorrentCore.Application.BitTorrent.ExtensionModule;
 using TorrentCore.Data;
 using TorrentCore.Engine;
-using TorrentCore.ExtensionModule;
+using TorrentCore.Modularity;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent
@@ -49,7 +49,7 @@ namespace TorrentCore.Application.BitTorrent
         private readonly HashSet<PeerConnection> peers = new HashSet<PeerConnection>();
         private readonly List<ITransportStream> connectingPeers = new List<ITransportStream>();
         private readonly List<ITransportStream> availablePeers = new List<ITransportStream>();
-        private readonly Dictionary<Tuple<PeerConnection, byte>, IExtensionModule> messageHandlerRegistrations = new Dictionary<Tuple<PeerConnection, byte>, IExtensionModule>();
+        private readonly Dictionary<Tuple<PeerConnection, byte>, IModule> messageHandlerRegistrations = new Dictionary<Tuple<PeerConnection, byte>, IModule>();
         
         /// <summary>
         /// Creates a new instance of the BitTorrent protocol.
@@ -78,6 +78,7 @@ namespace TorrentCore.Application.BitTorrent
         /// <param name="streams">Result containing information from the tracker.</param>
         public void PeersAvailable(IEnumerable<ITransportStream> streams)
         {
+            // TODO: check for duplicates
             availablePeers.AddRange(streams);
         }
 
@@ -139,7 +140,7 @@ namespace TorrentCore.Application.BitTorrent
 
             byte messageId = reader.ReadByte();
 
-            if (messageHandlerRegistrations.TryGetValue(Tuple.Create(peer, messageId), out IExtensionModule module))
+            if (messageHandlerRegistrations.TryGetValue(Tuple.Create(peer, messageId), out IModule module))
             {
                 var customValues = peer.GetCustomValues(module);
                 var messageReceivedContext = new MessageReceivedContext(peer,
@@ -147,7 +148,8 @@ namespace TorrentCore.Application.BitTorrent
                                                                         data.Length - 1,
                                                                         reader,
                                                                         customValues,
-                                                                        rMessageId => RegisterModuleForMessageId(peer, module, rMessageId));
+                                                                        rMessageId => RegisterModuleForMessageId(peer, module, rMessageId),
+                                                                        PeersAvailable);
 
                 module.OnMessageReceived(messageReceivedContext);
                 Log.LogDebug($"Message of type {messageId} handled by module {module.GetType().Name}");
@@ -217,7 +219,7 @@ namespace TorrentCore.Application.BitTorrent
             }
         }
 
-        private void RegisterModuleForMessageId(PeerConnection peer, IExtensionModule module, byte messageId)
+        private void RegisterModuleForMessageId(PeerConnection peer, IModule module, byte messageId)
         {
             messageHandlerRegistrations[Tuple.Create(peer, messageId)] = module;
         }
@@ -401,7 +403,8 @@ namespace TorrentCore.Application.BitTorrent
             {
                 var context = new PeerContext(peer,
                                               peer.GetCustomValues(module),
-                                              messageId => RegisterModuleForMessageId(peer, module, messageId));
+                                              messageId => RegisterModuleForMessageId(peer, module, messageId),
+                                              PeersAvailable);
                 module.OnPeerConnected(context);
             }
 

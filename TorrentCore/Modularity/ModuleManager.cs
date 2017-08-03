@@ -18,10 +18,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TorrentCore.ExtensionModule
+namespace TorrentCore.Modularity
 {
-    public interface IPrepareHandshakeContext
+    class ModuleManager : IModuleManager
     {
-        byte[] ReservedBytes { get; }
+        private readonly List<IModule> modules = new List<IModule>();
+
+        public IEnumerable<IModule> Modules => modules;
+
+        public void Register(IModule module)
+        {
+            modules.Add(module);
+        }
     }
 }

@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using TorrentCore.ExtensionModule;
+using TorrentCore.Modularity;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent.ExtensionModule
@@ -28,14 +28,17 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
         private readonly PeerConnection peer;
         private readonly Dictionary<string, object> customValues;
         private readonly Action<byte> registerMessageHandler;
+        private readonly Action<IEnumerable<ITransportStream>> peersAvailable;
 
         public PeerContext(PeerConnection peer,
                            Dictionary<string, object> customValues,
-                           Action<byte> registerMessageHandler)
+                           Action<byte> registerMessageHandler,
+                           Action<IEnumerable<ITransportStream>> peersAvailable)
         {
             this.peer = peer;
             this.customValues = customValues;
             this.registerMessageHandler = registerMessageHandler;
+            this.peersAvailable = peersAvailable;
         }
 
         public IReadOnlyList<byte> ReservedBytes => peer.ReservedBytes;
@@ -68,6 +71,11 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
                 writer.Flush();
                 peer.Send(ms.ToArray());
             }
+        }
+
+        public void PeersAvailable(IEnumerable<ITransportStream> peers)
+        {
+            peersAvailable(peers);
         }
     }
 }

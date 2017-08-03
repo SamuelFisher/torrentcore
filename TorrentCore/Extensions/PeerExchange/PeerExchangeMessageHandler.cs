@@ -34,7 +34,7 @@ namespace TorrentCore.Extensions.PeerExchange
 
         public void MessageReceived(IExtensionProtocolMessageReceivedContext context)
         {
-            throw new NotImplementedException();
+            
         }
     }
 }

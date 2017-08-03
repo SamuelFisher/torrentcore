@@ -20,7 +20,7 @@ using System.IO;
 using System.Text;
 using TorrentCore.Application.BitTorrent;
 
-namespace TorrentCore.ExtensionModule
+namespace TorrentCore.Modularity
 {
     public interface IMessageReceivedContext : IPeerContext
     {

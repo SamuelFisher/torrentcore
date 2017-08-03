@@ -20,7 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using TorrentCore.Data;
-using TorrentCore.ExtensionModule;
+using TorrentCore.Modularity;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent.Connection
