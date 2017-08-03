@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using TorrentCore.Serialization;
 
 namespace TorrentCore.Tracker.Udp
 {
@@ -48,15 +49,10 @@ namespace TorrentCore.Tracker.Udp
 
             Peers = new List<AnnounceResultPeer>();
             while (reader.BaseStream.Position < reader.BaseStream.Length)
-                ReadPeer(reader);
-        }
-
-        void ReadPeer(BinaryReader reader)
-        {
-            byte[] ipAddress = reader.ReadBytes(4);
-            short port = reader.ReadInt16();
-
-            Peers.Add(new AnnounceResultPeer(new IPAddress(ipAddress), port));
+            {
+                var endPoint = reader.ReadIpV4EndPoint();
+                Peers.Add(new AnnounceResultPeer(endPoint.Address, endPoint.Port));
+            }
         }
     }
 }

@@ -37,6 +37,12 @@ namespace TorrentCore.Transport
             return IPAddress.NetworkToHostOrder(value);
         }
 
+        public override ushort ReadUInt16()
+        {
+            ushort value = base.ReadUInt16();
+            return (ushort)IPAddress.NetworkToHostOrder((short)value);
+        }
+
         public override int ReadInt32()
         {
             int value = base.ReadInt32();

@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Extensions.ExtensionProtocol;
+using TorrentCore.Extensions.PeerExchange;
 using TorrentCore.Web;
 
 namespace TorrentCore.Cli
@@ -56,6 +57,7 @@ namespace TorrentCore.Cli
 
             var client = new TorrentClient(port);
             var extendionProtocolModule = new ExtensionProtocolModule();
+            extendionProtocolModule.RegisterMessageHandler(new PeerExchangeMessageHandler());
             client.Modules.Register(extendionProtocolModule);
 
             if (runWebUi)

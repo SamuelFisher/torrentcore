@@ -73,7 +73,8 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             // Send handshake message
             var handshake = new ExtensionProtocolHandshake
             {
-                MessageIds = supportedMessages
+                MessageIds = supportedMessages,
+                Client = "TorrentCore 0.1" // todo
             };
             SendMessage(context, writer =>
             {
