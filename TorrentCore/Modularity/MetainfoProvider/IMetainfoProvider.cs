@@ -17,29 +17,17 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using TorrentCore.Application.BitTorrent;
+using System.Threading;
+using System.Threading.Tasks;
 using TorrentCore.Data;
-using TorrentCore.Transport;
 
-namespace TorrentCore.Modularity
+namespace TorrentCore.Modularity.MetainfoProvider
 {
-    public interface ITorrentContext
+    /// <summary>
+    /// Provides the ability to download the 'info' section of a torrent file, given the infohash.
+    /// </summary>
+    public interface IMetainfoProvider
     {
-        /// <summary>
-        /// Gets the metainfo for the torrent.
-        /// </summary>
-        Metainfo Metainfo { get; }
-
-        /// <summary>
-        /// Gets the collection of currently connected peers.
-        /// </summary>
-        IReadOnlyCollection<PeerConnection> Peers { get; }
-
-        /// <summary>
-        /// Notifies that new peers are available to connect to.
-        /// </summary>
-        void PeersAvailable(IEnumerable<ITransportStream> peers);
-
-
+        Task<Metainfo> GetMetainfo(ITorrentContext context, CancellationToken ct);
     }
 }

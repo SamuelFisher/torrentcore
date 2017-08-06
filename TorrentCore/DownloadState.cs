@@ -53,6 +53,11 @@ namespace TorrentCore
         /// <summary>
         /// There is a problem wih the torrent.
         /// </summary>
-        Error = 32
+        Error = 32,
+
+        /// <summary>
+        /// The metadata is being downloaded before the download can begin.
+        /// </summary>
+        DownloadingMetadata = 64,
     }
 }

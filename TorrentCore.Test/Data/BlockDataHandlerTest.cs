@@ -58,7 +58,8 @@ namespace TorrentCore.Test.Data
                                             new Piece(50, 50, Sha1Hash.Empty),
                                             new Piece(100, 50, Sha1Hash.Empty),
                                         },
-                                        new IEnumerable<Uri>[0]);
+                                        new IEnumerable<Uri>[0],
+                                        new byte[0]);
 
             blockDataHandler = new BlockDataHandler(fileHandler.Object, metainfo);
         }

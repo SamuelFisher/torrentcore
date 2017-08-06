@@ -81,7 +81,10 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             };
 
             var handshakeDict = handshake.Serialize();
-            var prepareHandshakeContext = new PrepareExtensionProtocolHandshakeContext(handshakeDict);
+            var prepareHandshakeContext =
+                new PrepareExtensionProtocolHandshakeContext(handshakeDict,
+                                                             context,
+                                                             msg => SendExtensionMessage(context, msg));
             foreach (var handler in registeredHandlers)
                 handler.PrepareExtensionProtocolHandshake(prepareHandshakeContext);
 
@@ -104,6 +107,10 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             if (messageTypeId == 0)
             {
                 HandshakeMessageReceived(context);
+
+                foreach (var rh in registeredHandlers)
+                    rh.PeerConnected(new ExtensionProtocolPeerContext(context, reply => SendExtensionMessage(context, reply)));
+
                 return;
             }
 

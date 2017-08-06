@@ -23,58 +23,16 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    class ExtensionProtocolMessageReceivedContext : IExtensionProtocolMessageReceivedContext
+    class ExtensionProtocolMessageReceivedContext : ExtensionProtocolPeerContext, IExtensionProtocolMessageReceivedContext
     {
-        private readonly IPeerContext peerContext;
-        private readonly Action<IExtensionProtocolMessage> sendMessage;
-
         public ExtensionProtocolMessageReceivedContext(IExtensionProtocolMessage message,
                                                        IPeerContext peerContext,
                                                        Action<IExtensionProtocolMessage> sendMessage)
+            : base(peerContext, sendMessage)
         {
-            this.peerContext = peerContext;
-            this.sendMessage = sendMessage;
             Message = message;
         }
 
         public IExtensionProtocolMessage Message { get; }
-
-        public IReadOnlyCollection<string> SupportedMessageTypes =>
-            peerContext.GetValue<Dictionary<string, byte>>(ExtensionProtocolModule.ExtensionProtocolMessageIds).Select(x => x.Key).ToList();
-
-        public void SendMessage(IExtensionProtocolMessage message)
-        {
-            sendMessage(message);
-        }
-
-        #region IPeerContext Members
-
-        public void PeersAvailable(IEnumerable<ITransportStream> peers)
-        {
-            peerContext.PeersAvailable(peers);
-        }
-
-        public IReadOnlyList<byte> ReservedBytes => peerContext.ReservedBytes;
-
-        public T GetValue<T>(string key)
-        {
-            return peerContext.GetValue<T>(key);
-        }
-
-        public void SetValue<T>(string key, T value)
-        {
-            peerContext.SetValue(key, value);
-        }
-
-        public void RegisterMessageHandler(byte messageId)
-        {
-            peerContext.RegisterMessageHandler(messageId);
-        }
-
-        public void SendMessage(byte messageId, byte[] data)
-        {
-            peerContext.SendMessage(messageId, data);
-        }
-        #endregion
     }
 }

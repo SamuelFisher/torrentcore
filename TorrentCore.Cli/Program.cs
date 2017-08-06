@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Extensions.ExtensionProtocol;
 using TorrentCore.Extensions.PeerExchange;
+using TorrentCore.Extensions.SendMetadata;
 using TorrentCore.Web;
 
 namespace TorrentCore.Cli
@@ -56,9 +57,10 @@ namespace TorrentCore.Cli
                 LogManager.Configure(factory => factory.AddConsole(LogLevel.Information));
 
             var client = new TorrentClient(port);
-            var extendionProtocolModule = new ExtensionProtocolModule();
-            extendionProtocolModule.RegisterMessageHandler(new PeerExchangeMessageHandler(client.AdapterAddress));
-            client.Modules.Register(extendionProtocolModule);
+            var extensionProtocolModule = new ExtensionProtocolModule();
+            //extensionProtocolModule.RegisterMessageHandler(new PeerExchangeMessageHandler(client.AdapterAddress));
+            extensionProtocolModule.RegisterMessageHandler(new MetadataMessageHandler());
+            client.Modules.Register(extensionProtocolModule);
 
             if (runWebUi)
             {

@@ -51,7 +51,8 @@ namespace TorrentCore.Test.Data
                                             new Piece(0, 50, hash),
                                             new Piece(50, 50, hash),
                                         },
-                                        new IEnumerable<Uri>[0]);
+                                        new IEnumerable<Uri>[0],
+                                        new byte[0]);
 
             var baseHandler = new Mock<IBlockDataHandler>();
             baseHandler.Setup(x => x.Metainfo)

@@ -46,7 +46,7 @@ namespace TorrentCore.Modularity
         void RegisterMessageHandler(byte messageId);
 
         /// <summary>
-        /// Sends a message to this peer.
+        /// Sends a BitTorrent protocol message to this peer.
         /// </summary>
         /// <param name="messageId">The type of message being sent.</param>
         /// <param name="data">The message data.</param>

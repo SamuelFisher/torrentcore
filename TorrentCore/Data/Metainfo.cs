@@ -43,7 +43,8 @@ namespace TorrentCore.Data
                         Sha1Hash infoHash,
                         IEnumerable<ContainedFile> files,
                         IEnumerable<Piece> pieces,
-                        IEnumerable<IEnumerable<Uri>> trackers)
+                        IEnumerable<IEnumerable<Uri>> trackers,
+                        IReadOnlyList<byte> metadata)
         {
             Name = name;
             this.pieces = new List<Piece>();
@@ -54,6 +55,7 @@ namespace TorrentCore.Data
             TotalSize = Files.Any() ? Files.Sum(f => f.Size) : 0;
             Trackers = trackers.Select(x => (IReadOnlyList<Uri>)new ReadOnlyCollection<Uri>(x.ToList())).ToList().AsReadOnly();
             PieceSize = this.pieces.First().Size;
+            Metadata = metadata;
         }
 
         /// <summary>
@@ -65,6 +67,11 @@ namespace TorrentCore.Data
         /// Gets a hash of the data for this set of files.
         /// </summary>
         public Sha1Hash InfoHash { get; }
+
+        /// <summary>
+        /// The 'info' section of the metainfo file.
+        /// </summary>
+        public IReadOnlyList<byte> Metadata { get; }
 
         /// <summary>
         /// Gets the list of files contained within this collection.

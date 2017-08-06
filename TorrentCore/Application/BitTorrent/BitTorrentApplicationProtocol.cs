@@ -37,7 +37,10 @@ namespace TorrentCore.Application.BitTorrent
     /// Represents the network protocol for BitTorrent.
     /// </summary>
     /// <remarks>This class is not thread-safe. All methods should be called from the <see cref="MainLoop"/> thread.</remarks>
-    class BitTorrentApplicationProtocol<TConnectionContext> : IApplicationProtocol<PeerConnection>, IPeerMessageHandler
+    class BitTorrentApplicationProtocol<TConnectionContext> :
+        IApplicationProtocol<PeerConnection>,
+        IPeerMessageHandler,
+        ITorrentContext
     {
         private static readonly ILogger Log = LogManager.GetLogger<BitTorrentApplicationProtocol<TConnectionContext>>();
 
@@ -69,6 +72,8 @@ namespace TorrentCore.Application.BitTorrent
         }
 
         public ITorrentDownloadManager Manager { get; }
+
+        public Metainfo Metainfo => Manager.Description;
 
         public IReadOnlyCollection<PeerConnection> Peers => peers;
         
@@ -144,12 +149,12 @@ namespace TorrentCore.Application.BitTorrent
             {
                 var customValues = peer.GetCustomValues(module);
                 var messageReceivedContext = new MessageReceivedContext(peer,
+                                                                        this,
                                                                         messageId,
                                                                         data.Length - 1,
                                                                         reader,
                                                                         customValues,
-                                                                        rMessageId => RegisterModuleForMessageId(peer, module, rMessageId),
-                                                                        PeersAvailable);
+                                                                        rMessageId => RegisterModuleForMessageId(peer, module, rMessageId));
 
                 module.OnMessageReceived(messageReceivedContext);
                 Log.LogDebug($"Message of type {messageId} handled by module {module.GetType().Name}");
@@ -403,8 +408,8 @@ namespace TorrentCore.Application.BitTorrent
             {
                 var context = new PeerContext(peer,
                                               peer.GetCustomValues(module),
-                                              messageId => RegisterModuleForMessageId(peer, module, messageId),
-                                              PeersAvailable);
+                                              this,
+                                              messageId => RegisterModuleForMessageId(peer, module, messageId));
                 module.OnPeerConnected(context);
             }
 

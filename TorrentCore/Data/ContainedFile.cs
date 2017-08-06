@@ -27,20 +27,20 @@ namespace TorrentCore.Data
     /// </summary>
     public class ContainedFile
     {
-        /// <summary>
-        /// Gets the name of this file, including directories.
-        /// </summary>
-        public string Name { get; private set; }
-
-        /// <summary>
-        /// Gets the size of the file, in bytes.
-        /// </summary>
-        public long Size { get; private set; }
-
         public ContainedFile(string name, long size)
         {
             Name = name;
             Size = size;
         }
+
+        /// <summary>
+        /// Gets the name of this file, including directories.
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets the size of the file, in bytes.
+        /// </summary>
+        public long Size { get; }
     }
 }

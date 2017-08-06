@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using TorrentCore.Data;
 using TorrentCore.Modularity;
 using TorrentCore.Transport;
 
@@ -27,13 +28,13 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
     class MessageReceivedContext : PeerContext, IMessageReceivedContext
     {
         public MessageReceivedContext(PeerConnection peer,
+                                      ITorrentContext torrentContext,
                                       int messageId,
                                       int messageLength,
                                       BinaryReader reader,
                                       Dictionary<string, object> customValues,
-                                      Action<byte> registerMessageHandler,
-                                      Action<IEnumerable<ITransportStream>> peersAvailable)
-            : base(peer, customValues, registerMessageHandler, peersAvailable)
+                                      Action<byte> registerMessageHandler)
+            : base(peer, customValues, torrentContext, registerMessageHandler)
         {
             Reader = reader;
             Peer = peer;

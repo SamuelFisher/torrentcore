@@ -12,9 +12,12 @@ This project is currently work-in-progress and there are likely to be bugs and m
 - [x] Upload/download torrents
 - [x] Contact HTTP trackers
 - [x] Compact peer lists [BEP 23](http://www.bittorrent.org/beps/bep_0023.html)
-- [x] UDP trackers [BEP 15](http://www.bittorrent.org/beps/bep_0015.html)
+- [x] UDP trackers [BEP 15](http://www.bittorrent.org/beps/bep_0015.html
+- [x] Peer ID conventions [BEP 20](http://bittorrent.org/beps/bep_0020.html)
+- [x] Multitracker metadata extension [BEP 12](http://bittorrent.org/beps/bep_0012.html)
 - [x] Extension protocol [BEP 10](http://www.bittorrent.org/beps/bep_0010.html)
 - [ ] Peer exchange [BEP 11](http://www.bittorrent.org/beps/bep_0011.html)
+- [ ] Extension for Peers to Send Metadata Files [BEP 9]http://bittorrent.org/beps/bep_0009.html)
 - [ ] UPnP port forwarding
 - [ ] IPv6 trackers [BEP 7](http://www.bittorrent.org/beps/bep_0007.html)
 - [ ] DHT for trackerless torrents [BEP 5](http://www.bittorrent.org/beps/bep_0005.html) _(in progress)_

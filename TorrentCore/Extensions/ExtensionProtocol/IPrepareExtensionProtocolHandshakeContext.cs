@@ -21,11 +21,11 @@ using BencodeNET.Objects;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    public interface IPrepareExtensionProtocolHandshakeContext
+    public interface IPrepareExtensionProtocolHandshakeContext : IExtensionProtocolPeerContext
     {
         /// <summary>
         /// Gets the content of the handshake message.
         /// </summary>
-        BDictionary ExtensionProtocolHandshakeContent { get; }
+        BDictionary HandshakeContent { get; }
     }
 }

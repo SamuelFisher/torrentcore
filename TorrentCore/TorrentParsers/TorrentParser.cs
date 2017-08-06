@@ -38,9 +38,12 @@ namespace TorrentCore.TorrentParsers
         /// <returns>Metainfo data.</returns>
         public static Metainfo ReadFromStream(Stream input)
         {
-            var parser = new BencodeParser();
-            var torrent = parser.Parse<Torrent>(input);
+            var dictParser = new BDictionaryParser(new BencodeParser());
+            var dict = dictParser.Parse(input);
 
+            var parser = new BencodeParser();
+            var torrent = parser.Parse<Torrent>(dict.EncodeAsBytes());
+            
             var files = new List<ContainedFile>();
             if (torrent.File != null)
             {
@@ -66,12 +69,13 @@ namespace TorrentCore.TorrentParsers
                 pieces.Add(piece);
                 pieceIndex++;
             }
-            
+
             return new Metainfo(torrent.DisplayName,
                                 new Sha1Hash(torrent.GetInfoHashBytes()),
                                 files,
                                 pieces,
-                                torrent.Trackers.Select(x => x.Select(y => new Uri(y))));
+                                torrent.Trackers.Select(x => x.Select(y => new Uri(y))),
+                                new byte[0]);
         }
     }
 }

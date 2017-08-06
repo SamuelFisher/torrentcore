@@ -18,16 +18,20 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using BencodeNET.Objects;
+using TorrentCore.Modularity;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    class PrepareExtensionProtocolHandshakeContext :  IPrepareExtensionProtocolHandshakeContext
+    class PrepareExtensionProtocolHandshakeContext : ExtensionProtocolPeerContext,  IPrepareExtensionProtocolHandshakeContext
     {
-        public PrepareExtensionProtocolHandshakeContext(BDictionary content)
+        public PrepareExtensionProtocolHandshakeContext(BDictionary handshakeContent,
+                                                        IPeerContext peerContext,
+                                                        Action<IExtensionProtocolMessage> sendMessage)
+            : base(peerContext, sendMessage)
         {
-            ExtensionProtocolHandshakeContent = content;
+            HandshakeContent = handshakeContent;
         }
 
-        public BDictionary ExtensionProtocolHandshakeContent { get; }
+        public BDictionary HandshakeContent { get; }
     }
 }

@@ -29,7 +29,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         IReadOnlyCollection<string> SupportedMessageTypes { get; }
 
         /// <summary>
-        /// Sends a message to the peer the message was received from.
+        /// Sends an extension protocol message to this peer.
         /// </summary>
         /// <param name="message">The message to send.</param>
         void SendMessage(IExtensionProtocolMessage message);

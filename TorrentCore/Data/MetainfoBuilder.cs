@@ -59,7 +59,7 @@ namespace TorrentCore.Data
             var fileHandler = new MemoryFileHandler(files.ToDictionary(x => x.Item1, x => x.Item2));
 
             var pieces = PieceCalculator.ComputePieces(containedFiles, 256000, fileHandler);
-            return new Metainfo(name, Sha1Hash.Empty, containedFiles, pieces, new [] { trackers });
+            return new Metainfo(name, Sha1Hash.Empty, containedFiles, pieces, new [] { trackers }, null);
         }
     }
 }
