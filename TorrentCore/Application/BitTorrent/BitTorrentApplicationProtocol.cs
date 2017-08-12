@@ -30,7 +30,7 @@ using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Modularity;
 using TorrentCore.Transport;
-
+                                                                                            
 namespace TorrentCore.Application.BitTorrent
 {
     /// <summary>
@@ -76,6 +76,10 @@ namespace TorrentCore.Application.BitTorrent
         public Metainfo Metainfo => Manager.Description;
 
         public IReadOnlyCollection<PeerConnection> Peers => peers;
+
+        public IReadOnlyCollection<ITransportStream> AvailablePeers => availablePeers;
+
+        public IReadOnlyCollection<ITransportStream> ConnectingPeers => connectingPeers;
         
         public void PeersAvailable(IEnumerable<ITransportStream> newPeers)
         {
@@ -96,19 +100,7 @@ namespace TorrentCore.Application.BitTorrent
             var peer = e.Accept();
             PeerConnected(peer);
         }
-
-        /// <summary>
-        /// Performs actions in each cycle of the main loop.
-        /// </summary>
-        public void Iterate()
-        {
-            RequestPieces();
-
-            SendPieces();
-
-            ConnectToPeers();
-        }
-
+        
         /// <summary>
         /// Invoked when a piece has been fully downloaded and passes its hash check.
         /// </summary>
@@ -119,7 +111,7 @@ namespace TorrentCore.Application.BitTorrent
 
             foreach (var peer in peers)
             {
-                SendMessage(peer, new HaveMessage(e.Piece));
+                peer.SendMessage(new HaveMessage(e.Piece));
             }
         }
 
@@ -199,7 +191,7 @@ namespace TorrentCore.Application.BitTorrent
                     if (IsBitfieldInteresting(bitfieldMessage.Bitfield))
                     {
                         peer.IsInterestedInRemotePeer = true;
-                        SendMessage(peer, new InterestedMessage());
+                        peer.SendMessage(new InterestedMessage());
                     }
                     break;
                 }
@@ -224,123 +216,48 @@ namespace TorrentCore.Application.BitTorrent
             }
         }
 
+        public void ConnectToPeer(ITransportStream peerTransport)
+        {
+            try
+            {
+                availablePeers.Remove(peerTransport);
+                connectingPeers.Add(peerTransport);
+                peerTransport.Connect().ContinueWith(antecedent =>
+                {
+                    // TODO: run on main loop thread
+                    if (antecedent.Status != TaskStatus.RanToCompletion
+                        || !peerTransport.IsConnected)
+                    {
+                        Log.LogInformation($"Failed to connect to peer at {peerTransport.DisplayAddress}");
+
+                        // Connection failed
+                        connectingPeers.Remove(peerTransport);
+                        // TODO: keep a record of failed connection peers
+                        return;
+                    }
+
+                    Log.LogInformation($"Connected to peer at {peerTransport.DisplayAddress}");
+
+                    var connectionSettings = new PeerConnectionArgs(localPeerId,
+                                                                    Manager.Description,
+                                                                    messageHandlerFactory(this));
+                    var peer = peerInitiator.InitiateOutgoingConnection(peerTransport, connectionSettings);
+                    connectingPeers.Remove(peerTransport);
+                    PeerConnected(peer);
+                });
+            }
+            catch
+            {
+                if (connectingPeers.Contains(peerTransport))
+                    connectingPeers.Remove(peerTransport);
+            }
+        }
+
         private void RegisterModuleForMessageId(PeerConnection peer, IModule module, byte messageId)
         {
             messageHandlerRegistrations[Tuple.Create(peer, messageId)] = module;
         }
-
-        private void RequestPieces()
-        {
-            var availability = new Bitfield(Manager.Description.Pieces.Count);
-            foreach (var peer in peers)
-                availability.Union(peer.Available);
-
-            var blocksToRequest = picker.BlocksToRequest(Manager.IncompletePieces, availability);
-
-            foreach (var block in blocksToRequest)
-            {
-                var peer = FindPeerWithPiece(Manager.Description.Pieces[block.PieceIndex]);
-                if (peer != null)
-                {
-                    peer.Requested.Add(block);
-                    picker.BlockRequested(block);
-                    SendMessage(peer, new RequestMessage(block));
-                }
-            }
-        }
-
-        private PeerConnection FindPeerWithPiece(Piece piece)
-        {
-            foreach (var peer in peers.OrderBy(x => x.Requested.Count))
-            {
-                if (peer.Available.IsPieceAvailable(piece.Index)
-                    && !peer.IsChokedByRemotePeer)
-                    return peer;
-            }
-
-            // Piece is not available
-            return null;
-        }
-
-        private void SendPieces()
-        {
-            foreach (var peer in peers)
-            {
-                var sent = new List<BlockRequest>();
-                foreach (var request in peer.RequestedByRemotePeer)
-                {
-                    sent.Add(request);
-                    SendPiece(peer, request);
-                }
-
-                foreach (var request in sent)
-                    peer.RequestedByRemotePeer.Remove(request);
-            }
-        }
-
-        private void ConnectToPeers()
-        {
-            // If seeding, allow incoming connections only - don't initiate connections
-            if (Manager.State != DownloadState.Downloading)
-                return;
-
-            if (peers.Count + connectingPeers.Count < 5 && availablePeers.Count > 0)
-            {
-                var transportStream = availablePeers.First();
-
-                try
-                {
-                    availablePeers.Remove(transportStream);
-                    connectingPeers.Add(transportStream);
-                    transportStream.Connect().ContinueWith(antecedent =>
-                    {
-                        // TODO: run on main loop thread
-                        if (antecedent.Status != TaskStatus.RanToCompletion
-                            || !transportStream.IsConnected)
-                        {
-                            Log.LogInformation($"Failed to connect to peer at {transportStream.DisplayAddress}");
-
-                            // Connection failed
-                            connectingPeers.Remove(transportStream);
-                            return;
-                        }
-
-                        Log.LogInformation($"Connected to peer at {transportStream.DisplayAddress}");
-
-                        var connectionSettings = new PeerConnectionArgs(localPeerId,
-                                                                        Manager.Description,
-                                                                        messageHandlerFactory(this));
-                        var peer = peerInitiator.InitiateOutgoingConnection(transportStream, connectionSettings);
-                        connectingPeers.Remove(transportStream);
-                        PeerConnected(peer);
-                    });
-                }
-                catch
-                {
-                    if (connectingPeers.Contains(transportStream))
-                        connectingPeers.Remove(transportStream);
-                }
-            }
-        }
-
-        private void SendPiece(PeerConnection peer, BlockRequest request)
-        {
-            long dataOffset = Manager.Description.PieceSize * request.PieceIndex + request.Offset;
-            byte[] data = Manager.ReadData(dataOffset, request.Length);
-
-            SendMessage(peer, new PieceMessage(request.ToBlock(data)));
-        }
-
-        private void SendMessage(PeerConnection peer, IPeerMessage message)
-        {
-            using (var ms = new MemoryStream())
-            {
-                BinaryWriter writer = new BigEndianBinaryWriter(ms);
-                message.Send(writer);
-                peer.Send(ms.ToArray());
-            }
-        }
-
+        
         private void BlockReceived(PeerConnection peer, Block block)
         {
             peer.Requested.Remove(block.AsRequest());
@@ -378,7 +295,7 @@ namespace TorrentCore.Application.BitTorrent
                 && IsBitfieldInteresting(peer.Available))
             {
                 peer.IsInterestedInRemotePeer = true;
-                SendMessage(peer, new InterestedMessage());
+                peer.SendMessage(new InterestedMessage());
             }
         }
 
@@ -390,7 +307,7 @@ namespace TorrentCore.Application.BitTorrent
         private void UnchokePeer(PeerConnection peer)
         {
             peer.IsChokingRemotePeer = false;
-            SendMessage(peer, new UnchokeMessage());
+            peer.SendMessage(new UnchokeMessage());
         }
 
         private void SetChokedByPeer(PeerConnection peer, bool choked)
@@ -402,7 +319,7 @@ namespace TorrentCore.Application.BitTorrent
         {
             peers.Add(peer);
 
-            SendMessage(peer, new BitfieldMessage(new Bitfield(Manager.Description.Pieces.Count, Manager.CompletedPieces)));
+            peer.SendMessage(new BitfieldMessage(new Bitfield(Manager.Description.Pieces.Count, Manager.CompletedPieces)));
 
             foreach (var module in modules.Modules)
             {

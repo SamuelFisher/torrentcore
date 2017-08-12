@@ -27,7 +27,7 @@ namespace TorrentCore.Engine
     {
         private readonly AutoResetEvent handle = new AutoResetEvent(false);
         private readonly ConcurrentQueue<Action> queue = new ConcurrentQueue<Action>();
-        private readonly List<Action> regularTasks = new List<Action>();
+        private readonly HashSet<RegularTask> regularTasks = new HashSet<RegularTask>();
 
         private Thread mainLoop;
         private CancellationTokenSource cancelToken;
@@ -58,7 +58,7 @@ namespace TorrentCore.Engine
                     AddTask(() =>
                     {
                         foreach (var task in regularTasks)
-                            task();
+                            task.Execute();
                         regularTaskTimer.Change(100, Timeout.Infinite);
                     });
                 });
@@ -85,9 +85,11 @@ namespace TorrentCore.Engine
             handle.Set();
         }
 
-        public void AddRegularTask(Action t)
+        public IRegularTask AddRegularTask(Action t)
         {
-            regularTasks.Add(t);
+            var rt = new RegularTask(t, RemoveRegularTask);
+            regularTasks.Add(rt);
+            return rt;
         }
 
         void Loop(CancellationToken ct)
@@ -106,6 +108,27 @@ namespace TorrentCore.Engine
                 if (ct.IsCancellationRequested)
                     break;
             }
+        }
+
+        void RemoveRegularTask(RegularTask task)
+        {
+            regularTasks.Remove(task);
+        }
+
+        private class RegularTask : IRegularTask
+        {
+            private readonly Action execute;
+            private readonly Action<RegularTask> cancel;
+
+            public RegularTask(Action execute, Action<RegularTask> cancel)
+            {
+                this.execute = execute;
+                this.cancel = cancel;
+            }
+
+            public void Execute() => execute();
+
+            public void Cancel() => cancel(this);
         }
     }
 }

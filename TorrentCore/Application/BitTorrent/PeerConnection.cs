@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using TorrentCore.Application.BitTorrent.Messages;
 using TorrentCore.Data;
 using TorrentCore.Modularity;
 using TorrentCore.Transport;
@@ -97,6 +98,16 @@ namespace TorrentCore.Application.BitTorrent
         public HashSet<BlockRequest> RequestedByRemotePeer { get; }
 
         public HashSet<BlockRequest> Requested { get; }
+
+        public void SendMessage(IPeerMessage message)
+        {
+            using (var ms = new MemoryStream())
+            {
+                BinaryWriter w = new BigEndianBinaryWriter(ms);
+                message.Send(w);
+                Send(ms.ToArray());
+            }
+        }
 
         public void Send(byte[] data)
         {

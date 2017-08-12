@@ -52,9 +52,9 @@ namespace TorrentCore.Test.Functional
             var peerFileHandler = new MemoryFileHandler();
             var peerDownload = peer.Add(metainfo, tracker.CreateTrackerClient(null), peerFileHandler);
 
-            await seedDownload.Start();
-            await peerDownload.Start();
-            await peerDownload.WaitForCompletionAsync(TimeSpan.FromSeconds(10));
+            seedDownload.Start();
+            peerDownload.Start();
+            await peerDownload.WaitForDownloadCompletionAsync(TimeSpan.FromSeconds(10));
 
             seed.Dispose();
             peer.Dispose();

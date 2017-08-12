@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Samuel Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -16,20 +16,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
 
-namespace TorrentCore.Engine
+namespace TorrentCore.Stage
 {
-    /// <summary>
-    /// Provides methods for queueing and processing tasks.
-    /// </summary>
-    interface IMainLoop
+    public interface ITorrentStage
     {
-        bool IsRunning { get; }
-        void Start();
-        void Stop();
-        void AddTask(Action t);
-        IRegularTask AddRegularTask(Action t);
+        void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress);
     }
 }

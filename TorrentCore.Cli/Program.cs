@@ -69,11 +69,11 @@ namespace TorrentCore.Cli
             }
 
             var download = client.Add(input, output);
-            download.Start().Wait();
+            download.Start();
 
             Console.WriteLine("Downloading...");
 
-            download.WaitForCompletionAsync().Wait();
+            download.WaitForDownloadCompletionAsync().Wait();
             Console.ReadKey();
         }
     }

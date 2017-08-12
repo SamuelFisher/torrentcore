@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Samuel Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -26,7 +26,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
     /// <summary>
     /// Represents a message sent to or received from a remote peer.
     /// </summary>
-    interface IPeerMessage
+    public interface IPeerMessage
     {
         /// <summary>
         /// Sends the message by writing it to the specified BinaryWriter.

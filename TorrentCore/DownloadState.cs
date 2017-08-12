@@ -25,39 +25,35 @@ namespace TorrentCore
     /// <summary>
     /// Represents the current download state of a set of files.
     /// </summary>
-    [Flags]
     public enum DownloadState
     {
-        Pending = 0,
+        Pending,
+
+        DownloadingMetadata,
 
         /// <summary>
         /// The downloaded files are being hashed.
         /// </summary>
-        Checking = 2,
-
-        /// <summary>
-        /// The torrent is fully downloaded.
-        /// </summary>
-        Completed = 4,
+        Checking,
 
         /// <summary>
         /// The torrent is currently downloading.
         /// </summary>
-        Downloading = 8,
+        Downloading,
 
         /// <summary>
-        /// The torrent is not currently downloading and has not finished downloading.
+        /// The torrent is fully downloaded.
         /// </summary>
-        Stopped = 16,
+        Seeding,
+
+        /// <summary>
+        /// The torrent is not currently active.
+        /// </summary>
+        Stopped,
 
         /// <summary>
         /// There is a problem wih the torrent.
         /// </summary>
-        Error = 32,
-
-        /// <summary>
-        /// The metadata is being downloaded before the download can begin.
-        /// </summary>
-        DownloadingMetadata = 64,
+        Error,
     }
 }

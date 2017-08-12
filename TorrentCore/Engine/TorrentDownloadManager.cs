@@ -24,8 +24,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SimpleInjector;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
+using TorrentCore.Stage;
 using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Tracker;
@@ -43,9 +45,14 @@ namespace TorrentCore
         private readonly PeerId localPeerId;
         private readonly IMainLoop mainLoop;
         private readonly PieceCheckerHandler dataHandler;
+        private readonly Pipeline pipeline;
+        private readonly StageInterrupt stageInterrupt;
+        private readonly Progress<StatusUpdate> progress;
 
         private volatile int recentlyDownloaded;
         private volatile int recentlyUploaded;
+
+        private bool isRunning;
 
         internal TorrentDownloadManager(PeerId localPeerId,
                                         IMainLoop mainLoop,
@@ -66,11 +73,22 @@ namespace TorrentCore
             CompletedPieces = new HashSet<Piece>();
             DownloadRateMeasurer = new RateMeasurer();
             UploadRateMeasurer = new RateMeasurer();
+            progress = new Progress<StatusUpdate>();
+            progress.ProgressChanged += ProgressChanged;
+
+            pipeline = new PipelineBuilder()
+                .AddStage<VerifyDownloadedPiecesStage>()
+                .AddStage<DownloadPiecesStage>()
+                .Build();
+
+            stageInterrupt = new StageInterrupt();
         }
         
         internal IApplicationProtocol<PeerConnection> ApplicationProtocol { get; }
 
         internal ITracker Tracker { get; }
+
+        internal IBlockDataHandler DataHandler => dataHandler;
 
         /// <summary>
         /// Gets the metainfo describing the collection of files.
@@ -80,7 +98,7 @@ namespace TorrentCore
         /// <summary>
         /// Gets the number of bytes downloaded so far.
         /// </summary>
-        public long Downloaded { get; private set; }
+        public long Downloaded { get; set; }
 
         /// <summary>
         /// Gets the number of bytes still to be downloaded.
@@ -88,9 +106,9 @@ namespace TorrentCore
         public long Remaining => Description.TotalSize - Downloaded;
 
         /// <summary>
-        /// Gets a value indicating the percentage progress.
+        /// Gets a value indicating the percentage of data that has been downloaded.
         /// </summary>
-        public double Progress { get; private set; }
+        public double DownloadProgress => (double)Downloaded / Description.TotalSize;
 
         /// <summary>
         /// Gets the current state of the download.
@@ -122,86 +140,30 @@ namespace TorrentCore
         /// <summary>
         /// Occurs when all data has finished downloading.
         /// </summary>
-        public event EventHandler Completed;
-
-        public async Task Start()
+        public event EventHandler DownloadCompleted;
+        
+        public void Start()
         {
-            if (State != DownloadState.Pending && State != DownloadState.Stopped)
+            if (isRunning)
                 throw new InvalidOperationException("Already started.");
 
-            if (State == DownloadState.Stopped)
+            stageInterrupt.Reset();
+
+            Task.Run(async () =>
             {
-                State = Remaining == 0 ? DownloadState.Completed : DownloadState.Downloading;
-                return;
-            }
-            
-            Log.LogInformation("Checking downloaded data...");
+                await ContactTracker();
 
-            State = DownloadState.Checking;
-
-            // Check download progress
-            await HashPiecesData();
-
-            Log.LogInformation($"Download is {(double)Downloaded / Description.TotalSize:P} complete");
-
-            // Set download state
-            if (Downloaded < Description.TotalSize)
-                State = DownloadState.Downloading;
-            else
-                State = DownloadState.Completed;
-
-            SetDownloadProgress();
-            
-            await ContactTracker();
-
-            // Start main loop
-            mainLoop.AddRegularTask(() =>
-            {
-                if (State != DownloadState.Stopped)
-                    ApplicationProtocol.Iterate();
-            });
-        }
-
-        private void SetDownloadProgress()
-        {
-            Progress = Downloaded / (double)Description.TotalSize;
-
-            if (Remaining == 0)
-                Completed?.Invoke(this, new EventArgs());
-        }
-
-        private Task HashPiecesData()
-        {
-            return Task.Run(() =>
-            {
-                Progress = 0;
-                Downloaded = 0;
-                CompletedPieces.Clear();
-                using (var sha1 = SHA1.Create())
+                using (var container = new Container())
                 {
-                    foreach (Piece piece in Description.Pieces)
-                    {
-                        // Verify piece hash
-                        long pieceOffset = Description.PieceOffset(piece);
-                        byte[] pieceData;
-                        if (!dataHandler.TryReadBlockData(pieceOffset, piece.Size, out pieceData))
-                        {
-                            Progress = (piece.Index + 1d) / Description.Pieces.Count;
-                            continue;
-                        }
-
-                        var hash = new Sha1Hash(sha1.ComputeHash(pieceData));
-                        if (hash == piece.Hash)
-                        {
-                            Downloaded += piece.Size;
-                            CompletedPieces.Add(piece);
-                        }
-                        Progress = (piece.Index + 1d) / Description.Pieces.Count;
-                    }
+                    container.RegisterSingleton(this);
+                    container.RegisterSingleton(mainLoop);
+                    container.RegisterSingleton<IPiecePicker>(new PiecePicker());
+                    
+                    pipeline.Run(container, stageInterrupt, progress);
                 }
             });
         }
-
+        
         private async Task ContactTracker()
         {
             Log.LogInformation("Contacting tracker");
@@ -215,44 +177,51 @@ namespace TorrentCore
                 var result = await Tracker.Announce(request);
 
                 Log.LogInformation($"{result.Peers.Count} peers available");
-
-                if (State != DownloadState.Completed)
-                    ApplicationProtocol.PeersAvailable(result.Peers);
+                
+                ApplicationProtocol.PeersAvailable(result.Peers);
             }
             catch (System.Net.Http.HttpRequestException)
             {
                 // Cannot connect to tracker
                 State = DownloadState.Error;
-                return;
             }
+        }
+
+        public void Pause()
+        {
+            isRunning = false;
+            stageInterrupt.Pause();
         }
 
         public void Stop()
         {
-            State = DownloadState.Stopped;
+            isRunning = false;
+            stageInterrupt.Stop();
         }
 
         public void Dispose()
         {
-            if (State != DownloadState.Stopped)
+            if (isRunning)
                 Stop();
             dataHandler.FileHandler.Dispose();
+        }
+
+        private void ProgressChanged(object sender, StatusUpdate e)
+        {
+            State = e.State;
         }
 
         public void DataReceived(long offset, byte[] data)
         {
             dataHandler.WriteBlockData(offset, data);
             Downloaded += data.Length;
-            SetDownloadProgress();
             recentlyDownloaded += data.Length;
 
             if (Remaining == 0)
             {
-                State = DownloadState.Completed;
-
                 dataHandler.FileHandler.Flush();
-
                 Debug.WriteLine("Completed download.");
+                DownloadCompleted?.Invoke(this, new EventArgs());
             }
         }
 

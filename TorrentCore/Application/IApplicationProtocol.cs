@@ -33,16 +33,27 @@ namespace TorrentCore.Application
         IReadOnlyCollection<TConnection> Peers { get; }
 
         /// <summary>
+        /// Gets the peers that are available to connect to but are not currently connected.
+        /// </summary>
+        IReadOnlyCollection<ITransportStream> AvailablePeers { get; }
+
+        /// <summary>
+        /// Gets the peers that a connection is currently being established to.
+        /// </summary>
+        IReadOnlyCollection<ITransportStream> ConnectingPeers { get; }
+
+        /// <summary>
+        /// Attempts to connect to the peer addressed by the supplied transport stream.
+        /// </summary>
+        /// <param name="peerTransport">Transport stream to the peer.</param>
+        void ConnectToPeer(ITransportStream peerTransport);
+
+        /// <summary>
         /// Handles new incoming connection requests.
         /// </summary>
         /// <param name="e">Event args for handling the request.</param>
         void AcceptConnection(AcceptPeerConnectionEventArgs<TConnection> e);
-
-        /// <summary>
-        /// Performs actions in each cycle of the main loop.
-        /// </summary>
-        void Iterate();
-
+        
         /// <summary>
         /// Invoked when a pieces has been fully downloaded but fails its hash check.
         /// </summary>

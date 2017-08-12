@@ -39,13 +39,13 @@ namespace TorrentCore
 
         public DownloadState State => Manager.State;
 
-        public double Progress => Manager.Progress;
+        public double Progress => Manager.DownloadProgress;
 
         public IReadOnlyCollection<ITrackerDetails> Trackers => (Manager.Tracker as AggregatedTracker)?.Trackers;
 
-        public Task Start()
+        public void Start()
         {
-            return download.Start();
+            download.Start();
         }
 
         public void Stop()
@@ -53,13 +53,13 @@ namespace TorrentCore
             download.Stop();
         }
 
-        public Task WaitForCompletionAsync(TimeSpan? timeout = null)
+        public Task WaitForDownloadCompletionAsync(TimeSpan? timeout = null)
         {
             return Task.Run(() =>
             {
                 bool completed = false;
                 var completionEvent = new ManualResetEvent(false);
-                download.Completed += (sender, args) =>
+                download.DownloadCompleted += (sender, args) =>
                 {
                     completed = true;
                     completionEvent.Set();
