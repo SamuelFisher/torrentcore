@@ -33,16 +33,5 @@ namespace TorrentCore.Engine
         /// Gets the current state of the download.
         /// </summary>
         DownloadState State { get; }
-
-        /// <summary>
-        /// Gets the set of completed pieces.
-        /// </summary>
-        IReadOnlyCollection<Piece> CompletedPieces { get; }
-
-        IEnumerable<Piece> IncompletePieces { get; }
-
-        void DataReceived(long offset, byte[] data);
-
-        byte[] ReadData(long offset, long length);
     }
 }

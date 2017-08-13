@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Samuel Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -16,28 +16,30 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
 
 namespace TorrentCore.Data
 {
-    /// <summary>
-    /// Contains event data for piece download completion.
-    /// </summary>
-    public class PieceCompletedEventArgs : EventArgs
+    public interface IPieceDataHandler : IBlockDataHandler
     {
         /// <summary>
-        /// Gets the piece which has finished downloading.
+        /// Called when a piece successfully completes downloading.
         /// </summary>
-        public Piece Piece { get; private set; }
+        event Action<Piece> PieceCorrupted;
 
         /// <summary>
-        /// Creates a new PieceCompletedEventArgs.
+        /// Called when a piece finishes downloading but contains corrupted data.
         /// </summary>
-        /// <param name="piece">The completed piece.</param>
-        public PieceCompletedEventArgs(Piece piece)
-        {
-            Piece = piece;
-        }
+        event Action<Piece> PieceCompleted;
+
+        /// <summary>
+        /// Gets the set of completed pieces.
+        /// </summary>
+        IReadOnlyCollection<Piece> CompletedPieces { get; }
+        
+        /// <summary>
+        /// Marks the specified piece as completed. This should only be used as an override mechanism.
+        /// </summary>
+        void MarkPieceAsCompleted(Piece piece);
     }
 }

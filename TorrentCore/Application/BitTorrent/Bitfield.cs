@@ -28,20 +28,50 @@ namespace TorrentCore.Application.BitTorrent
     /// </summary>
     public class Bitfield
     {
-        private byte[] data;
+        /// <summary>
+        /// Creates a new bitfield of the specified length, with all bits set to zero.
+        /// </summary>
+        /// <param name="length">Number of pieces within the bitfield.</param>
+        public Bitfield(int length)
+        {
+            Length = length;
+            RawData = new byte[(int)Math.Ceiling((double)length / 8)];
+        }
+
+        /// <summary>
+        /// Creates a new bitfield using the specified data and length.
+        /// </summary>
+        /// <param name="rawData">The raw data to use.</param>
+        /// <param name="length">The length of the bitfield.</param>
+        public Bitfield(byte[] rawData, int length)
+        {
+            RawData = rawData;
+            Length = length;
+        }
+
+        /// <summary>
+        /// Creates a new bitfield, marking the specified pieces as available.
+        /// </summary>
+        /// <param name="length">The length of the bitfield.</param>
+        /// <param name="availablePieces">Set of available pieces.</param>
+        public Bitfield(int length, IReadOnlyCollection<Piece> availablePieces)
+        {
+            Length = length;
+            RawData = new byte[(int)Math.Ceiling((double)length / 8)];
+
+            foreach (var piece in availablePieces)
+                SetPieceAvailable(piece.Index, true);
+        }
 
         /// <summary>
         /// Gets the raw data for this bitfield.
         /// </summary>
-        public byte[] RawData
-        {
-            get { return data; }
-        }
+        public byte[] RawData { get; }
 
         /// <summary>
         /// Gets or sets a value indicating the number of pieces contained within the bitfield.
         /// </summary>
-        public int Length { get; private set; }
+        public int Length { get; }
 
         /// <summary>
         /// Returns the number of available pieces.
@@ -68,41 +98,6 @@ namespace TorrentCore.Application.BitTorrent
         }
 
         /// <summary>
-        /// Creates a new bitfield of the specified length, with all bits set to zero.
-        /// </summary>
-        /// <param name="length">Number of pieces within the bitfield.</param>
-        public Bitfield(int length)
-        {
-            Length = length;
-            data = new byte[(int)Math.Ceiling((double)length / 8)];
-        }
-
-        /// <summary>
-        /// Creates a new bitfield using the specified data and length.
-        /// </summary>
-        /// <param name="rawData">The raw data to use.</param>
-        /// <param name="length">The length of the bitfield.</param>
-        public Bitfield(byte[] rawData, int length)
-        {
-            data = rawData;
-            Length = length;
-        }
-
-        /// <summary>
-        /// Creates a new bitfield, marking the specified pieces as available.
-        /// </summary>
-        /// <param name="length">The length of the bitfield.</param>
-        /// <param name="availablePieces">Set of available pieces.</param>
-        public Bitfield(int length, IReadOnlyCollection<Piece> availablePieces)
-        {
-            Length = length;
-            data = new byte[(int)Math.Ceiling((double)length / 8)];
-
-            foreach (var piece in availablePieces)
-                SetPieceAvailable(piece.Index, true);
-        }
-
-        /// <summary>
         /// Determines whether the specified piece is available.
         /// </summary>
         /// <param name="pieceIndex">Index of the piece to check.</param>
@@ -112,7 +107,7 @@ namespace TorrentCore.Application.BitTorrent
             if (pieceIndex > Length)
                 throw new ArgumentOutOfRangeException(nameof(pieceIndex), "Piece index is beyond range of bitfield.");
 
-            return (data[(int)Math.Floor((double)pieceIndex / 8)] & (0x80 >> pieceIndex % 8)) != 0;
+            return (RawData[(int)Math.Floor((double)pieceIndex / 8)] & (0x80 >> pieceIndex % 8)) != 0;
         }
 
         /// <summary>
@@ -123,14 +118,14 @@ namespace TorrentCore.Application.BitTorrent
         public void SetPieceAvailable(int pieceIndex, bool available)
         {
             if (pieceIndex > Length)
-                throw new ArgumentOutOfRangeException("pieceIndex", "Piece index is beyond range of bitfield.");
+                throw new ArgumentOutOfRangeException(nameof(pieceIndex), "Piece index is beyond range of bitfield.");
 
             int dataIndex = (int)Math.Floor((double)pieceIndex / 8);
-            byte current = data[dataIndex];
+            byte current = RawData[dataIndex];
             if (available)
-                data[dataIndex] = (byte)(current | (0x80 >> (pieceIndex % 8)));
+                RawData[dataIndex] = (byte)(current | (0x80 >> (pieceIndex % 8)));
             else
-                data[dataIndex] = (byte)(current & (current ^ (0x80 >> (pieceIndex % 8))));
+                RawData[dataIndex] = (byte)(current & (current ^ (0x80 >> (pieceIndex % 8))));
         }
 
         /// <summary>

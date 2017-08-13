@@ -16,18 +16,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Text;
-using TorrentCore.Application.BitTorrent;
 
-namespace TorrentCore.Modularity
+namespace TorrentCore.Data.Pieces
 {
-    public interface IMessageReceivedContext : IPeerContext
+    public static class PieceDataHandlerExtensions
     {
-        int MessageId { get; }
-
-        int MessageLength { get; }
-
-        BinaryReader Reader { get; }
+        public static IEnumerable<Piece> IncompletePieces(this IPieceDataHandler pieceDataHandler)
+        {
+            return pieceDataHandler.Metainfo.Pieces.Except(pieceDataHandler.CompletedPieces);
+        }
     }
 }

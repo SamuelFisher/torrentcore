@@ -62,6 +62,7 @@ namespace TorrentCore
             downloads = new Dictionary<Sha1Hash, TorrentDownload>();
             mainLoop = new MainLoop();
             moduleManager = new ModuleManager();
+            moduleManager.Register(new CoreMessagingModule());
             mainLoop.Start();
             peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol, moduleManager);
             LocalPeerId = settings.PeerId;
@@ -81,7 +82,7 @@ namespace TorrentCore
             applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
             {
                 e.Accept();
-                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Manager.Description, new QueueingMessageHandler(mainLoop, applicationProtocol));
+                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Metainfo, new QueueingMessageHandler(mainLoop, applicationProtocol));
                 return peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
             }));
         }
@@ -120,11 +121,12 @@ namespace TorrentCore
 
         internal TorrentDownload Add(Metainfo metainfo, ITracker tracker, IFileHandler fileHandler)
         {
+            var dataHandler = new PieceCheckerHandler(new BlockDataHandler(fileHandler, metainfo));
+            var bitTorrentApplicationProtocol = new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, metainfo, peerInitiator, m => new QueueingMessageHandler(mainLoop, m), moduleManager, dataHandler);
             var downloadManager = new TorrentDownloadManager(LocalPeerId,
                                                              mainLoop,
-                                                             manager => new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, manager, peerInitiator, m => new QueueingMessageHandler(mainLoop, m), moduleManager),
+                                                             bitTorrentApplicationProtocol,
                                                              tracker,
-                                                             fileHandler,
                                                              metainfo);
 
             var download = new TorrentDownload(downloadManager);

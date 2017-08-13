@@ -69,7 +69,7 @@ namespace TorrentCore.Test.Data
         {
             var completed = new List<Piece>();
 
-            pieceChecker.PieceCompleted += args => { completed.Add(args.Piece); };
+            pieceChecker.PieceCompleted += args => { completed.Add(args); };
 
             pieceChecker.PieceCorrupted += args => { Assert.Fail("Piece marked as corrupted."); };
 
@@ -92,7 +92,7 @@ namespace TorrentCore.Test.Data
 
             pieceChecker.PieceCompleted += args => { Assert.Fail("Piece marked as completed."); };
 
-            pieceChecker.PieceCorrupted += args => { corrupted.Add(args.Piece); };
+            pieceChecker.PieceCorrupted += args => { corrupted.Add(args); };
 
             pieceChecker.WriteBlockData(0, Enumerable.Repeat((byte)1, 50).ToArray());
 

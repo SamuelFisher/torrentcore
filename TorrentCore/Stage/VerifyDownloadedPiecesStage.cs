@@ -16,55 +16,55 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using TorrentCore.Application;
+using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
+using TorrentCore.Data.Pieces;
 
 namespace TorrentCore.Stage
 {
     class VerifyDownloadedPiecesStage : ITorrentStage
     {
-        private readonly TorrentDownloadManager downloadManager;
+        private readonly IApplicationProtocol<PeerConnection> application;
 
-        public VerifyDownloadedPiecesStage(TorrentDownloadManager downloadManager)
+        public VerifyDownloadedPiecesStage(IApplicationProtocol<PeerConnection> application)
         {
-            this.downloadManager = downloadManager;
+            this.application = application;
         }
 
         public void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress)
         {
-            if (downloadManager.Remaining > 0)
+            if (application.DataHandler.IncompletePieces().Any())
                 HashPiecesData(interrupt, progress);
         }
 
         private void HashPiecesData(IStageInterrupt interrupt, IProgress<StatusUpdate> progress)
         {
             progress.Report(new StatusUpdate(DownloadState.Checking, 0.0));
-            downloadManager.Downloaded = 0;
-            downloadManager.CompletedPieces.Clear();
             using (var sha1 = SHA1.Create())
             {
-                foreach (Piece piece in downloadManager.Description.Pieces)
+                foreach (Piece piece in application.Metainfo.Pieces)
                 {
                     // Verify piece hash
-                    long pieceOffset = downloadManager.Description.PieceOffset(piece);
+                    long pieceOffset = application.Metainfo.PieceOffset(piece);
                     byte[] pieceData;
-                    if (!downloadManager.DataHandler.TryReadBlockData(pieceOffset, piece.Size, out pieceData))
+                    if (!application.DataHandler.TryReadBlockData(pieceOffset, piece.Size, out pieceData))
                     {
                         progress.Report(new StatusUpdate(DownloadState.Checking,
-                            (piece.Index + 1d) / downloadManager.Description.Pieces.Count));
+                            (piece.Index + 1d) / application.Metainfo.Pieces.Count));
                         continue;
                     }
 
                     var hash = new Sha1Hash(sha1.ComputeHash(pieceData));
                     if (hash == piece.Hash)
-                    {
-                        downloadManager.Downloaded += piece.Size;
-                        downloadManager.CompletedPieces.Add(piece);
-                    }
+                        application.DataHandler.MarkPieceAsCompleted(piece);
+
                     progress.Report(new StatusUpdate(DownloadState.Checking, 
-                        (piece.Index + 1d) / downloadManager.Description.Pieces.Count));
+                        (piece.Index + 1d) / application.Metainfo.Pieces.Count));
 
                     if (interrupt.IsPauseRequested)
                         interrupt.InterruptHandle.WaitOne();

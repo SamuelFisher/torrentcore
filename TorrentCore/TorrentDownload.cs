@@ -59,7 +59,7 @@ namespace TorrentCore
             {
                 bool completed = false;
                 var completionEvent = new ManualResetEvent(false);
-                download.DownloadCompleted += (sender, args) =>
+                download.ApplicationProtocol.DownloadCompleted += (sender, args) =>
                 {
                     completed = true;
                     completionEvent.Set();

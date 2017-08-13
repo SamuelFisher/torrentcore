@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
+using TorrentCore.Data.Pieces;
 using TorrentCore.Modularity;
 using TorrentCore.Transport;
 
@@ -47,17 +48,21 @@ namespace TorrentCore.Extensions.ExtensionProtocol
 
         #region IPeerContext Members
 
+        public IBlockRequests BlockRequests => peerContext.BlockRequests;
+
+        public PeerConnection Peer => peerContext.Peer;
+
         public Metainfo Metainfo => peerContext.Metainfo;
 
         public IReadOnlyCollection<PeerConnection> Peers => peerContext.Peers;
+
+        public IPieceDataHandler DataHandler => peerContext.DataHandler;
 
         public void PeersAvailable(IEnumerable<ITransportStream> peers)
         {
             peerContext.PeersAvailable(peers);
         }
-
-        public IReadOnlyList<byte> ReservedBytes => peerContext.ReservedBytes;
-
+        
         public T GetValue<T>(string key)
         {
             return peerContext.GetValue<T>(key);

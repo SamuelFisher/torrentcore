@@ -66,7 +66,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         void IModule.OnPeerConnected(IPeerContext context)
         {
             // Check for extension protocol support
-            bool supportsExtensionProtocol = (context.ReservedBytes[5] & 0x10) != 0;
+            bool supportsExtensionProtocol = (context.Peer.ReservedBytes[5] & 0x10) != 0;
             if (!supportsExtensionProtocol)
                 return;
 

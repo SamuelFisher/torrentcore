@@ -16,35 +16,25 @@
 
 using System.Collections.Generic;
 using TorrentCore.Data;
+using TorrentCore.Data.Pieces;
 
 namespace TorrentCore.Application.BitTorrent
 {
-    interface IPiecePicker
+    /// <summary>
+    /// Provides an algorithm to determine which blocks should be requested from peers.
+    /// </summary>
+    public interface IPiecePicker
     {
-        /// <summary>
-        /// Invoked when a block finishes downloading.
-        /// </summary>
-        /// <param name="block">The block that has finished downloading.</param>
-        void BlockReceived(Block block);
-
-        /// <summary>
-        /// Invoked when a peer makes a request for a block.
-        /// </summary>
-        /// <param name="block">The block that has been requested.</param>
-        void BlockRequested(BlockRequest block);
-
-        /// <summary>
-        /// Invoked when a whole piece finishes downloading.
-        /// </summary>
-        /// <param name="piece">The piece that has finished downloading.</param>
-        void PieceCompleted(Piece piece);
-
         /// <summary>
         /// Determines which blocks should be requested next.
         /// </summary>
         /// <param name="incompletePieces">The pieces which have not yet been downloaded.</param>
         /// <param name="availability">Indicates which pieces are available.</param>
+        /// <param name="peers">The peers that are currently connected.</param>
         /// <returns></returns>
-        IEnumerable<BlockRequest> BlocksToRequest(IEnumerable<Piece> incompletePieces, Bitfield availability);
+        IEnumerable<BlockRequest> BlocksToRequest(IReadOnlyList<Piece> incompletePieces,
+                                                  Bitfield availability,
+                                                  IReadOnlyCollection<PeerConnection> peers,
+                                                  IBlockRequests blockRequests);
     }
 }

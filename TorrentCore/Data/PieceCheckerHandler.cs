@@ -27,14 +27,16 @@ namespace TorrentCore.Data
 {
     /// <summary>
     /// Provides an intermediate data store using the decorator pattern.
-    /// Writes to the backing store when an entire piece successfully downloads.
+    /// Writes to the backing store when an entire piece successfully downloads and
+    /// keeps track which pieces have completed.
     /// </summary>
-    internal class PieceCheckerHandler : IBlockDataHandler
+    internal class PieceCheckerHandler : IPieceDataHandler
     {
         private static readonly ILogger Log = LogManager.GetLogger<PieceCheckerHandler>();
 
         private readonly IBlockDataHandler baseHandler;
         private readonly Dictionary<Piece, SortedSet<Block>> pendingBlocks;
+        private readonly HashSet<Piece> completedPieces;
 
         /// <summary>
         /// Creates a new piece checker, using the provided file handler as the backing store.
@@ -44,13 +46,9 @@ namespace TorrentCore.Data
         {
             this.baseHandler = baseHandler;
             pendingBlocks = new Dictionary<Piece, SortedSet<Block>>(Metainfo.Pieces.Count);
+            completedPieces = new HashSet<Piece>();
         }
-
-        /// <summary>
-        /// Gets the file handler used internally for data access.
-        /// </summary>
-        public IFileHandler FileHandler => baseHandler.FileHandler;
-
+        
         /// <summary>
         /// Gets the metainfo describing the layout of the collection of files.
         /// </summary>
@@ -59,12 +57,22 @@ namespace TorrentCore.Data
         /// <summary>
         /// Called when a piece successfully completes downloading.
         /// </summary>
-        public event Action<PieceCompletedEventArgs> PieceCompleted;
+        public event Action<Piece> PieceCompleted;
 
         /// <summary>
         /// Called when a piece finishes downloading but contains corrupted data.
         /// </summary>
-        public event Action<PieceCompletedEventArgs> PieceCorrupted;
+        public event Action<Piece> PieceCorrupted;
+
+        /// <summary>
+        /// Gets the pieces that have already completed downloading.
+        /// </summary>
+        public IReadOnlyCollection<Piece> CompletedPieces => completedPieces;
+
+        public void MarkPieceAsCompleted(Piece piece)
+        {
+            completedPieces.Add(piece);
+        }
 
         /// <summary>
         /// Returns a copy of the contiguous file data starting at the specified offset.
@@ -105,6 +113,9 @@ namespace TorrentCore.Data
             WriteCompletedPieces();
         }
 
+        /// <summary>
+        /// Writes pending blocks that make up a full piece.
+        /// </summary>
         void WriteCompletedPieces()
         {
             var completed = GetCompletedPieces(pendingBlocks);
@@ -120,19 +131,24 @@ namespace TorrentCore.Data
                     long pieceOffset = Metainfo.PieceOffset(piece.Key);
                     baseHandler.WriteBlockData(pieceOffset, data);
 
+                    completedPieces.Add(piece.Key);
+
                     // Notify of completed piece
-                    PieceCompleted?.Invoke(new PieceCompletedEventArgs(piece.Key));
+                    PieceCompleted?.Invoke(piece.Key);
                 }
                 else
                 {
                     Log.LogInformation($"Piece #{piece.Key.Index} is corrupted");
 
                     // Notify of corrupted piece
-                    PieceCorrupted?.Invoke(new PieceCompletedEventArgs(piece.Key));
+                    PieceCorrupted?.Invoke(piece.Key);
                 }
             }
         }
 
+        /// <summary>
+        /// Finds pending blocks that make up a full piece.
+        /// </summary>
         internal static Dictionary<Piece, SortedSet<Block>> GetCompletedPieces(Dictionary<Piece, SortedSet<Block>> pendingBlocks)
         {
             Dictionary<Piece, SortedSet<Block>> foundPieces = new Dictionary<Piece, SortedSet<Block>>();

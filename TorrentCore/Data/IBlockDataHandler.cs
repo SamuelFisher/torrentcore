@@ -25,13 +25,8 @@ namespace TorrentCore.Data
     /// <summary>
     /// Provides access to a collection of files as a single block of data.
     /// </summary>
-    internal interface IBlockDataHandler
+    public interface IBlockDataHandler
     {
-        /// <summary>
-        /// Gets the file handler used internally for data access.
-        /// </summary>
-        IFileHandler FileHandler { get; }
-
         /// <summary>
         /// Gets the metainfo describing the layout of the collection of files.
         /// </summary>

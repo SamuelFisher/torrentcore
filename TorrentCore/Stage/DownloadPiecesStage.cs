@@ -19,24 +19,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Application.BitTorrent.Messages;
 using TorrentCore.Data;
+using TorrentCore.Data.Pieces;
 using TorrentCore.Engine;
 
 namespace TorrentCore.Stage
 {
     class DownloadPiecesStage : ITorrentStage
     {
-        private readonly TorrentDownloadManager downloadManager;
+        private readonly IApplicationProtocol<PeerConnection> application;
         private readonly IMainLoop mainLoop;
         private readonly IPiecePicker piecePicker;
 
-        public DownloadPiecesStage(TorrentDownloadManager downloadManager,
+        public DownloadPiecesStage(IApplicationProtocol<PeerConnection> application,
                                    IMainLoop mainLoop,
                                    IPiecePicker piecePicker)
         {
-            this.downloadManager = downloadManager;
+            this.application = application;
             this.mainLoop = mainLoop;
             this.piecePicker = piecePicker;
         }
@@ -50,26 +52,30 @@ namespace TorrentCore.Stage
 
         private void Iterate()
         {
-            RequestPieces();
+            if (application.DataHandler.IncompletePieces().Any())
+                RequestPieces();
             SendPieces();
             ConnectToPeers();
         }
 
         private void RequestPieces()
         {
-            var availability = new Bitfield(downloadManager.Description.Pieces.Count);
-            foreach (var peer in downloadManager.ApplicationProtocol.Peers)
+            var availability = new Bitfield(application.Metainfo.Pieces.Count);
+            foreach (var peer in application.Peers)
                 availability.Union(peer.Available);
 
-            var blocksToRequest = piecePicker.BlocksToRequest(downloadManager.IncompletePieces, availability);
+            var blocksToRequest = piecePicker.BlocksToRequest(application.DataHandler.IncompletePieces().ToList(),
+                                                              availability,
+                                                              application.Peers,
+                                                              application.BlockRequests);
 
             foreach (var block in blocksToRequest)
             {
-                var peer = FindPeerWithPiece(downloadManager.Description.Pieces[block.PieceIndex]);
+                var peer = FindPeerWithPiece(application.Metainfo.Pieces[block.PieceIndex]);
                 if (peer != null)
                 {
                     peer.Requested.Add(block);
-                    piecePicker.BlockRequested(block);
+                    application.BlockRequests.BlockRequested(block);
                     peer.SendMessage(new RequestMessage(block));
                 }
             }
@@ -77,7 +83,7 @@ namespace TorrentCore.Stage
 
         private PeerConnection FindPeerWithPiece(Piece piece)
         {
-            foreach (var peer in downloadManager.ApplicationProtocol.Peers.OrderBy(x => x.Requested.Count))
+            foreach (var peer in application.Peers.OrderBy(x => x.Requested.Count))
             {
                 if (peer.Available.IsPieceAvailable(piece.Index)
                     && !peer.IsChokedByRemotePeer)
@@ -90,7 +96,7 @@ namespace TorrentCore.Stage
 
         private void SendPieces()
         {
-            foreach (var peer in downloadManager.ApplicationProtocol.Peers)
+            foreach (var peer in application.Peers)
             {
                 var sent = new List<BlockRequest>();
                 foreach (var request in peer.RequestedByRemotePeer)
@@ -106,20 +112,20 @@ namespace TorrentCore.Stage
 
         private void SendPiece(PeerConnection peer, BlockRequest request)
         {
-            long dataOffset = downloadManager.Description.PieceSize * request.PieceIndex + request.Offset;
-            byte[] data = downloadManager.ReadData(dataOffset, request.Length);
+            long dataOffset = application.Metainfo.PieceSize * request.PieceIndex + request.Offset;
+            byte[] data = application.DataHandler.ReadBlockData(dataOffset, request.Length);
 
             peer.SendMessage(new PieceMessage(request.ToBlock(data)));
         }
 
         private void ConnectToPeers()
         {
-            if (downloadManager.ApplicationProtocol.Peers.Count +
-                downloadManager.ApplicationProtocol.ConnectingPeers.Count < 5 &&
-                downloadManager.ApplicationProtocol.AvailablePeers.Count > 0)
+            if (application.Peers.Count +
+                application.ConnectingPeers.Count < 5 &&
+                application.AvailablePeers.Count > 0)
             {
-                var peer = downloadManager.ApplicationProtocol.AvailablePeers.First();
-                downloadManager.ApplicationProtocol.ConnectToPeer(peer);
+                var peer = application.AvailablePeers.First();
+                application.ConnectToPeer(peer);
             }
         }
     }

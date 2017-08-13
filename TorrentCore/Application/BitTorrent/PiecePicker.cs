@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Data;
+using TorrentCore.Data.Pieces;
 
 namespace TorrentCore.Application.BitTorrent
 {
@@ -31,13 +32,13 @@ namespace TorrentCore.Application.BitTorrent
         public const int MaxOutstandingRequests = 100;
         private const int BlockRequestSize = 16384; // 16 kB
 
-        private readonly HashSet<BlockRequest> requestedBlocks = new HashSet<BlockRequest>();
-        private readonly HashSet<BlockRequest> downloadedBlocks = new HashSet<BlockRequest>();
-
-        public IEnumerable<BlockRequest> BlocksToRequest(IEnumerable<Piece> incompletePieces, Bitfield availability)
+        public IEnumerable<BlockRequest> BlocksToRequest(IReadOnlyList<Piece> incompletePieces,
+                                                         Bitfield availability,
+                                                         IReadOnlyCollection<PeerConnection> peers,
+                                                         IBlockRequests blockRequests)
         {
             var toRequest = new List<BlockRequest>();
-            int maxToRequest = MaxOutstandingRequests - requestedBlocks.Count;
+            int maxToRequest = MaxOutstandingRequests - blockRequests.RequestedBlocks.Count;
 
             foreach (var piece in incompletePieces)
             {
@@ -47,7 +48,7 @@ namespace TorrentCore.Application.BitTorrent
                 if (!availability.IsPieceAvailable(piece.Index))
                     continue;
 
-                var block = NextBlockForPiece(piece);
+                var block = NextBlockForPiece(piece, blockRequests);
                 if (block != null)
                 {
                     toRequest.Add(block);
@@ -57,29 +58,14 @@ namespace TorrentCore.Application.BitTorrent
             return toRequest;
         }
 
-        public void BlockRequested(BlockRequest block)
-        {
-            requestedBlocks.Add(block);
-        }
-
-        public void BlockReceived(Block block)
-        {
-            downloadedBlocks.Add(block.AsRequest());
-            requestedBlocks.Remove(block.AsRequest());
-        }
-
-        public void PieceCompleted(Piece piece)
-        {
-            downloadedBlocks.RemoveWhere(block => block.PieceIndex == piece.Index);
-        }
-
-        private BlockRequest NextBlockForPiece(Piece piece)
+        private BlockRequest NextBlockForPiece(Piece piece, IBlockRequests blockRequests)
         {
             for (int blockOffset = 0; blockOffset < piece.Size; blockOffset += BlockRequestSize)
             {
                 int blockSize = (blockOffset < piece.Size - BlockRequestSize ? BlockRequestSize : piece.Size - blockOffset);
                 var blockToRequest = new BlockRequest(piece.Index, blockOffset, blockSize);
-                if (!requestedBlocks.Contains(blockToRequest) && !downloadedBlocks.Contains(blockToRequest))
+                if (!blockRequests.RequestedBlocks.Contains(blockToRequest) &&
+                    !blockRequests.DownloadedBlocks.Contains(blockToRequest))
                 {
                     return blockToRequest;
                 }

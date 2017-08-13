@@ -1,6 +1,6 @@
 ﻿// This file is part of TorrentCore.
 //     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
+// Copyright (c) 2017 Samuel Fisher.
 // 
 // TorrentCore is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as
@@ -25,7 +25,7 @@ namespace TorrentCore.Data
     /// <summary>
     /// Represents a region of a piece with a specified offset and length.
     /// </summary>
-    internal class Block
+    public class Block
     {
         /// <summary>
         /// Creates a new block with the specified piece index, offset and data.

@@ -18,37 +18,25 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using TorrentCore.Application.BitTorrent;
-using TorrentCore.Data;
-using TorrentCore.Data.Pieces;
-using TorrentCore.Transport;
 
-namespace TorrentCore.Modularity
+namespace TorrentCore.Data.Pieces
 {
-    public interface ITorrentContext
+    public interface IBlockRequests
     {
         /// <summary>
-        /// Gets the metainfo for the torrent.
+        /// Gets the blocks that have been requested from peers.
         /// </summary>
-        Metainfo Metainfo { get; }
+        IReadOnlyCollection<BlockRequest> RequestedBlocks { get; }
 
         /// <summary>
-        /// Gets the collection of currently connected peers.
+        /// Gets the blocks that have been received but are part of incomplete pieces.
         /// </summary>
-        IReadOnlyCollection<PeerConnection> Peers { get; }
+        IReadOnlyCollection<BlockRequest> DownloadedBlocks { get; }
 
-        /// <summary>
-        /// Provides access to downloaded pieces and block data.
-        /// </summary>
-        IPieceDataHandler DataHandler { get; }
+        void BlockRequested(BlockRequest block);
 
-        /// <summary>
-        /// Tracks outstanding block requests.
-        /// </summary>
-        IBlockRequests BlockRequests { get; }
+        void BlockReceived(Block block);
 
-        /// <summary>
-        /// Notifies that new peers are available to connect to.
-        /// </summary>
-        void PeersAvailable(IEnumerable<ITransportStream> peers);
+        void ClearBlocksForPiece(Piece piece);
     }
 }

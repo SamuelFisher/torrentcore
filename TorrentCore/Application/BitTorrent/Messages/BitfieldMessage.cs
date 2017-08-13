@@ -83,8 +83,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         public override void Receive(BinaryReader reader, int length)
         {
             // Bitfield
-            int dataLength = length - 1;
-            byte[] bitfieldData = reader.ReadBytes(dataLength);
+            byte[] bitfieldData = reader.ReadBytes(length);
             Bitfield = new Bitfield(bitfieldData, bitfieldLength);
         }
     }

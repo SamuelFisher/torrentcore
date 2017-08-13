@@ -20,13 +20,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TorrentCore.Data;
-using TorrentCore.Tracker;
+using TorrentCore.Data.Pieces;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application
 {
     public interface IApplicationProtocol<TConnection>
     {
+        Metainfo Metainfo { get; }
+
+        IPieceDataHandler DataHandler { get; }
+
+        IBlockRequests BlockRequests { get; }
+
+        event EventHandler DownloadCompleted;
+
         /// <summary>
         /// Gets the peers that are currently connected.
         /// </summary>
@@ -57,14 +65,14 @@ namespace TorrentCore.Application
         /// <summary>
         /// Invoked when a pieces has been fully downloaded but fails its hash check.
         /// </summary>
-        /// <param name="e">Details of the corrupted piece.</param>
-        void PieceCorrupted(PieceCompletedEventArgs e);
+        /// <param name="piece">Details of the corrupted piece.</param>
+        void PieceCorrupted(Piece piece);
 
         /// <summary>
         /// Invoked when a piece has been fully downloaded and passes its hash check.
         /// </summary>
-        /// <param name="e">Details of the completed piece.</param>
-        void PieceCompleted(PieceCompletedEventArgs e);
+        /// <param name="piece">Details of the completed piece.</param>
+        void PieceCompleted(Piece piece);
 
         /// <summary>
         /// Called when an announce result is received from a tracker.

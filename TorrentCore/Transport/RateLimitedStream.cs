@@ -112,24 +112,24 @@ namespace TorrentCore.Transport
             if (startWriting)
             {
                 Task.Factory.StartNew(() =>
-                                      {
-                                          while (writeQueue.Count > 0)
-                                          {
-                                              byte[] d;
-                                              lock (writeQueue)
-                                                  d = writeQueue.Dequeue();
-                                              int wait = Limiter.TimeUntilCanSend(d.Length);
-                                              if (wait > 0)
-                                                  Task.Delay(wait).Wait();
-                                              BaseStream.Write(d, 0, d.Length);
-                                          }
+                {
+                    while (writeQueue.Count > 0)
+                    {
+                        byte[] d;
+                        lock (writeQueue)
+                            d = writeQueue.Dequeue();
+                        int wait = Limiter.TimeUntilCanSend(d.Length);
+                        if (wait > 0)
+                            Task.Delay(wait).Wait();
+                        BaseStream.Write(d, 0, d.Length);
+                    }
 
-                                          lock (writeQueue)
-                                          {
-                                              isWriting = false;
-                                              writeFinished.Set();
-                                          }
-                                      });
+                    lock (writeQueue)
+                    {
+                        isWriting = false;
+                        writeFinished.Set();
+                    }
+                });
             }
         }
 

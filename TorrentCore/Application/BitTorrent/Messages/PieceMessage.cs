@@ -91,7 +91,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
             // Block offset within piece
             int blockOffset = reader.ReadInt32();
             // Block data
-            byte[] blockData = reader.ReadBytes(length - 9);
+            byte[] blockData = reader.ReadBytes(length - 8);
 
             // Create block
             this.Block = new Block(pieceIndex, blockOffset, blockData);

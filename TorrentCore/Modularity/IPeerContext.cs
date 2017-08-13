@@ -17,16 +17,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TorrentCore.Application.BitTorrent;
 
 namespace TorrentCore.Modularity
 {
     public interface IPeerContext : ITorrentContext
     {
-        /// <summary>
-        /// Gets the reserved bytes sent by this peer in the connected handshake.
-        /// </summary>
-        IReadOnlyList<byte> ReservedBytes { get; }
-
+        PeerConnection Peer { get; }
+        
         /// <summary>
         /// Retrieves a value with the specified key that is associated with this peer.
         /// If the key does not exist, returns null. If the value is not of the expected type, throws an

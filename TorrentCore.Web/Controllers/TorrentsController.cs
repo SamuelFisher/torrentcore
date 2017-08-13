@@ -67,7 +67,7 @@ namespace TorrentCore.Web.Controllers
                 {
                     x.Index,
                     x.Size,
-                    Completed = torrent.Manager.CompletedPieces.Contains(x)
+                    Completed = torrent.Manager.ApplicationProtocol.DataHandler.CompletedPieces.Contains(x)
                 }),
                 torrent.Trackers
             };
