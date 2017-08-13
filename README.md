@@ -1,6 +1,7 @@
 # TorrentCore
 
 [![Build Status](https://travis-ci.org/SamuelFisher/torrentcore.svg?branch=master)](https://travis-ci.org/SamuelFisher/torrentcore)
+[![Build status](https://ci.appveyor.com/api/projects/status/p1kf1e1upjsiw60n/branch/master?svg=true)](https://ci.appveyor.com/project/SamuelFisher/torrentcore/branch/master)
 
 A BitTorrent library that runs on all platforms supporting the .NET Platform
 Standard 1.4.
@@ -29,6 +30,10 @@ missing features.
 
 TorrentCore is designed to be easy to use, while supporting more advanced
 features if required.
+
+There are no stable releases yet, but you can use the unstable NuGet feed from
+AppVeyor. For more information, see
+[getting started](https://torrentcore.org/getting-started/).
 
 ```csharp
 var client = new TorrentClient();
