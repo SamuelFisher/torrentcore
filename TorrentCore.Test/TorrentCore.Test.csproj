@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp1.0</TargetFramework>
     <AssemblyName>TorrentCore.Test</AssemblyName>
     <PackageId>TorrentCore.Test</PackageId>
+    <IsPackable>False</IsPackable>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <PackageTargetFallback>$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
     <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>

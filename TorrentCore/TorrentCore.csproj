@@ -1,9 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.4</TargetFramework>
     <AssemblyName>TorrentCore</AssemblyName>
+    <TargetFramework>netstandard1.4</TargetFramework>
     <PackageId>TorrentCore</PackageId>
+    <PackageVersion>0.0-dev</PackageVersion>
+    <PackageProjectUrl>https://torrentcore.org/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/SamuelFisher/torrentcore</RepositoryUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/SamuelFisher/torrentcore/master/LICENSE.md</PackageLicenseUrl>
+    <Description>A BitTorrent library that runs on all platforms supporting the .NET Platform Standard 1.4.</Description>
+    <Authors>SamuelFisher</Authors>
     <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
     <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
