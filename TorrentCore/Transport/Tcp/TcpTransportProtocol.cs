@@ -41,15 +41,17 @@ namespace TorrentCore.Transport.Tcp
         private TcpListener listener;
 
         /// <summary>
-        /// Creates a new TcpTransportProtocol which will listen on the specified port.
+        /// Initializes a new instance of the <see cref="TcpTransportProtocol"/> class that will listen on the specified port.
         /// </summary>
         /// <param name="port">Port to listen on for incoming connections.</param>
         /// <param name="bindToNextAvailablePort">If the specified port is in use, attempts to bind to the next available port.</param>
         /// <param name="localBindAddress">The local address to use for connections.</param>
-        public TcpTransportProtocol(int port,
-                                    bool bindToNextAvailablePort,
-                                    IPAddress localBindAddress,
-                                    Action<AcceptConnectionEventArgs> acceptConnectionHandler)
+        /// <param name="acceptConnectionHandler">Invoked to accept the connection.</param>
+        public TcpTransportProtocol(
+            int port,
+            bool bindToNextAvailablePort,
+            IPAddress localBindAddress,
+            Action<AcceptConnectionEventArgs> acceptConnectionHandler)
         {
             streams = new ConcurrentBag<TcpTransportStream>();
             AcceptConnectionHandler = acceptConnectionHandler;

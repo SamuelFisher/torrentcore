@@ -20,25 +20,6 @@ using System.Text;
 
 namespace TorrentCore.Application.BitTorrent
 {
-    static class ProtocolExtensions
-    {
-        public static ProtocolExtension DetermineSupportedProcotolExtensions(byte[] reserved)
-        {
-            var protocols = ProtocolExtension.None;
-
-            if ((reserved[7] & 0x04) != 0)
-                protocols |= ProtocolExtension.FastPeers;
-
-            if ((reserved[7] & 0x01) != 0)
-                protocols |= ProtocolExtension.Dht;
-
-            if ((reserved[5] & 0x10) != 0)
-                protocols |= ProtocolExtension.ExtensionProtocol;
-
-            return protocols;
-        }
-    }
-
     [Flags]
     public enum ProtocolExtension
     {
@@ -58,5 +39,24 @@ namespace TorrentCore.Application.BitTorrent
         /// BEP 10 Extension Protocol.
         /// </summary>
         ExtensionProtocol = 3
+    }
+
+    static class ProtocolExtensions
+    {
+        public static ProtocolExtension DetermineSupportedProcotolExtensions(byte[] reserved)
+        {
+            var protocols = ProtocolExtension.None;
+
+            if ((reserved[7] & 0x04) != 0)
+                protocols |= ProtocolExtension.FastPeers;
+
+            if ((reserved[7] & 0x01) != 0)
+                protocols |= ProtocolExtension.Dht;
+
+            if ((reserved[5] & 0x10) != 0)
+                protocols |= ProtocolExtension.ExtensionProtocol;
+
+            return protocols;
+        }
     }
 }

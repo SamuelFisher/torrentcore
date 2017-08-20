@@ -36,9 +36,10 @@ namespace TorrentCore.Stage
             this.stages = stages.ToList();
         }
 
-        public PipelineBuilder AddStage<T>() where T : class, ITorrentStage
+        public PipelineBuilder AddStage<T>()
+            where T : class, ITorrentStage
         {
-            return new PipelineBuilder(stages.Concat(new[] {new PipelineStageFactory<T>()}));
+            return new PipelineBuilder(stages.Concat(new[] { new PipelineStageFactory<T>() }));
         }
 
         public Pipeline Build()
@@ -46,41 +47,12 @@ namespace TorrentCore.Stage
             return new Pipeline(stages);
         }
 
-        private class PipelineStageFactory<T> : IPipelineStageFactory where T : class, ITorrentStage
+        private class PipelineStageFactory<T> : IPipelineStageFactory
+            where T : class, ITorrentStage
         {
             public ITorrentStage Construct(Container container)
             {
                 return container.GetInstance<T>();
-            }
-        }
-    }
-
-    interface IPipelineStageFactory
-    {
-        ITorrentStage Construct(Container container);
-    }
-
-    class Pipeline
-    {
-        private readonly IList<IPipelineStageFactory> stageFactory;
-
-        public Pipeline(IList<IPipelineStageFactory> stageFactory)
-        {
-            this.stageFactory = stageFactory;
-        }
-
-        /// <summary>
-        /// Synchronously runs the pipeline.
-        /// </summary>
-        public void Run(Container container, IStageInterrupt interrupt, IProgress<StatusUpdate> progress)
-        {
-            foreach (var stage in stageFactory)
-            {
-                var instance = stage.Construct(container);
-                instance.Run(interrupt, progress);
-
-                if (interrupt.IsStopRequested)
-                    return;
             }
         }
     }

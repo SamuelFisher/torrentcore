@@ -33,6 +33,7 @@ namespace TorrentCore.Application
         }
 
         public ITransportStream TransportStream { get; }
+
         public Func<TConnection> Accept { get; }
     }
 }

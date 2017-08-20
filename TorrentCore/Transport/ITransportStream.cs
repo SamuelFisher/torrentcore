@@ -45,15 +45,15 @@ namespace TorrentCore.Transport
         object Address { get; }
 
         /// <summary>
+        /// Gets the stream used for communication.
+        /// </summary>
+        Stream Stream { get; }
+
+        /// <summary>
         /// Attempts to initiate this connection.
         /// </summary>
         /// <returns>Task which completes when the connection is made.</returns>
         Task Connect();
-
-        /// <summary>
-        /// Gets the stream used for communication.
-        /// </summary>
-        Stream Stream { get; }
 
         /// <summary>
         /// Closes the connection.

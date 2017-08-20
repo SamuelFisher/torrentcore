@@ -29,6 +29,7 @@ namespace TorrentCore.Transport
         }
 
         public ITransportStream TransportStream { get; }
+
         public Action Accept { get; }
     }
 }

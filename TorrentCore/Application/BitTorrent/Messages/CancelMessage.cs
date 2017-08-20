@@ -31,33 +31,30 @@ namespace TorrentCore.Application.BitTorrent.Messages
         public const byte MessageID = 8;
 
         /// <summary>
-        /// The ID of the message.
-        /// </summary>
-        public override byte ID
-        {
-            get { return MessageID; }
-        }
-
-        /// <summary>
-        /// The block request to be cancelled by this message.
-        /// </summary>
-        public BlockRequest Block { get; private set; }
-
-        /// <summary>
-        /// Creates a new, empty cancel message.
+        /// Initializes a new instance of the <see cref="CancelMessage"/> class that is empty.
         /// </summary>
         public CancelMessage()
         {
         }
 
         /// <summary>
-        /// Creates a new cancel message with the specified block.
+        /// Initializes a new instance of the <see cref="CancelMessage"/> class with the specified block.
         /// </summary>
         /// <param name="block">The block request to be cancelled by the cancel message.</param>
         public CancelMessage(BlockRequest block)
         {
             this.Block = block;
         }
+
+        /// <summary>
+        /// Gets the ID of the message.
+        /// </summary>
+        public override byte ID => MessageID;
+
+        /// <summary>
+        /// Gets the block request to be cancelled by this message.
+        /// </summary>
+        public BlockRequest Block { get; private set; }
 
         /// <summary>
         /// Sends the message by writing it to the specified BinaryWriter.
@@ -67,12 +64,16 @@ namespace TorrentCore.Application.BitTorrent.Messages
         {
             // Message ID
             writer.Write(ID);
+
             // Piece index of block
             writer.Write(Block.PieceIndex);
+
             // Block offset within piece
             writer.Write(Block.Offset);
+
             // Block length
             writer.Write(Block.Length);
+
             // Flush to send
             writer.Flush();
         }
@@ -87,10 +88,13 @@ namespace TorrentCore.Application.BitTorrent.Messages
         {
             // Piece index of block
             int pieceIndex = reader.ReadInt32();
+
             // Block offset within piece
             int blockOffset = reader.ReadInt32();
+
             // Block length
             int blockLength = reader.ReadInt32();
+
             // Set block
             this.Block = new BlockRequest(pieceIndex, blockOffset, blockLength);
         }

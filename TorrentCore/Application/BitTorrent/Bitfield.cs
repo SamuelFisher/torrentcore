@@ -29,7 +29,8 @@ namespace TorrentCore.Application.BitTorrent
     public class Bitfield
     {
         /// <summary>
-        /// Creates a new bitfield of the specified length, with all bits set to zero.
+        /// Initializes a new instance of the <see cref="Bitfield"/> class,
+        /// with the specified length and all bits set to zero.
         /// </summary>
         /// <param name="length">Number of pieces within the bitfield.</param>
         public Bitfield(int length)
@@ -39,7 +40,7 @@ namespace TorrentCore.Application.BitTorrent
         }
 
         /// <summary>
-        /// Creates a new bitfield using the specified data and length.
+        /// Initializes a new instance of the <see cref="Bitfield"/> class with the specified data and length.
         /// </summary>
         /// <param name="rawData">The raw data to use.</param>
         /// <param name="length">The length of the bitfield.</param>
@@ -50,7 +51,8 @@ namespace TorrentCore.Application.BitTorrent
         }
 
         /// <summary>
-        /// Creates a new bitfield, marking the specified pieces as available.
+        /// Initializes a new instance of the <see cref="Bitfield"/> class,
+        /// marking the specified pieces as available.
         /// </summary>
         /// <param name="length">The length of the bitfield.</param>
         /// <param name="availablePieces">Set of available pieces.</param>
@@ -69,7 +71,7 @@ namespace TorrentCore.Application.BitTorrent
         public byte[] RawData { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating the number of pieces contained within the bitfield.
+        /// Gets the number of pieces contained within the bitfield.
         /// </summary>
         public int Length { get; }
 
@@ -82,8 +84,10 @@ namespace TorrentCore.Application.BitTorrent
             // Use quick check where possible
             List<int> quickChecked = new List<int>();
             for (int i = 0; i < RawData.Length - 1; i++)
+            {
                 if (RawData[i] == 255)
                     quickChecked.Add(i);
+            }
 
             int available = quickChecked.Count * 8;
             for (int i = 0; i < Length; i++)
@@ -137,8 +141,10 @@ namespace TorrentCore.Application.BitTorrent
             // Use quick check where possible
             List<int> quickChecked = new List<int>();
             for (int i = 0; i < RawData.Length - 1; i++)
+            {
                 if (RawData[i] == 255)
                     quickChecked.Add(i);
+            }
 
             int unavailable = this.Length - quickChecked.Count * 8;
             for (int i = 0; i < Length; i++)
@@ -160,7 +166,7 @@ namespace TorrentCore.Application.BitTorrent
 
         public override string ToString()
         {
-            return String.Format("Bitfield: {0}%", Math.Round((double)GetAvailablePiecesCount() / (double)Length, 2) * 100d);
+            return string.Format("Bitfield: {0}%", Math.Round((double)GetAvailablePiecesCount() / (double)Length, 2) * 100d);
         }
 
         /// <summary>

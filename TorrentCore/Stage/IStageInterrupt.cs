@@ -24,14 +24,14 @@ namespace TorrentCore.Stage
     public interface IStageInterrupt
     {
         /// <summary>
-        /// Gets a value that indicates stage should temporarily pause its execution such
+        /// Gets a value indicating whether the stage should temporarily pause its execution such
         /// that it can continue from the same point when requested to resume.
         /// The Execute(...) method should not return to the caller.
         /// </summary>
         bool IsPauseRequested { get; }
 
         /// <summary>
-        /// Gets a value that indicates the stage should permanently stop execution.
+        /// Gets a value indicating whether the stage should permanently stop execution.
         /// the Execute(...) method is expected to return to the caller shortly after a
         /// stop is requested.
         /// </summary>

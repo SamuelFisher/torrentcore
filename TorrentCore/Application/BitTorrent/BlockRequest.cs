@@ -28,7 +28,7 @@ namespace TorrentCore.Application.BitTorrent
     public class BlockRequest
     {
         /// <summary>
-        /// Creates a new block with the specified piece index and offset.
+        /// Initializes a new instance of the <see cref="BlockRequest"/> class, using the specified piece index and offset.
         /// </summary>
         /// <param name="pieceIndex">Index of the piece the block belongs to.</param>
         /// <param name="offset">Offset into the piece at which the data starts.</param>
@@ -55,6 +55,29 @@ namespace TorrentCore.Application.BitTorrent
         /// </summary>
         public int Length { get; }
 
+        public static bool operator ==(BlockRequest x, BlockRequest y)
+        {
+            if (object.ReferenceEquals(x, y))
+            {
+                return true;
+            }
+            else if (((object)x == null) || ((object)y == null))
+            {
+                return false;
+            }
+            else
+            {
+                return x.PieceIndex == y.PieceIndex
+                       && x.Offset == y.Offset
+                       && x.Length == y.Length;
+            }
+        }
+
+        public static bool operator !=(BlockRequest x, BlockRequest y)
+        {
+            return !(x == y);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is BlockRequest)
@@ -75,23 +98,6 @@ namespace TorrentCore.Application.BitTorrent
             hash = (hash * 7) + Offset.GetHashCode();
             hash = (hash * 7) + Length.GetHashCode();
             return hash;
-        }
-
-        public static bool operator ==(BlockRequest x, BlockRequest y)
-        {
-            if (System.Object.ReferenceEquals(x, y))
-                return true;
-            else if (((object)x == null) || ((object)y == null))
-                return false;
-            else
-                return (x.PieceIndex == y.PieceIndex
-                        && x.Offset == y.Offset
-                        && x.Length == y.Length);
-        }
-
-        public static bool operator !=(BlockRequest x, BlockRequest y)
-        {
-            return !(x == y);
         }
     }
 }

@@ -29,20 +29,20 @@ namespace TorrentCore.Application.BitTorrent.Messages
     /// </summary>
     static class MessageHandler
     {
-        private static Dictionary<byte, Func<Metainfo, CommonPeerMessage>> _messageDelegates = new Dictionary<byte, Func<Metainfo, CommonPeerMessage>>();
+        private static readonly Dictionary<byte, Func<Metainfo, CommonPeerMessage>> MessageDelegates = new Dictionary<byte, Func<Metainfo, CommonPeerMessage>>();
 
         static MessageHandler()
         {
             // Register message types
-            _messageDelegates.Add(ChokeMessage.MessageID, meta => new ChokeMessage());
-            _messageDelegates.Add(UnchokeMessage.MessageID, meta => new UnchokeMessage());
-            _messageDelegates.Add(InterestedMessage.MessageID, meta => new InterestedMessage());
-            _messageDelegates.Add(NotInterestedMessage.MessageID, meta => new NotInterestedMessage());
-            _messageDelegates.Add(HaveMessage.MessageId, meta => new HaveMessage());
-            _messageDelegates.Add(BitfieldMessage.MessageId, meta => new BitfieldMessage(meta.Pieces.Count));
-            _messageDelegates.Add(RequestMessage.MessageID, meta => new RequestMessage());
-            _messageDelegates.Add(PieceMessage.MessageId, meta => new PieceMessage());
-            _messageDelegates.Add(CancelMessage.MessageID, meta => new CancelMessage());
+            MessageDelegates.Add(ChokeMessage.MessageID, meta => new ChokeMessage());
+            MessageDelegates.Add(UnchokeMessage.MessageID, meta => new UnchokeMessage());
+            MessageDelegates.Add(InterestedMessage.MessageID, meta => new InterestedMessage());
+            MessageDelegates.Add(NotInterestedMessage.MessageID, meta => new NotInterestedMessage());
+            MessageDelegates.Add(HaveMessage.MessageId, meta => new HaveMessage());
+            MessageDelegates.Add(BitfieldMessage.MessageId, meta => new BitfieldMessage(meta.Pieces.Count));
+            MessageDelegates.Add(RequestMessage.MessageID, meta => new RequestMessage());
+            MessageDelegates.Add(PieceMessage.MessageId, meta => new PieceMessage());
+            MessageDelegates.Add(CancelMessage.MessageID, meta => new CancelMessage());
         }
 
         /// <summary>
@@ -52,11 +52,10 @@ namespace TorrentCore.Application.BitTorrent.Messages
         /// <param name="reader">The data reader to read from.</param>
         /// <param name="messageLength">The length of the incoming message.</param>
         /// <param name="messageId">The message ID of the incoming message.</param>
-        /// <returns></returns>
         public static CommonPeerMessage ReadMessage(Metainfo meta, BinaryReader reader, int messageLength, byte messageId)
         {
             Func<Metainfo, CommonPeerMessage> creationDelegate;
-            if (_messageDelegates.TryGetValue(messageId, out creationDelegate))
+            if (MessageDelegates.TryGetValue(messageId, out creationDelegate))
             {
                 CommonPeerMessage message = creationDelegate(meta);
                 message.Receive(reader, messageLength);

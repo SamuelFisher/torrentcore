@@ -40,6 +40,7 @@ namespace TorrentCore.Tracker.Udp
             this.tcpConnectionDetails = tcpConnectionDetails;
             this.trackerUri = trackerUri;
             rand = new Random();
+
             // TODO don't listen until needed
             client = new UdpClient(0);
         }
@@ -86,7 +87,8 @@ namespace TorrentCore.Tracker.Udp
             return new AnnounceResult(announceResponse.Peers.Select(x => new TcpTransportStream(tcpConnectionDetails.BindAddress, x.IPAddress, x.Port)));
         }
 
-        protected async Task<T> SendAndWaitForResponse<T>(UdpTrackerRequestMessage request) where T : UdpTrackerResponseMessage, new()
+        protected async Task<T> SendAndWaitForResponse<T>(UdpTrackerRequestMessage request)
+            where T : UdpTrackerResponseMessage, new()
         {
             await Send(request);
             return await Receive<T>();
@@ -102,7 +104,8 @@ namespace TorrentCore.Tracker.Udp
             return client.SendAsync(ms.ToArray(), (int)ms.Length, trackerUri.Host, trackerUri.Port);
         }
 
-        protected async Task<T> Receive<T>() where T : UdpTrackerResponseMessage, new()
+        protected async Task<T> Receive<T>()
+            where T : UdpTrackerResponseMessage, new()
         {
             var result = await client.ReceiveAsync();
             var message = new T();

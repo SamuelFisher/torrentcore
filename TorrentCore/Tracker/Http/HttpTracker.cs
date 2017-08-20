@@ -37,8 +37,10 @@ namespace TorrentCore.Tracker.Http
         private readonly LocalTcpConnectionDetails tcpConnectionDetails;
 
         /// <summary>
-        /// Creates a new Tracker with the remote tracker at the specified URL.
+        /// Initializes a new instance of the <see cref="HttpTracker"/> class,
+        /// with the remote tracker at the specified URL.
         /// </summary>
+        /// <param name="tcpConnectionDetails">Provides details on which port and local address to use.</param>
         /// <param name="baseUrl">URL of the remote tracker.</param>
         public HttpTracker(LocalTcpConnectionDetails tcpConnectionDetails, Uri baseUrl)
         {
@@ -129,8 +131,9 @@ namespace TorrentCore.Tracker.Http
                         byte[] peerIp = reader.ReadBytes(4);
                         byte firstB = reader.ReadByte();
                         byte secondB = reader.ReadByte();
+
                         // TODO fix endian encoding (assumes host is little endian)
-                        ushort port = BitConverter.ToUInt16(new[] {secondB, firstB}, 0);
+                        ushort port = BitConverter.ToUInt16(new[] { secondB, firstB }, 0);
 
                         string ip = $"{peerIp[0]}.{peerIp[1]}.{peerIp[2]}.{peerIp[3]}";
                         resultPeers.Add(new AnnounceResultPeer(IPAddress.Parse(ip), port));

@@ -48,12 +48,12 @@ namespace TorrentCore
         private Timer updateStatisticsTimer;
 
         public TorrentClient()
-            : this (new TorrentClientSettings { FindAvailablePort = true})
+            : this(new TorrentClientSettings { FindAvailablePort = true })
         {
         }
 
         public TorrentClient(int listenPort)
-            : this(new TorrentClientSettings {ListenPort = listenPort})
+            : this(new TorrentClientSettings { ListenPort = listenPort })
         {
         }
 
@@ -66,27 +66,19 @@ namespace TorrentCore
             mainLoop.Start();
             peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol, moduleManager);
             LocalPeerId = settings.PeerId;
-            transport = new TcpTransportProtocol(settings.ListenPort,
-                                                 settings.FindAvailablePort,
-                                                 settings.AdapterAddress,
-                                                 AcceptConnection);
+
+            transport = new TcpTransportProtocol(
+                settings.ListenPort,
+                settings.FindAvailablePort,
+                settings.AdapterAddress,
+                AcceptConnection);
+
             transport.Start();
             trackerClientFactory = new TrackerClientFactory(transport.LocalConection);
             updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
             AdapterAddress = settings.AdapterAddress;
         }
-
-        private void AcceptConnection(AcceptConnectionEventArgs e)
-        {
-            var applicationProtocol = peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream, out BitTorrentPeerInitiator.IContext context);
-            applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
-            {
-                e.Accept();
-                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Metainfo, new QueueingMessageHandler(mainLoop, applicationProtocol));
-                return peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
-            }));
-        }
-
+        
         /// <summary>
         /// Gets the Peer ID for the local client.
         /// </summary>
@@ -102,6 +94,17 @@ namespace TorrentCore
         internal TcpTransportProtocol Transport => transport;
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());
+
+        private void AcceptConnection(AcceptConnectionEventArgs e)
+        {
+            var applicationProtocol = peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream, out BitTorrentPeerInitiator.IContext context);
+            applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
+            {
+                e.Accept();
+                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Metainfo, new QueueingMessageHandler(mainLoop, applicationProtocol));
+                return peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
+            }));
+        }
 
         public TorrentDownload Add(string torrentFile, string downloadDirectory)
         {

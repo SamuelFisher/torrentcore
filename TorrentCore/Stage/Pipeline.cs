@@ -16,26 +16,30 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using SimpleInjector;
 
-namespace TorrentCore.Tracker
+namespace TorrentCore.Stage
 {
-    /// <summary>
-    /// Manages the communication with a remote tracker.
-    /// </summary>
-    public interface ITracker
+    class Pipeline
     {
-        /// <summary>
-        /// Gets the type of this tracker.
-        /// </summary>
-        string Type { get; }
+        private readonly IList<IPipelineStageFactory> stageFactory;
 
-        /// <summary>
-        /// Sends the specified announce request to the tracker.
-        /// </summary>
-        /// <param name="request">The request to send.</param>
-        Task<AnnounceResult> Announce(AnnounceRequest request);
+        public Pipeline(IList<IPipelineStageFactory> stageFactory)
+        {
+            this.stageFactory = stageFactory;
+        }
+        
+        public void Run(Container container, IStageInterrupt interrupt, IProgress<StatusUpdate> progress)
+        {
+            foreach (var stage in stageFactory)
+            {
+                var instance = stage.Construct(container);
+                instance.Run(interrupt, progress);
+
+                if (interrupt.IsStopRequested)
+                    return;
+            }
+        }
     }
 }

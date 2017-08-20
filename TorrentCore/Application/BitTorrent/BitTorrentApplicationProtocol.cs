@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with TorrentCore.  If not, see <http://www.gnu.org/licenses/>.
 
-using TorrentCore.Application.BitTorrent.Messages;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -26,18 +25,20 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application.BitTorrent.Connection;
 using TorrentCore.Application.BitTorrent.ExtensionModule;
+using TorrentCore.Application.BitTorrent.Messages;
 using TorrentCore.Data;
 using TorrentCore.Data.Pieces;
 using TorrentCore.Engine;
 using TorrentCore.Modularity;
 using TorrentCore.Transport;
-                                                                                            
+
 namespace TorrentCore.Application.BitTorrent
 {
     /// <summary>
     /// Manages the connections to peers.
     /// </summary>
     /// <remarks>This class is not thread-safe. All methods should be called from the <see cref="MainLoop"/> thread.</remarks>
+    /// <typeparam name="TConnectionContext">The type of connection context.</typeparam>
     class BitTorrentApplicationProtocol<TConnectionContext> :
         IApplicationProtocol<PeerConnection>,
         IPeerMessageHandler,
@@ -55,16 +56,14 @@ namespace TorrentCore.Application.BitTorrent
         private readonly HashSet<ITransportStream> availablePeers = new HashSet<ITransportStream>(new TransportStreamAddressEqualityComparer());
         private readonly Dictionary<Tuple<PeerConnection, byte>, IModule> messageHandlerRegistrations = new Dictionary<Tuple<PeerConnection, byte>, IModule>();
         private readonly BlockRequestManager blockRequests;
-
-        /// <summary>
-        /// Creates a new instance of the BitTorrent protocol.
-        /// </summary>
-        public BitTorrentApplicationProtocol(PeerId localPeerId,
-                                             Metainfo metainfo,
-                                             IApplicationProtocolPeerInitiator<PeerConnection, TConnectionContext, PeerConnectionArgs> peerInitiator,
-                                             Func<IPeerMessageHandler, IPeerMessageHandler> messageHandlerFactory,
-                                             IModuleManager modules,
-                                             IPieceDataHandler dataHandler)
+        
+        public BitTorrentApplicationProtocol(
+            PeerId localPeerId,
+            Metainfo metainfo,
+            IApplicationProtocolPeerInitiator<PeerConnection, TConnectionContext, PeerConnectionArgs> peerInitiator,
+            Func<IPeerMessageHandler, IPeerMessageHandler> messageHandlerFactory,
+            IModuleManager modules,
+            IPieceDataHandler dataHandler)
         {
             this.localPeerId = localPeerId;
             this.peerInitiator = peerInitiator;
@@ -76,7 +75,9 @@ namespace TorrentCore.Application.BitTorrent
             Metainfo = metainfo;
             blockRequests = new BlockRequestManager();
         }
-        
+
+        public event EventHandler DownloadCompleted;
+
         public Metainfo Metainfo { get; }
 
         public IReadOnlyCollection<PeerConnection> Peers => peers;
@@ -86,11 +87,9 @@ namespace TorrentCore.Application.BitTorrent
         public IReadOnlyCollection<ITransportStream> ConnectingPeers => connectingPeers;
 
         public IBlockRequests BlockRequests => blockRequests;
-        
+
         public IPieceDataHandler DataHandler { get; }
-
-        public event EventHandler DownloadCompleted;
-
+        
         public void PeersAvailable(IEnumerable<ITransportStream> newPeers)
         {
             foreach (var peer in newPeers)
@@ -113,7 +112,7 @@ namespace TorrentCore.Application.BitTorrent
             var peer = e.Accept();
             PeerConnected(peer);
         }
-        
+
         public void PieceCompleted(Piece piece)
         {
             blockRequests.ClearBlocksForPiece(piece);
@@ -122,7 +121,7 @@ namespace TorrentCore.Application.BitTorrent
             if (!DataHandler.IncompletePieces().Any())
                 DownloadCompleted?.Invoke(this, new EventArgs());
         }
-        
+
         public void PieceCorrupted(Piece piece)
         {
             blockRequests.ClearBlocksForPiece(piece);
@@ -145,13 +144,14 @@ namespace TorrentCore.Application.BitTorrent
             if (messageHandlerRegistrations.TryGetValue(Tuple.Create(peer, messageId), out IModule module))
             {
                 var customValues = peer.GetCustomValues(module);
-                var messageReceivedContext = new MessageReceivedContext(peer,
-                                                                        this,
-                                                                        messageId,
-                                                                        data.Length - 1,
-                                                                        reader,
-                                                                        customValues,
-                                                                        rMessageId => RegisterModuleForMessageId(peer, module, rMessageId));
+                var messageReceivedContext = new MessageReceivedContext(
+                    peer,
+                    this,
+                    messageId,
+                    data.Length - 1,
+                    reader,
+                    customValues,
+                    rMessageId => RegisterModuleForMessageId(peer, module, rMessageId));
 
                 module.OnMessageReceived(messageReceivedContext);
                 Log.LogTrace($"Message of type {messageId} handled by module {module.GetType().Name}");
@@ -183,17 +183,20 @@ namespace TorrentCore.Application.BitTorrent
                         Log.LogInformation($"Failed to connect to peer at {peerTransport.DisplayAddress}");
 
                         // Connection failed
-                        lock(peersLock)
+                        lock (peersLock)
                             connectingPeers.Remove(peerTransport);
+
                         // TODO: keep a record of failed connection peers
                         return;
                     }
-                    
-                    var connectionSettings = new PeerConnectionArgs(localPeerId,
-                                                                    Metainfo,
-                                                                    messageHandlerFactory(this));
+
+                    var connectionSettings = new PeerConnectionArgs(
+                        localPeerId,
+                        Metainfo,
+                        messageHandlerFactory(this));
+
                     var peer = peerInitiator.InitiateOutgoingConnection(peerTransport, connectionSettings);
-                    lock(peersLock)
+                    lock (peersLock)
                         connectingPeers.Remove(peerTransport);
                     PeerConnected(peer);
                 });
@@ -210,23 +213,24 @@ namespace TorrentCore.Application.BitTorrent
 
         private void RegisterModuleForMessageId(PeerConnection peer, IModule module, byte messageId)
         {
-            lock(peersLock)
+            lock (peersLock)
                 messageHandlerRegistrations[Tuple.Create(peer, messageId)] = module;
         }
-        
+
         private void PeerConnected(PeerConnection peer)
         {
             Log.LogInformation($"Connected to peer at {peer.Address}");
 
-            lock(peersLock)
+            lock (peersLock)
                 peers.Add(peer);
-            
+
             foreach (var module in modules.Modules)
             {
-                var context = new PeerContext(peer,
-                                              peer.GetCustomValues(module),
-                                              this,
-                                              messageId => RegisterModuleForMessageId(peer, module, messageId));
+                var context = new PeerContext(
+                    peer,
+                    peer.GetCustomValues(module),
+                    this,
+                    messageId => RegisterModuleForMessageId(peer, module, messageId));
                 module.OnPeerConnected(context);
             }
 
@@ -239,6 +243,7 @@ namespace TorrentCore.Application.BitTorrent
             {
                 Log.LogInformation($"Disconnected from peer at {peer.Address}");
                 peers.Remove(peer);
+
                 // TODO: optimise this
                 foreach (var r in messageHandlerRegistrations.Where(x => x.Key.Item1 == peer).ToList())
                     messageHandlerRegistrations.Remove(r.Key);

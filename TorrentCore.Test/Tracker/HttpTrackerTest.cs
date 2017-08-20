@@ -44,7 +44,7 @@ namespace TorrentCore.Test.Tracker
         public void Announce(bool compact)
         {
             var tracker = new MockHttpTracker(new LocalTcpConnectionDetails(5000, IPAddress.Loopback, IPAddress.Loopback), compact, new Uri("http://example.com/announce"));
-            
+
             var response = tracker.Announce(request).Result;
             var peers = response.Peers.Cast<TcpTransportStream>().ToArray();
 

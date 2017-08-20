@@ -34,12 +34,13 @@ namespace TorrentCore.Application.BitTorrent
         private readonly ITransportStream transportStream;
         private readonly Dictionary<IModule, Dictionary<string, object>> customValues;
 
-        internal PeerConnection(Metainfo meta,
-                                PeerId peerId,
-                                IReadOnlyList<byte> reservedBytes,
-                                ProtocolExtension supportedExtensions,
-                                IPeerMessageHandler messageHandler,
-                                ITransportStream transportStream)
+        internal PeerConnection(
+            Metainfo meta,
+            PeerId peerId,
+            IReadOnlyList<byte> reservedBytes,
+            ProtocolExtension supportedExtensions,
+            IPeerMessageHandler messageHandler,
+            ITransportStream transportStream)
         {
             this.messageHandler = messageHandler;
             this.transportStream = transportStream;

@@ -30,24 +30,15 @@ namespace TorrentCore.Transport
     /// 
     /// Provides asynchronous writing and synchronous reading.
     /// </summary>
-    class RateLimitedStream : Stream
+    internal partial class RateLimitedStream
     {
-        Queue<byte[]> writeQueue = new Queue<byte[]>();
+        private readonly Queue<byte[]> writeQueue = new Queue<byte[]>();
+        private readonly ManualResetEvent writeFinished = new ManualResetEvent(true);
+
         bool isWriting = false;
-        ManualResetEvent writeFinished = new ManualResetEvent(true);
-
+        
         /// <summary>
-        /// Gets the underlying stream.
-        /// </summary>
-        public Stream BaseStream { get; private set; }
-
-        /// <summary>
-        /// Gets the RateLimited for this stream.
-        /// </summary>
-        public RateLimiter Limiter { get; private set; }
-
-        /// <summary>
-        /// Creates a new RateLimitedStream using the specified underlying stream for data.
+        /// Initializes a new instance of the <see cref="RateLimitedStream"/> class.
         /// </summary>
         /// <param name="baseStream">Stream to use for data.</param>
         public RateLimitedStream(Stream baseStream)
@@ -56,11 +47,11 @@ namespace TorrentCore.Transport
         }
 
         /// <summary>
-        /// Creates a new RateLimitedStream using the specified underlying stream for data.
+        /// Initializes a new instance of the <see cref="RateLimitedStream"/> class.
         /// </summary>
         /// <param name="baseStream">Stream to use for data.</param>
         /// <param name="maxUploadRate">Maximum upload rate in bytes per second.</param>
-        /// <param name="maxDownloadRate">Maximum upload rate in bytes per second.</param>
+        /// <param name="maxDownloadRate">Maximum download rate in bytes per second.</param>
         public RateLimitedStream(Stream baseStream, uint maxUploadRate, uint maxDownloadRate)
         {
             BaseStream = baseStream;
@@ -70,7 +61,7 @@ namespace TorrentCore.Transport
         }
 
         /// <summary>
-        /// Creates a new RateLimitedStream limited by the specified RateLimiter.
+        /// Initializes a new instance of the <see cref="RateLimitedStream"/> class.
         /// </summary>
         /// <param name="baseStream">Stream to use for data.</param>
         /// <param name="rateLimiter">RateLimiter to use.</param>
@@ -79,6 +70,16 @@ namespace TorrentCore.Transport
             BaseStream = baseStream;
             Limiter = rateLimiter;
         }
+
+        /// <summary>
+        /// Gets the underlying stream.
+        /// </summary>
+        public Stream BaseStream { get; }
+
+        /// <summary>
+        /// Gets the RateLimited for this stream.
+        /// </summary>
+        public RateLimiter Limiter { get; }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -132,22 +133,22 @@ namespace TorrentCore.Transport
                 });
             }
         }
+    }
 
-        #region Passthrough Methods
+    internal partial class RateLimitedStream : Stream
+    {
+        public override bool CanRead => BaseStream.CanRead;
 
-        public override bool CanRead
+        public override bool CanSeek => BaseStream.CanSeek;
+
+        public override bool CanWrite => BaseStream.CanWrite;
+
+        public override long Length => BaseStream.Length;
+
+        public override long Position
         {
-            get { return BaseStream.CanRead; }
-        }
-
-        public override bool CanSeek
-        {
-            get { return BaseStream.CanSeek; }
-        }
-
-        public override bool CanWrite
-        {
-            get { return BaseStream.CanWrite; }
+            get => BaseStream.Position;
+            set => BaseStream.Position = value;
         }
 
         public override void Flush()
@@ -159,17 +160,6 @@ namespace TorrentCore.Transport
             BaseStream.Flush();
         }
 
-        public override long Length
-        {
-            get { return BaseStream.Length; }
-        }
-
-        public override long Position
-        {
-            get { return BaseStream.Position; }
-            set { BaseStream.Position = value; }
-        }
-
         public override long Seek(long offset, SeekOrigin origin)
         {
             return BaseStream.Seek(offset, origin);
@@ -179,7 +169,5 @@ namespace TorrentCore.Transport
         {
             BaseStream.SetLength(value);
         }
-
-        #endregion
     }
 }

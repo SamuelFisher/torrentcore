@@ -24,7 +24,9 @@ namespace TorrentCore.Extensions.ExtensionProtocol
     public interface IExtensionProtocolMessage
     {
         string MessageType { get; }
+
         byte[] Serialize();
+
         void Deserialize(byte[] data);
     }
 }

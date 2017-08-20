@@ -33,11 +33,21 @@ namespace TorrentCore.Application.BitTorrent.Connection
         private readonly Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup;
         private readonly IModuleManager modules;
 
-        public BitTorrentPeerInitiator(Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup,
-                                       IModuleManager modules)
+        public BitTorrentPeerInitiator(
+            Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup,
+            IModuleManager modules)
         {
             this.applicationProtocolLookup = applicationProtocolLookup;
             this.modules = modules;
+        }
+
+        public interface IContext
+        {
+            PeerId PeerId { get; }
+
+            byte[] ReservedBytes { get; }
+
+            ProtocolExtension SupportedExtensions { get; }
         }
 
         public BitTorrentApplicationProtocol<IContext> PrepareAcceptIncomingConnection(ITransportStream transportStream, out IContext context)
@@ -55,22 +65,26 @@ namespace TorrentCore.Application.BitTorrent.Connection
             return PrepareAcceptIncomingConnection(transportStream, out context);
         }
 
-        public PeerConnection AcceptIncomingConnection(ITransportStream transportStream,
-                                                       IContext context,
-                                                       PeerConnectionArgs c)
+        public PeerConnection AcceptIncomingConnection(
+            ITransportStream transportStream,
+            IContext context,
+            PeerConnectionArgs c)
         {
             var writer = new BigEndianBinaryWriter(transportStream.Stream);
             WriteConnectionHeader(writer, c.Metainfo.InfoHash, c.LocalPeerId);
-            return new PeerConnection(c.Metainfo,
-                                      context.PeerId,
-                                      context.ReservedBytes,
-                                      context.SupportedExtensions,
-                                      c.MessageHandler,
-                                      transportStream);
+
+            return new PeerConnection(
+                c.Metainfo,
+                context.PeerId,
+                context.ReservedBytes,
+                context.SupportedExtensions,
+                c.MessageHandler,
+                transportStream);
         }
 
-        public PeerConnection InitiateOutgoingConnection(ITransportStream transportStream,
-                                                         PeerConnectionArgs c)
+        public PeerConnection InitiateOutgoingConnection(
+            ITransportStream transportStream,
+            PeerConnectionArgs c)
         {
             var writer = new BigEndianBinaryWriter(transportStream.Stream);
             var reader = new BigEndianBinaryReader(transportStream.Stream);
@@ -83,17 +97,19 @@ namespace TorrentCore.Application.BitTorrent.Connection
                 throw new NotImplementedException();
             }
 
-            return new PeerConnection(c.Metainfo,
-                                      header.PeerId,
-                                      header.ReservedBytes,
-                                      header.SupportedExtensions,
-                                      c.MessageHandler,
-                                      transportStream);
+            return new PeerConnection(
+                c.Metainfo,
+                header.PeerId,
+                header.ReservedBytes,
+                header.SupportedExtensions,
+                c.MessageHandler,
+                transportStream);
         }
 
-        private void WriteConnectionHeader(BinaryWriter writer,
-                                          Sha1Hash infoHash,
-                                          PeerId localPeerId)
+        private void WriteConnectionHeader(
+            BinaryWriter writer,
+            Sha1Hash infoHash,
+            PeerId localPeerId)
         {
             // Length of protocol string
             writer.Write((byte)BitTorrentProtocol.Length);
@@ -104,7 +120,7 @@ namespace TorrentCore.Application.BitTorrent.Connection
             // Reserved bytes
             var reservedBytes = new byte[BitTorrentProtocolReservedBytes];
             var prepareHandshakeContext = new PrepareHandshakeContext(reservedBytes);
-            foreach(var module in modules.Modules)
+            foreach (var module in modules.Modules)
                 module.OnPrepareHandshake(prepareHandshakeContext);
             writer.Write(prepareHandshakeContext.ReservedBytes);
 
@@ -136,23 +152,27 @@ namespace TorrentCore.Application.BitTorrent.Connection
 
             // Peer ID
             result.PeerId = new PeerId(reader.ReadBytes(20));
-            
+
             return result;
         }
-
+        
         private class ConnectionHeader
         {
             public Sha1Hash InfoHash { get; set; }
+
             public PeerId PeerId { get; set; }
+
             public ProtocolExtension SupportedExtensions { get; set; }
+
             public byte[] ReservedBytes { get; set; }
         }
 
         private class PeerConnectionPreparationContext : IContext
         {
-            internal PeerConnectionPreparationContext(PeerId peerId,
-                                                      byte[] reservedBytes,
-                                                      ProtocolExtension supportExtensions)
+            internal PeerConnectionPreparationContext(
+                PeerId peerId,
+                byte[] reservedBytes,
+                ProtocolExtension supportExtensions)
             {
                 PeerId = peerId;
                 ReservedBytes = reservedBytes;
@@ -164,13 +184,6 @@ namespace TorrentCore.Application.BitTorrent.Connection
             public byte[] ReservedBytes { get; }
 
             public ProtocolExtension SupportedExtensions { get; }
-        }
-
-        public interface IContext
-        {
-            PeerId PeerId { get; }
-            byte[] ReservedBytes { get; }
-            ProtocolExtension SupportedExtensions { get; }
         }
 
         private class PrepareHandshakeContext : IPrepareHandshakeContext

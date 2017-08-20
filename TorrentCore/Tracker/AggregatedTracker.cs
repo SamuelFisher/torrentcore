@@ -82,8 +82,11 @@ namespace TorrentCore.Tracker
         private class TrackerStatistics : ITrackerDetails
         {
             public Uri Uri { get; set; }
+
             public int Peers { get; set; }
+
             public DateTime? LastAnnounce { get; set; }
+
             public string Type { get; set; }
         }
     }

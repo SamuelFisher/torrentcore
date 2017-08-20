@@ -31,7 +31,7 @@ namespace TorrentCore.Data
         private readonly Dictionary<string, FileStream> openFiles;
 
         /// <summary>
-        /// Creates a new DiskFileHandler with the specified directory.
+        /// Initializes a new instance of the <see cref="DiskFileHandler"/> class using the specified directory.
         /// </summary>
         /// <param name="directory">Base directory for all files.</param>
         public DiskFileHandler(string directory)
@@ -49,7 +49,7 @@ namespace TorrentCore.Data
         {
             string path = FullName(fileName);
             if (!File.Exists(path))
-                File.WriteAllText(path, "");
+                File.WriteAllText(path, string.Empty);
 
             FileStream stream;
             if (!openFiles.TryGetValue(fileName, out stream))

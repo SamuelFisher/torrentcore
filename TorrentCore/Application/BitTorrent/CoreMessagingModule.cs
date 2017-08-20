@@ -48,7 +48,7 @@ namespace TorrentCore.Application.BitTorrent
 
         public void OnPeerConnected(IPeerContext context)
         {
-            foreach(var messageId in MessageIds)
+            foreach (var messageId in MessageIds)
                 context.RegisterMessageHandler(messageId);
 
             context.Peer.SendMessage(new BitfieldMessage(new Bitfield(context.Metainfo.Pieces.Count, context.DataHandler.CompletedPieces)));

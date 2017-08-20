@@ -41,18 +41,38 @@ namespace TorrentCore.Data
             Empty = new Sha1Hash(new byte[Length]);
         }
 
-        public byte[] Value { get; }
-
         /// <summary>
-        /// Creates a new hash with the specified value.
+        /// Initializes a new instance of the <see cref="Sha1Hash"/> class with the specified value.
         /// </summary>
         /// <param name="value">20-byte value of the hash.</param>
         public Sha1Hash(byte[] value)
         {
             if (value == null || value.Length != Length)
-                throw new ArgumentException(String.Format("Value must be {0} bytes.", Length));
+                throw new ArgumentException(string.Format("Value must be {0} bytes.", Length));
 
             this.Value = value;
+        }
+
+        public byte[] Value { get; }
+
+        public static implicit operator byte[](Sha1Hash hash)
+        {
+            return hash.Value;
+        }
+
+        public static bool operator ==(Sha1Hash x, Sha1Hash y)
+        {
+            if (ReferenceEquals(x, y))
+                return true;
+            else if ((object)x == null || ((object)y == null))
+                return false;
+            else
+                return Enumerable.SequenceEqual(x.Value, y.Value);
+        }
+
+        public static bool operator !=(Sha1Hash x, Sha1Hash y)
+        {
+            return !(x == y);
         }
 
         public override bool Equals(object obj)
@@ -78,31 +98,11 @@ namespace TorrentCore.Data
                 return hash;
             }
         }
-
-        public static bool operator ==(Sha1Hash x, Sha1Hash y)
-        {
-            if (System.Object.ReferenceEquals(x, y))
-                return true;
-            else if (((object)x == null) || ((object)y == null))
-                return false;
-            else
-                return Enumerable.SequenceEqual(x.Value, y.Value);
-        }
-
-        public static bool operator !=(Sha1Hash x, Sha1Hash y)
-        {
-            return !(x == y);
-        }
-
+        
         public override string ToString()
         {
             string base64 = Convert.ToBase64String(Value);
             return base64.Substring(0, 8);
-        }
-
-        public static implicit operator byte[](Sha1Hash hash)
-        {
-            return hash.Value;
         }
     }
 }

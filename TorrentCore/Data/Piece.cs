@@ -28,7 +28,7 @@ namespace TorrentCore.Data
     public class Piece
     {
         /// <summary>
-        /// Creates a new piece with the specified index.
+        /// Initializes a new instance of the <see cref="Piece"/> class with the specified index.
         /// </summary>
         /// <param name="index">Zero-based index of the piece.</param>
         public Piece(int index)
@@ -37,7 +37,8 @@ namespace TorrentCore.Data
         }
 
         /// <summary>
-        /// Creates a new piece with the specified index, size, files and hash.
+        /// Initializes a new instance of the <see cref="Piece"/> class
+        /// with the specified index, size, files and hash.
         /// </summary>
         /// <param name="index">Zero-based index of the piece.</param>
         /// <param name="size">Size of the piece, in bytes.</param>

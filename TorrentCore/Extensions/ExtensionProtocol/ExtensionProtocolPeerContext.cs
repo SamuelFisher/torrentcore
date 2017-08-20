@@ -26,7 +26,7 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Extensions.ExtensionProtocol
 {
-    class ExtensionProtocolPeerContext : IExtensionProtocolPeerContext
+    internal partial class ExtensionProtocolPeerContext : IExtensionProtocolPeerContext
     {
         private readonly IPeerContext peerContext;
         private readonly Action<IExtensionProtocolMessage> sendMessage;
@@ -45,9 +45,10 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         {
             sendMessage(message);
         }
+    }
 
-        #region IPeerContext Members
-
+    internal partial class ExtensionProtocolPeerContext : IPeerContext
+    {
         public IBlockRequests BlockRequests => peerContext.BlockRequests;
 
         public PeerConnection Peer => peerContext.Peer;
@@ -62,7 +63,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         {
             peerContext.PeersAvailable(peers);
         }
-        
+
         public T GetValue<T>(string key)
         {
             return peerContext.GetValue<T>(key);
@@ -82,7 +83,5 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         {
             peerContext.SendMessage(messageId, data);
         }
-
-        #endregion
     }
 }

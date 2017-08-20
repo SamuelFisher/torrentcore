@@ -29,7 +29,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
     public abstract class CommonPeerMessage : IPeerMessage
     {
         /// <summary>
-        /// The ID of the message.
+        /// Gets the ID of the message.
         /// </summary>
         public abstract byte ID { get; }
 
@@ -41,6 +41,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         {
             // Message ID
             writer.Write(ID);
+
             // Store to send
             writer.Flush();
         }

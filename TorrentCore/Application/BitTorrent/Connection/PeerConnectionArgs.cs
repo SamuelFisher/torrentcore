@@ -25,9 +25,10 @@ namespace TorrentCore.Application.BitTorrent.Connection
 {
     class PeerConnectionArgs
     {
-        public PeerConnectionArgs(PeerId localPeerId,
-                                            Metainfo metainfo,
-                                            IPeerMessageHandler messageHandler)
+        public PeerConnectionArgs(
+            PeerId localPeerId,
+            Metainfo metainfo,
+            IPeerMessageHandler messageHandler)
         {
             LocalPeerId = localPeerId;
             Metainfo = metainfo;

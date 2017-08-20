@@ -60,11 +60,9 @@ namespace TorrentCore.Extensions.SendMetadata
             var message = context.Message as MetadataMessage;
             if (message == null)
                 throw new InvalidOperationException($"Expected a {nameof(MetadataMessage)} but received a {context.Message.GetType().Name}");
-
         }
 
-        public Task<Metainfo> GetMetainfo(ITorrentContext context,
-                                          CancellationToken ct)
+        public Task<Metainfo> GetMetainfo(ITorrentContext context, CancellationToken ct)
         {
             // Try to download metadata from a peer supporting the metadata message
             throw new NotImplementedException();

@@ -43,14 +43,14 @@ namespace TorrentCore.Data
 
         public MetainfoBuilder AddFile(string fileName, byte[] data)
         {
-            return new MetainfoBuilder(files.Concat(new[] {Tuple.Create(fileName, data)}),
+            return new MetainfoBuilder(files.Concat(new[] { Tuple.Create(fileName, data) }),
                                        trackers);
         }
 
         public MetainfoBuilder WithTracker(Uri trackerUri)
         {
             return new MetainfoBuilder(files,
-                                       trackers.Concat(new[] {trackerUri}));
+                                       trackers.Concat(new[] { trackerUri }));
         }
 
         public Metainfo Build()
@@ -59,7 +59,7 @@ namespace TorrentCore.Data
             var fileHandler = new MemoryFileHandler(files.ToDictionary(x => x.Item1, x => x.Item2));
 
             var pieces = PieceCalculator.ComputePieces(containedFiles, 256000, fileHandler);
-            return new Metainfo(name, Sha1Hash.Empty, containedFiles, pieces, new [] { trackers }, null);
+            return new Metainfo(name, Sha1Hash.Empty, containedFiles, pieces, new[] { trackers }, null);
         }
     }
 }

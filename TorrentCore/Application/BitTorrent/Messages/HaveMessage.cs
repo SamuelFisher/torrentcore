@@ -32,33 +32,30 @@ namespace TorrentCore.Application.BitTorrent.Messages
         public const byte MessageId = 4;
 
         /// <summary>
-        /// The ID of the message.
-        /// </summary>
-        public override byte ID
-        {
-            get { return MessageId; }
-        }
-
-        /// <summary>
-        /// The piece that is available.
-        /// </summary>
-        public Piece Piece { get; private set; }
-
-        /// <summary>
-        /// Creates a new, empty have message.
+        /// Initializes a new instance of the <see cref="HaveMessage"/> class.
         /// </summary>
         public HaveMessage()
         {
         }
 
         /// <summary>
-        /// Creates a new have message with the specified piece.
+        /// Initializes a new instance of the <see cref="HaveMessage"/> class indicating the specified piece is available.
         /// </summary>
         /// <param name="piece">The piece that is available.</param>
         public HaveMessage(Piece piece)
         {
             this.Piece = piece;
         }
+
+        /// <summary>
+        /// Gets the ID of the message.
+        /// </summary>
+        public override byte ID => MessageId;
+
+        /// <summary>
+        /// Gets the piece that is available.
+        /// </summary>
+        public Piece Piece { get; private set; }
 
         /// <summary>
         /// Sends the message by writing it to the specified BinaryWriter.
@@ -68,8 +65,10 @@ namespace TorrentCore.Application.BitTorrent.Messages
         {
             // Message ID
             writer.Write(ID);
+
             // Index of piece
             writer.Write(Piece.Index);
+
             // Store to send
             writer.Flush();
         }

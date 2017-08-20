@@ -32,15 +32,15 @@ namespace TorrentCore.Extensions.PeerExchange
 
         private readonly IPAddress adapterAddress;
 
-        public IReadOnlyDictionary<string, Func<IExtensionProtocolMessage>> SupportedMessageTypes { get; } = new Dictionary<string, Func<IExtensionProtocolMessage>>
-        {
-            [PeerExchangeMessage.MessageType] = () => new PeerExchangeMessage()
-        };
-
         public PeerExchangeMessageHandler(IPAddress adapterAddress)
         {
             this.adapterAddress = adapterAddress;
         }
+
+        public IReadOnlyDictionary<string, Func<IExtensionProtocolMessage>> SupportedMessageTypes { get; } = new Dictionary<string, Func<IExtensionProtocolMessage>>
+        {
+            [PeerExchangeMessage.MessageType] = () => new PeerExchangeMessage()
+        };
 
         public void PrepareExtensionProtocolHandshake(IPrepareExtensionProtocolHandshakeContext context)
         {

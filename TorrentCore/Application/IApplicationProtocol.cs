@@ -27,13 +27,13 @@ namespace TorrentCore.Application
 {
     public interface IApplicationProtocol<TConnection>
     {
+        event EventHandler DownloadCompleted;
+
         Metainfo Metainfo { get; }
 
         IPieceDataHandler DataHandler { get; }
 
         IBlockRequests BlockRequests { get; }
-
-        event EventHandler DownloadCompleted;
 
         /// <summary>
         /// Gets the peers that are currently connected.

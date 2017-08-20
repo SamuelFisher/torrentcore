@@ -43,7 +43,8 @@ namespace TorrentCore
         public int ListenPort { get; set; }
 
         /// <summary>
-        /// If the specified listen port is already in use, attempts to find the next available port.
+        /// Gets or sets a value indicating whether to use the next available port
+        /// if the specified port is already in use.
         /// </summary>
         public bool FindAvailablePort { get; set; }
 

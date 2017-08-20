@@ -16,10 +16,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace TorrentCore.Application.BitTorrent.Messages
 {
@@ -33,7 +33,8 @@ namespace TorrentCore.Application.BitTorrent.Messages
         private readonly int bitfieldLength;
 
         /// <summary>
-        /// Creates a new, empty bitfield message. The bitfield length is used later when receiving the message.
+        /// Initializes a new instance of the <see cref="BitfieldMessage"/> class.
+        /// The bitfield length is used later when receiving the message.
         /// </summary>
         /// <param name="bitfieldLength">Number of pieces in the bitfield.</param>
         public BitfieldMessage(int bitfieldLength)
@@ -42,6 +43,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="BitfieldMessage"/> class.
         /// Creates a new bitfield message with the specified bitfield.
         /// </summary>
         /// <param name="bitfield">The bitfield to use.</param>
@@ -51,12 +53,12 @@ namespace TorrentCore.Application.BitTorrent.Messages
         }
 
         /// <summary>
-        /// The ID of the message.
+        /// Gets the ID of the message.
         /// </summary>
         public override byte ID => MessageId;
 
         /// <summary>
-        /// The bitfield associated with this message.
+        /// Gets the bitfield associated with this message.
         /// </summary>
         public Bitfield Bitfield { get; private set; }
 
@@ -68,8 +70,10 @@ namespace TorrentCore.Application.BitTorrent.Messages
         {
             // Message ID
             writer.Write(ID);
+
             // Bitfield
             writer.Write(Bitfield.RawData);
+
             // Store to send
             writer.Flush();
         }

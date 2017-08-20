@@ -32,8 +32,11 @@ namespace TorrentCore.Tracker.Udp
         }
 
         public int Interval { get; set; }
+
         public int Leechers { get; set; }
+
         public int Seeders { get; set; }
+
         public IList<AnnounceResultPeer> Peers { get; set; }
 
         public override void ReadFrom(BinaryReader reader)

@@ -32,14 +32,32 @@ namespace TorrentCore.Transport
         long startedDownload;
         long toUpload = 0;
         long downloadedBytes;
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RateLimiter"/> class with upload and download set to unlimited.
+        /// </summary>
+        public RateLimiter()
+        {
+            MaxUploadRate = 0;
+            MaxDownloadRate = 0;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RateLimiter"/> class with the specified maximum upload and download rates.
+        /// </summary>
+        /// <param name="maxUploadRate">The maximum upload rate in bytes per second.</param>
+        /// <param name="maxDownloadRate">The maximum download rate in bytes per second.</param>
+        public RateLimiter(uint maxUploadRate, uint maxDownloadRate)
+            : this()
+        {
+            MaxUploadRate = maxUploadRate;
+            MaxDownloadRate = maxDownloadRate;
+        }
 
         /// <summary>
         /// Gets the number of milliseconds since the system startup.
         /// </summary>
-        protected long CurrentMilliseconds
-        {
-            get { return Environment.TickCount; }
-        }
+        protected long CurrentMilliseconds => Environment.TickCount;
 
         /// <summary>
         /// Gets or sets the maximum upload rate in bytes per second.
@@ -54,37 +72,12 @@ namespace TorrentCore.Transport
         /// <summary>
         /// Gets a value indicating whether the upload rate is limited.
         /// </summary>
-        public bool IsUploadLimited
-        {
-            get { return MaxUploadRate != 0; }
-        }
+        public bool IsUploadLimited => MaxUploadRate != 0;
 
         /// <summary>
         /// Gets a value indicating whether the download rate is limited.
         /// </summary>
-        public bool IsDownloadLimited
-        {
-            get { return MaxDownloadRate != 0; }
-        }
-
-        /// <summary>
-        /// Creates a new RateLimiter with upload and download set to unlimited.
-        /// </summary>
-        public RateLimiter()
-        {
-            MaxUploadRate = 0;
-            MaxDownloadRate = 0;
-        }
-
-        /// <summary>
-        /// Creates a new RateLimiter with the specified maximum upload and download rates.
-        /// </summary>
-        public RateLimiter(uint maxUploadRate, uint maxDownloadRate)
-            : this()
-        {
-            MaxUploadRate = maxUploadRate;
-            MaxDownloadRate = maxDownloadRate;
-        }
+        public bool IsDownloadLimited => MaxDownloadRate != 0;
 
         /// <summary>
         /// Determines the amount of time that must pass until the specified number of bytes can be sent.
@@ -115,7 +108,7 @@ namespace TorrentCore.Transport
 
                 // How long has it been since the last data was sent?
                 double interval = CurrentMilliseconds - lastUpload;
-                Debug.WriteLine(String.Format("It has actually been {0} seconds. (Last at {1}).", interval / 1000d, lastUpload));
+                Debug.WriteLine(string.Format("It has actually been {0} seconds. (Last at {1}).", interval / 1000d, lastUpload));
 
                 // Wait the difference
                 int difference = (int)Math.Round(timeInMilliseconds - interval);
@@ -123,7 +116,7 @@ namespace TorrentCore.Transport
                 int wait = Math.Max(0, difference);
                 if (wait > 0)
                 {
-                    Debug.WriteLine(String.Format("So let's wait {0} seconds.", difference / 1000d));
+                    Debug.WriteLine(string.Format("So let's wait {0} seconds.", difference / 1000d));
                     lastUpload = CurrentMilliseconds + wait; // Last upload happened at the target time
                     toUpload = 0;
                 }

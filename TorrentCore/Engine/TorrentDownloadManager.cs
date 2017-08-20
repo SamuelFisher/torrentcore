@@ -27,11 +27,10 @@ using Microsoft.Extensions.Logging;
 using SimpleInjector;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
-using TorrentCore.Stage;
 using TorrentCore.Data;
 using TorrentCore.Engine;
+using TorrentCore.Stage;
 using TorrentCore.Tracker;
-using TorrentCore.Transport;
 
 namespace TorrentCore
 {
@@ -89,7 +88,7 @@ namespace TorrentCore
         public Metainfo Description { get; }
 
         /// <summary>
-        /// Gets the number of bytes downloaded so far.
+        /// Gets or sets the number of bytes downloaded so far.
         /// </summary>
         public long Downloaded { get; set; }
 
@@ -147,9 +146,10 @@ namespace TorrentCore
 
             try
             {
-                var request = new AnnounceRequest(localPeerId,
-                                                  Remaining,
-                                                  Description.InfoHash);
+                var request = new AnnounceRequest(
+                    localPeerId,
+                    Remaining,
+                    Description.InfoHash);
 
                 var result = await Tracker.Announce(request);
 

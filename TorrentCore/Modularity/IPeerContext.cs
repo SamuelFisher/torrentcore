@@ -32,7 +32,7 @@ namespace TorrentCore.Modularity
         /// </summary>
         /// <typeparam name="T">Type of the value to retrieve.</typeparam>
         /// <param name="key">Key of the value to retrieve.</param>
-        /// <returns></returns>
+        /// <returns>The value corresponding to the specified key.</returns>
         T GetValue<T>(string key);
         
         void SetValue<T>(string key, T value);

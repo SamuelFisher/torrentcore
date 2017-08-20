@@ -27,9 +27,13 @@ namespace TorrentCore.Engine
     interface IMainLoop
     {
         bool IsRunning { get; }
+
         void Start();
+
         void Stop();
+
         void AddTask(Action t);
+
         IRegularTask AddRegularTask(Action t);
     }
 }

@@ -25,6 +25,7 @@ namespace TorrentCore.Tracker.Udp
     abstract class UdpTrackerResponseMessage
     {
         protected MessageAction Action { get; set; }
+
         public int TransactionId { get; set; }
 
         public abstract void ReadFrom(BinaryReader reader);

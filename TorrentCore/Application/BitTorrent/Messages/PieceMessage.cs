@@ -32,33 +32,30 @@ namespace TorrentCore.Application.BitTorrent.Messages
         public const byte MessageId = 7;
 
         /// <summary>
-        /// The ID of the message.
-        /// </summary>
-        public override byte ID
-        {
-            get { return MessageId; }
-        }
-
-        /// <summary>
-        /// The block this piece message represents.
-        /// </summary>
-        public Block Block { get; private set; }
-
-        /// <summary>
-        /// Creates a new, empty piece message.
+        /// Initializes a new instance of the <see cref="PieceMessage"/> class.
         /// </summary>
         public PieceMessage()
         {
         }
 
         /// <summary>
-        /// Creates a new piece message with the specified block.
+        /// Initializes a new instance of the <see cref="PieceMessage"/> class with the specified block.
         /// </summary>
         /// <param name="block">The block to be represented by the piece message.</param>
         public PieceMessage(Block block)
         {
             this.Block = block;
         }
+
+        /// <summary>
+        /// Gets the ID of the message.
+        /// </summary>
+        public override byte ID => MessageId;
+
+        /// <summary>
+        /// Gets the block this piece message represents.
+        /// </summary>
+        public Block Block { get; private set; }
 
         /// <summary>
         /// Sends the message by writing it to the specified BinaryWriter.
@@ -68,12 +65,16 @@ namespace TorrentCore.Application.BitTorrent.Messages
         {
             // Message ID
             writer.Write(ID);
+
             // Piece index of block
             writer.Write(Block.PieceIndex);
+
             // Block offset within piece
             writer.Write(Block.Offset);
+
             // Block data
             writer.Write(Block.Data);
+
             // Store to send
             writer.Flush();
         }
@@ -88,8 +89,10 @@ namespace TorrentCore.Application.BitTorrent.Messages
         {
             // Piece index of block
             int pieceIndex = reader.ReadInt32();
+
             // Block offset within piece
             int blockOffset = reader.ReadInt32();
+
             // Block data
             byte[] blockData = reader.ReadBytes(length - 8);
 

@@ -24,7 +24,9 @@ namespace TorrentCore.Tracker.Udp
     abstract class UdpTrackerRequestMessage
     {
         public long ConnectionId { get; set; }
+
         protected MessageAction Action { get; set; }
+
         public int TransactionId { get; set; }
 
         public abstract void WriteTo(BinaryWriter writer);

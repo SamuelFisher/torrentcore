@@ -35,7 +35,7 @@ namespace TorrentCore.Application.BitTorrent
             {
                 ClientIds =
                     peerIdClientsStream.ReadToEnd()
-                                       .Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries)
+                                       .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
                                        .Select(x => x.Trim().Split('='))
                                        .ToDictionary(x => x[0], x => x[1]);
             }

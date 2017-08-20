@@ -40,6 +40,7 @@ namespace TorrentCore.Data
         /// <summary>
         /// Marks the specified piece as completed. This should only be used as an override mechanism.
         /// </summary>
+        /// <param name="piece">The piece to mark as completed.</param>
         void MarkPieceAsCompleted(Piece piece);
     }
 }

@@ -16,26 +16,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using SimpleInjector;
 
-namespace TorrentCore.Tracker
+namespace TorrentCore.Stage
 {
-    /// <summary>
-    /// Manages the communication with a remote tracker.
-    /// </summary>
-    public interface ITracker
+    interface IPipelineStageFactory
     {
-        /// <summary>
-        /// Gets the type of this tracker.
-        /// </summary>
-        string Type { get; }
-
-        /// <summary>
-        /// Sends the specified announce request to the tracker.
-        /// </summary>
-        /// <param name="request">The request to send.</param>
-        Task<AnnounceResult> Announce(AnnounceRequest request);
+        ITorrentStage Construct(Container container);
     }
 }

@@ -27,22 +27,20 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
 {
     class MessageReceivedContext : PeerContext, IMessageReceivedContext
     {
-        public MessageReceivedContext(PeerConnection peer,
-                                      ITorrentContext torrentContext,
-                                      int messageId,
-                                      int messageLength,
-                                      BinaryReader reader,
-                                      Dictionary<string, object> customValues,
-                                      Action<byte> registerMessageHandler)
+        public MessageReceivedContext(
+            PeerConnection peer,
+            ITorrentContext torrentContext,
+            int messageId,
+            int messageLength,
+            BinaryReader reader,
+            Dictionary<string, object> customValues,
+            Action<byte> registerMessageHandler)
             : base(peer, customValues, torrentContext, registerMessageHandler)
         {
             Reader = reader;
-            Peer = peer;
             MessageId = messageId;
             MessageLength = messageLength;
         }
-
-        public PeerConnection Peer { get; }
 
         public int MessageId { get; }
 

@@ -29,13 +29,10 @@ namespace TorrentCore.Application.BitTorrent.Messages
     class KeepAliveMessage : CommonPeerMessage
     {
         /// <summary>
-        /// The ID of the message.
+        /// Gets the ID of the message.
         /// </summary>
         /// <remarks>The keep-alive message has no ID.</remarks>
-        public override byte ID
-        {
-            get { return 0; }
-        }
+        public override byte ID { get; } = 0;
 
         /// <summary>
         /// Sends the message by writing it to the specified BinaryWriter.

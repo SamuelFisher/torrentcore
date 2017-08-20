@@ -31,7 +31,7 @@ namespace TorrentCore.Application.BitTorrent
         /// <param name="incompletePieces">The pieces which have not yet been downloaded.</param>
         /// <param name="availability">Indicates which pieces are available.</param>
         /// <param name="peers">The peers that are currently connected.</param>
-        /// <returns></returns>
+        /// <param name="blockRequests">Provides details of which blocks have been requested already.</param>
         IEnumerable<BlockRequest> BlocksToRequest(IReadOnlyList<Piece> incompletePieces,
                                                   Bitfield availability,
                                                   IReadOnlyCollection<PeerConnection> peers,

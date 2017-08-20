@@ -29,7 +29,8 @@ namespace TorrentCore.Data
     class BlockDataHandler : IBlockDataHandler
     {
         /// <summary>
-        /// Creates a new block data handler with the specified file handler as the data source.
+        /// Initializes a new instance of the <see cref="BlockDataHandler"/> class,
+        /// using the specified file handler as the data source.
         /// </summary>
         /// <param name="fileHandler">File handler to use as the data source.</param>
         /// <param name="metainfo">Metainfo file description.</param>
@@ -67,6 +68,7 @@ namespace TorrentCore.Data
         /// </summary>
         /// <param name="offset">Offset to read from.</param>
         /// <param name="length">Number of bytes to read.</param>
+        /// <param name="data">The returned data.</param>
         /// <returns>Block data from specified region.</returns>
         public bool TryReadBlockData(long offset, long length, out byte[] data)
         {
@@ -126,7 +128,9 @@ namespace TorrentCore.Data
             fileStream.Seek(remainder, SeekOrigin.Begin);
 
             long written = 0;
-            while (written < data.Length) // Change to LongLength: dotnet/corefx#9998
+
+            // Change to LongLength: dotnet/corefx#9998
+            while (written < data.Length)
             {
                 // Move to next file if necessary
                 if (fileStream.Position == Metainfo.Files[fileIndex].Size)

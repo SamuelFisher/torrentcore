@@ -28,8 +28,15 @@ namespace TorrentCore.Extensions.SendMetadata
     {
         public const string MessageType = "ut_metadata";
 
-        string IExtensionProtocolMessage.MessageType => MessageType;
+        public enum Type
+        {
+            Request = 0,
+            Data = 1,
+            Reject = 2
+        }
 
+        string IExtensionProtocolMessage.MessageType => MessageType;
+        
         public Type RequestType { get; set; }
 
         public int PieceIndex { get; set; }
@@ -37,7 +44,7 @@ namespace TorrentCore.Extensions.SendMetadata
         public int TotalSize { get; set; }
 
         public byte[] PieceData { get; set; }
-
+        
         public byte[] Serialize()
         {
             var dict = new BDictionary
@@ -80,15 +87,8 @@ namespace TorrentCore.Extensions.SendMetadata
                     TotalSize = (int)((BNumber)dict["total_size"]).Value;
                     PieceData = new byte[ms.Length - ms.Position];
                     ms.Read(PieceData, 0, (int)(ms.Length - ms.Position));
-                };
+                }
             }
-        }
-
-        public enum Type
-        {
-            Request = 0,
-            Data = 1,
-            Reject = 2
         }
     }
 }

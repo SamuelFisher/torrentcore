@@ -33,7 +33,7 @@ namespace TorrentCore.Engine
         private readonly LinkedList<RateMeasurement> measurements = new LinkedList<RateMeasurement>();
 
         /// <summary>
-        /// Creates a new RateMeasurer.
+        /// Initializes a new instance of the <see cref="RateMeasurer"/> class.
         /// </summary>
         public RateMeasurer()
         {
@@ -95,14 +95,15 @@ namespace TorrentCore.Engine
 
         class RateMeasurement
         {
-            public DateTime Time { get; }
-            public long Measurement { get; }
-
             public RateMeasurement(DateTime time, long measurement)
             {
                 Time = time;
                 Measurement = measurement;
             }
+
+            public DateTime Time { get; }
+
+            public long Measurement { get; }
         }
     }
 }

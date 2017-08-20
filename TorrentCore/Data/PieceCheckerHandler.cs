@@ -39,7 +39,8 @@ namespace TorrentCore.Data
         private readonly HashSet<Piece> completedPieces;
 
         /// <summary>
-        /// Creates a new piece checker, using the provided file handler as the backing store.
+        /// Initializes a new instance of the <see cref="PieceCheckerHandler"/> class,
+        /// using the provided file handler as the backing store.
         /// </summary>
         /// <param name="baseHandler">File handler to use as backing store.</param>
         public PieceCheckerHandler(IBlockDataHandler baseHandler)
@@ -48,11 +49,6 @@ namespace TorrentCore.Data
             pendingBlocks = new Dictionary<Piece, SortedSet<Block>>(Metainfo.Pieces.Count);
             completedPieces = new HashSet<Piece>();
         }
-        
-        /// <summary>
-        /// Gets the metainfo describing the layout of the collection of files.
-        /// </summary>
-        public Metainfo Metainfo => baseHandler.Metainfo;
 
         /// <summary>
         /// Called when a piece successfully completes downloading.
@@ -64,6 +60,11 @@ namespace TorrentCore.Data
         /// </summary>
         public event Action<Piece> PieceCorrupted;
 
+        /// <summary>
+        /// Gets the metainfo describing the layout of the collection of files.
+        /// </summary>
+        public Metainfo Metainfo => baseHandler.Metainfo;
+        
         /// <summary>
         /// Gets the pieces that have already completed downloading.
         /// </summary>
@@ -90,6 +91,7 @@ namespace TorrentCore.Data
         /// </summary>
         /// <param name="offset">Offset to read from.</param>
         /// <param name="length">Number of bytes to read.</param>
+        /// <param name="data">Returned data.</param>
         /// <returns>Block data from specified region.</returns>
         public bool TryReadBlockData(long offset, long length, out byte[] data)
         {
@@ -149,6 +151,7 @@ namespace TorrentCore.Data
         /// <summary>
         /// Finds pending blocks that make up a full piece.
         /// </summary>
+        /// <param name="pendingBlocks">Blocks to check.</param>
         internal static Dictionary<Piece, SortedSet<Block>> GetCompletedPieces(Dictionary<Piece, SortedSet<Block>> pendingBlocks)
         {
             Dictionary<Piece, SortedSet<Block>> foundPieces = new Dictionary<Piece, SortedSet<Block>>();

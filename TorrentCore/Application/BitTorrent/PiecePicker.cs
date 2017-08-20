@@ -62,7 +62,7 @@ namespace TorrentCore.Application.BitTorrent
         {
             for (int blockOffset = 0; blockOffset < piece.Size; blockOffset += BlockRequestSize)
             {
-                int blockSize = (blockOffset < piece.Size - BlockRequestSize ? BlockRequestSize : piece.Size - blockOffset);
+                int blockSize = blockOffset < piece.Size - BlockRequestSize ? BlockRequestSize : piece.Size - blockOffset;
                 var blockToRequest = new BlockRequest(piece.Index, blockOffset, blockSize);
                 if (!blockRequests.RequestedBlocks.Contains(blockToRequest) &&
                     !blockRequests.DownloadedBlocks.Contains(blockToRequest))

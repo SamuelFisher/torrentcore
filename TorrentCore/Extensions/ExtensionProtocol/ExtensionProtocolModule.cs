@@ -36,9 +36,12 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         private static readonly ILogger Log = LogManager.GetLogger<ExtensionProtocolModule>();
 
         private readonly Dictionary<string, byte> supportedMessages = new Dictionary<string, byte>();
+
         private readonly Dictionary<byte, string> reverseSupportedMessages = new Dictionary<byte, string>();
+
         private readonly Dictionary<byte, IExtensionProtocolMessageHandler> messageHandlers =
             new Dictionary<byte, IExtensionProtocolMessageHandler>();
+
         private readonly HashSet<IExtensionProtocolMessageHandler> registeredHandlers =
             new HashSet<IExtensionProtocolMessageHandler>();
 
@@ -81,10 +84,13 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             };
 
             var handshakeDict = handshake.Serialize();
+
             var prepareHandshakeContext =
-                new PrepareExtensionProtocolHandshakeContext(handshakeDict,
-                                                             context,
-                                                             msg => SendExtensionMessage(context, msg));
+                new PrepareExtensionProtocolHandshakeContext(
+                    handshakeDict,
+                    context,
+                    msg => SendExtensionMessage(context, msg));
+
             foreach (var handler in registeredHandlers)
                 handler.PrepareExtensionProtocolHandshake(prepareHandshakeContext);
 

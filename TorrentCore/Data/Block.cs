@@ -28,7 +28,8 @@ namespace TorrentCore.Data
     public class Block
     {
         /// <summary>
-        /// Creates a new block with the specified piece index, offset and data.
+        /// Initializes a new instance of the <see cref="Block"/> class,
+        /// with the specified piece index, offset and data.
         /// </summary>
         /// <param name="pieceIndex">Index of the piece the block belongs to.</param>
         /// <param name="offset">Offset into the piece at which the data starts.</param>
