@@ -1,18 +1,9 @@
 ﻿// This file is part of TorrentCore.
-//     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
-// 
-// TorrentCore is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as
-// published by the Free Software Foundation, version 3.
-// 
-// TorrentCore is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with TorrentCore.  If not, see <http://www.gnu.org/licenses/>.
+//   https://torrentcore.org
+// Copyright (c) Samuel Fisher.
+//
+// Licensed under the GNU Lesser General Public License, version 3. See the
+// LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +18,7 @@ namespace TorrentCore.Transport
 {
     /// <summary>
     /// Provides a stream with a specified maximum upload and download rate.
-    /// 
+    ///
     /// Provides asynchronous writing and synchronous reading.
     /// </summary>
     internal partial class RateLimitedStream
@@ -36,7 +27,7 @@ namespace TorrentCore.Transport
         private readonly ManualResetEvent writeFinished = new ManualResetEvent(true);
 
         bool isWriting = false;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RateLimitedStream"/> class.
         /// </summary>

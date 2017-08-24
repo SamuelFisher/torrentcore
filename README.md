@@ -81,7 +81,8 @@ events. Examples of things that modules can do include:
 - Override the behaviour of messages built into the BitTorrent protocol itself
 
 Some of the core functionality is implemented through modules, including
-the BEP 10 extension protocol. For more information, see [custom modules](https://torrentcore.org/extend/modules/).
+the core protocol messages and the BEP 10 extension protocol. For more
+information, see [custom modules](https://torrentcore.org/extend/modules/).
 
 ### Pipeline Stages
 

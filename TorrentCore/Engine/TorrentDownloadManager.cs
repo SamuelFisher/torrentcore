@@ -1,18 +1,9 @@
 ﻿// This file is part of TorrentCore.
-//     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
-// 
-// TorrentCore is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as
-// published by the Free Software Foundation, version 3.
-// 
-// TorrentCore is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with TorrentCore.  If not, see <http://www.gnu.org/licenses/>.
+//   https://torrentcore.org
+// Copyright (c) Samuel Fisher.
+//
+// Licensed under the GNU Lesser General Public License, version 3. See the
+// LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -77,11 +68,11 @@ namespace TorrentCore
 
             stageInterrupt = new StageInterrupt();
         }
-        
+
         internal IApplicationProtocol<PeerConnection> ApplicationProtocol { get; }
 
         internal ITracker Tracker { get; }
-        
+
         /// <summary>
         /// Gets the metainfo describing the collection of files.
         /// </summary>
@@ -106,7 +97,7 @@ namespace TorrentCore
         /// Gets the current state of the download.
         /// </summary>
         public DownloadState State { get; private set; }
-        
+
         /// <summary>
         /// Gets the RateMeasurer used to measure the download rate.
         /// </summary>
@@ -116,7 +107,7 @@ namespace TorrentCore
         /// Gets the RateMeasurer used to measure the upload rate.
         /// </summary>
         public RateMeasurer UploadRateMeasurer { get; }
-        
+
         public void Start()
         {
             if (isRunning)
@@ -134,12 +125,12 @@ namespace TorrentCore
                     container.RegisterSingleton(ApplicationProtocol);
                     container.RegisterSingleton(mainLoop);
                     container.RegisterSingleton<IPiecePicker>(new PiecePicker());
-                    
+
                     pipeline.Run(container, stageInterrupt, progress);
                 }
             });
         }
-        
+
         private async Task ContactTracker()
         {
             Log.LogInformation("Contacting tracker");
@@ -154,7 +145,7 @@ namespace TorrentCore
                 var result = await Tracker.Announce(request);
 
                 Log.LogInformation($"{result.Peers.Count} peers available");
-                
+
                 ApplicationProtocol.PeersAvailable(result.Peers);
             }
             catch (System.Net.Http.HttpRequestException)
@@ -186,7 +177,7 @@ namespace TorrentCore
         {
             State = e.State;
         }
-        
+
         internal void UpdateStatistics()
         {
             DownloadRateMeasurer.AddMeasure(recentlyDownloaded);

@@ -23,6 +23,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AdditionalFiles Include="$(SolutionDir)\stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Transport\ClientPeerIds.txt" />
   </ItemGroup>
 

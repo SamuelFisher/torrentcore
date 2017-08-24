@@ -1,0 +1,12 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
+  "settings": {
+    "documentationRules": {
+      "copyrightText": "This file is part of TorrentCore.\n  https://torrentcore.org\nCopyright (c) Samuel Fisher.\n\nLicensed under the GNU Lesser General Public License, version 3. See the\nLICENSE file in the project root for full license information.",
+      "xmlHeader": false,
+      "variables": {
+        "originalCreator": "Samuel Fisher"
+      }
+    }
+  }
+}

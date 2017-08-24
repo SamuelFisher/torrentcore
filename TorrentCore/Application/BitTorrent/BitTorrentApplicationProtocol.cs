@@ -1,18 +1,9 @@
 ﻿// This file is part of TorrentCore.
-//     https://torrentcore.org
-// Copyright (c) 2017 Samuel Fisher.
-// 
-// TorrentCore is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as
-// published by the Free Software Foundation, version 3.
-// 
-// TorrentCore is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with TorrentCore.  If not, see <http://www.gnu.org/licenses/>.
+//   https://torrentcore.org
+// Copyright (c) Samuel Fisher.
+//
+// Licensed under the GNU Lesser General Public License, version 3. See the
+// LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -56,7 +47,7 @@ namespace TorrentCore.Application.BitTorrent
         private readonly HashSet<ITransportStream> availablePeers = new HashSet<ITransportStream>(new TransportStreamAddressEqualityComparer());
         private readonly Dictionary<Tuple<PeerConnection, byte>, IModule> messageHandlerRegistrations = new Dictionary<Tuple<PeerConnection, byte>, IModule>();
         private readonly BlockRequestManager blockRequests;
-        
+
         public BitTorrentApplicationProtocol(
             PeerId localPeerId,
             Metainfo metainfo,
@@ -89,7 +80,7 @@ namespace TorrentCore.Application.BitTorrent
         public IBlockRequests BlockRequests => blockRequests;
 
         public IPieceDataHandler DataHandler { get; }
-        
+
         public void PeersAvailable(IEnumerable<ITransportStream> newPeers)
         {
             foreach (var peer in newPeers)
