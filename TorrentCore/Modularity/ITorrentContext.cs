@@ -28,18 +28,19 @@ namespace TorrentCore.Modularity
         IReadOnlyCollection<PeerConnection> Peers { get; }
 
         /// <summary>
-        /// Provides access to downloaded pieces and block data.
+        /// Gets the handler providing access to downloaded pieces and block data.
         /// </summary>
         IPieceDataHandler DataHandler { get; }
 
         /// <summary>
-        /// Tracks outstanding block requests.
+        /// Gets details on outstanding block requests.
         /// </summary>
         IBlockRequests BlockRequests { get; }
 
         /// <summary>
         /// Notifies that new peers are available to connect to.
         /// </summary>
+        /// <param name="peers">The new peers.</param>
         void PeersAvailable(IEnumerable<ITransportStream> peers);
     }
 }
