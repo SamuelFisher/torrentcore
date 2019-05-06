@@ -21,19 +21,19 @@ namespace TorrentCore.Tracker.Udp
     {
         private const long ConnectionProtocolId = 0x41727101980L;
 
-        private readonly LocalTcpConnectionDetails tcpConnectionDetails;
-        private readonly Uri trackerUri;
-        private readonly Random rand;
-        private readonly UdpClient client;
+        private readonly LocalTcpConnectionDetails _tcpConnectionDetails;
+        private readonly Uri _trackerUri;
+        private readonly Random _rand;
+        private readonly UdpClient _client;
 
         public UdpTracker(LocalTcpConnectionDetails tcpConnectionDetails, Uri trackerUri)
         {
-            this.tcpConnectionDetails = tcpConnectionDetails;
-            this.trackerUri = trackerUri;
-            rand = new Random();
+            _tcpConnectionDetails = tcpConnectionDetails;
+            _trackerUri = trackerUri;
+            _rand = new Random();
 
             // TODO don't listen until needed
-            client = new UdpClient(0);
+            _client = new UdpClient(0);
         }
 
         public string Type => "udp";
@@ -43,11 +43,11 @@ namespace TorrentCore.Tracker.Udp
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            int transactionId = rand.Next();
+            int transactionId = _rand.Next();
             var connectionResponse = await SendAndWaitForResponse<ConnectionResponseMessage>(new ConnectionRequestMessage
             {
                 ConnectionId = ConnectionProtocolId, // Identifies tracker UDP protocol
-                TransactionId = transactionId
+                TransactionId = transactionId,
             });
 
             if (connectionResponse.TransactionId != transactionId)
@@ -55,7 +55,7 @@ namespace TorrentCore.Tracker.Udp
 
             long connectionId = connectionResponse.ConnectionId;
 
-            transactionId = rand.Next();
+            transactionId = _rand.Next();
             var announceResponse = await SendAndWaitForResponse<AnnounceResponseMessage>(new AnnounceRequestMessage
             {
                 ConnectionId = connectionId,
@@ -66,16 +66,16 @@ namespace TorrentCore.Tracker.Udp
                 LeftToDownload = request.Remaining,
                 Uploaded = 0, // todo
                 Event = AnnounceRequestMessage.EventType.Started,
-                IPAddress = tcpConnectionDetails.PublicAddress,
-                Key = rand.Next(),
+                IPAddress = _tcpConnectionDetails.PublicAddress,
+                Key = _rand.Next(),
                 NumWant = -1, // default
-                Port = (ushort)tcpConnectionDetails.Port
+                Port = (ushort)_tcpConnectionDetails.Port,
             });
 
             if (announceResponse.TransactionId != transactionId)
                 throw new InvalidDataException("Mismatching transaction ID");
 
-            return new AnnounceResult(announceResponse.Peers.Select(x => new TcpTransportStream(tcpConnectionDetails.BindAddress, x.IPAddress, x.Port)));
+            return new AnnounceResult(announceResponse.Peers.Select(x => new TcpTransportStream(_tcpConnectionDetails.BindAddress, x.IPAddress, x.Port)));
         }
 
         protected async Task<T> SendAndWaitForResponse<T>(UdpTrackerRequestMessage request)
@@ -92,13 +92,13 @@ namespace TorrentCore.Tracker.Udp
             message.WriteTo(writer);
             writer.Flush();
 
-            return client.SendAsync(ms.ToArray(), (int)ms.Length, trackerUri.Host, trackerUri.Port);
+            return _client.SendAsync(ms.ToArray(), (int)ms.Length, _trackerUri.Host, _trackerUri.Port);
         }
 
         protected async Task<T> Receive<T>()
             where T : UdpTrackerResponseMessage, new()
         {
-            var result = await client.ReceiveAsync();
+            var result = await _client.ReceiveAsync();
             var message = new T();
             var ms = new MemoryStream(result.Buffer);
             var reader = new BigEndianBinaryReader(ms);

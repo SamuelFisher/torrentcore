@@ -27,7 +27,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             return new BDictionary
             {
                 ["m"] = dict,
-                ["v"] = new BString(Client)
+                ["v"] = new BString(Client),
             };
         }
 

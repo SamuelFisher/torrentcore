@@ -19,60 +19,60 @@ namespace TorrentCore.Extensions.ExtensionProtocol
 {
     internal partial class ExtensionProtocolPeerContext : IExtensionProtocolPeerContext
     {
-        private readonly IPeerContext peerContext;
-        private readonly Action<IExtensionProtocolMessage> sendMessage;
+        private readonly IPeerContext _peerContext;
+        private readonly Action<IExtensionProtocolMessage> _sendMessage;
 
         public ExtensionProtocolPeerContext(IPeerContext peerContext,
                                             Action<IExtensionProtocolMessage> sendMessage)
         {
-            this.peerContext = peerContext;
-            this.sendMessage = sendMessage;
+            _peerContext = peerContext;
+            _sendMessage = sendMessage;
         }
 
         public IReadOnlyCollection<string> SupportedMessageTypes =>
-            peerContext.GetValue<Dictionary<string, byte>>(ExtensionProtocolModule.ExtensionProtocolMessageIds).Keys;
+            _peerContext.GetValue<Dictionary<string, byte>>(ExtensionProtocolModule.ExtensionProtocolMessageIds).Keys;
 
         public void SendMessage(IExtensionProtocolMessage message)
         {
-            sendMessage(message);
+            _sendMessage(message);
         }
     }
 
     internal partial class ExtensionProtocolPeerContext : IPeerContext
     {
-        public IBlockRequests BlockRequests => peerContext.BlockRequests;
+        public IBlockRequests BlockRequests => _peerContext.BlockRequests;
 
-        public PeerConnection Peer => peerContext.Peer;
+        public PeerConnection Peer => _peerContext.Peer;
 
-        public Metainfo Metainfo => peerContext.Metainfo;
+        public Metainfo Metainfo => _peerContext.Metainfo;
 
-        public IReadOnlyCollection<PeerConnection> Peers => peerContext.Peers;
+        public IReadOnlyCollection<PeerConnection> Peers => _peerContext.Peers;
 
-        public IPieceDataHandler DataHandler => peerContext.DataHandler;
+        public IPieceDataHandler DataHandler => _peerContext.DataHandler;
 
         public void PeersAvailable(IEnumerable<ITransportStream> peers)
         {
-            peerContext.PeersAvailable(peers);
+            _peerContext.PeersAvailable(peers);
         }
 
         public T GetValue<T>(string key)
         {
-            return peerContext.GetValue<T>(key);
+            return _peerContext.GetValue<T>(key);
         }
 
         public void SetValue<T>(string key, T value)
         {
-            peerContext.SetValue(key, value);
+            _peerContext.SetValue(key, value);
         }
 
         public void RegisterMessageHandler(byte messageId)
         {
-            peerContext.RegisterMessageHandler(messageId);
+            _peerContext.RegisterMessageHandler(messageId);
         }
 
         public void SendMessage(byte messageId, byte[] data)
         {
-            peerContext.SendMessage(messageId, data);
+            _peerContext.SendMessage(messageId, data);
         }
     }
 }

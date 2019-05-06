@@ -26,10 +26,10 @@ namespace TorrentCore.Transport.Tcp
     {
         private static readonly ILogger Log = LogManager.GetLogger<TcpTransportProtocol>();
 
-        private readonly bool bindToNextAvailablePort;
-        private readonly ConcurrentBag<TcpTransportStream> streams;
+        private readonly bool _bindToNextAvailablePort;
+        private readonly ConcurrentBag<TcpTransportStream> _streams;
 
-        private TcpListener listener;
+        private TcpListener _listener;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TcpTransportProtocol"/> class that will listen on the specified port.
@@ -42,8 +42,8 @@ namespace TorrentCore.Transport.Tcp
             bool bindToNextAvailablePort,
             IPAddress localBindAddress)
         {
-            streams = new ConcurrentBag<TcpTransportStream>();
-            this.bindToNextAvailablePort = bindToNextAvailablePort;
+            _streams = new ConcurrentBag<TcpTransportStream>();
+            _bindToNextAvailablePort = bindToNextAvailablePort;
             Port = port;
             LocalBindAddress = localBindAddress;
             LocalConection = new LocalTcpConnectionDetails(port, null, localBindAddress);
@@ -77,12 +77,12 @@ namespace TorrentCore.Transport.Tcp
         /// <summary>
         /// Gets a collection of the active transport streams.
         /// </summary>
-        public IEnumerable<TcpTransportStream> Streams => streams;
+        public IEnumerable<TcpTransportStream> Streams => _streams;
 
         /// <summary>
         /// Gets a collection of the active transport streams.
         /// </summary>
-        IEnumerable<ITransportStream> ITransportProtocol.Streams => streams;
+        IEnumerable<ITransportStream> ITransportProtocol.Streams => _streams;
 
         void AcceptConnection(TransportConnectionEventArgs e)
         {
@@ -95,7 +95,7 @@ namespace TorrentCore.Transport.Tcp
                 Log.LogInformation($"Accepted connection from {stream.RemoteEndPoint}");
 
                 accepted = true;
-                streams.Add(stream);
+                _streams.Add(stream);
             });
             AcceptConnectionHandler?.Invoke(applicationEE);
 
@@ -113,11 +113,11 @@ namespace TorrentCore.Transport.Tcp
             {
                 try
                 {
-                    listener = new TcpListener(LocalBindAddress, port + attempt);
-                    listener.Start();
+                    _listener = new TcpListener(LocalBindAddress, port + attempt);
+                    _listener.Start();
                 }
                 catch (SocketException ex)
-                    when (ex.SocketErrorCode == SocketError.AddressAlreadyInUse && bindToNextAvailablePort)
+                    when (ex.SocketErrorCode == SocketError.AddressAlreadyInUse && _bindToNextAvailablePort)
                 {
                     // Try next available port
                     continue;
@@ -127,7 +127,7 @@ namespace TorrentCore.Transport.Tcp
             }
 
             // If port=0 was supplied, set the actual port we are listening on.
-            Port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
             LocalConection = new LocalTcpConnectionDetails(Port, null, LocalBindAddress);
             ListenForIncomingConnections();
         }
@@ -138,9 +138,9 @@ namespace TorrentCore.Transport.Tcp
         public void Stop()
         {
             // Stop listening for new connections
-            listener.Stop();
+            _listener.Stop();
 
-            foreach (var stream in streams)
+            foreach (var stream in _streams)
                 stream.Disconnect();
         }
 
@@ -152,7 +152,7 @@ namespace TorrentCore.Transport.Tcp
                 {
                     while (true)
                     {
-                        var client = await listener.AcceptTcpClientAsync();
+                        var client = await _listener.AcceptTcpClientAsync();
                         AcceptConnection(new TransportConnectionEventArgs(client));
                     }
                 }

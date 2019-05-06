@@ -15,23 +15,23 @@ namespace TorrentCore.Application.BitTorrent
 {
     class QueueingMessageHandler : IPeerMessageHandler
     {
-        private readonly IMainLoop mainLoop;
-        private readonly IPeerMessageHandler underlying;
+        private readonly IMainLoop _mainLoop;
+        private readonly IPeerMessageHandler _underlying;
 
         public QueueingMessageHandler(IMainLoop mainLoop, IPeerMessageHandler underlying)
         {
-            this.mainLoop = mainLoop;
-            this.underlying = underlying;
+            _mainLoop = mainLoop;
+            _underlying = underlying;
         }
 
         public void MessageReceived(PeerConnection peer, byte[] data)
         {
-            mainLoop.AddTask(() => underlying.MessageReceived(peer, data));
+            _mainLoop.AddTask(() => _underlying.MessageReceived(peer, data));
         }
 
         public void PeerDisconnected(PeerConnection peer)
         {
-            mainLoop.AddTask(() => underlying.PeerDisconnected(peer));
+            _mainLoop.AddTask(() => _underlying.PeerDisconnected(peer));
         }
     }
 }

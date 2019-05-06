@@ -16,6 +16,6 @@ namespace TorrentCore.Tracker.Udp
     {
         Connect = 0,
         Announce = 1,
-        Error = 3
+        Error = 3,
     }
 }

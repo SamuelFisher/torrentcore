@@ -17,27 +17,27 @@ namespace TorrentCore.Data.Pieces
     /// </summary>
     class BlockRequestManager : IBlockRequests
     {
-        private readonly HashSet<BlockRequest> requestedBlocks = new HashSet<BlockRequest>();
-        private readonly HashSet<BlockRequest> pendingBlocks = new HashSet<BlockRequest>();
+        private readonly HashSet<BlockRequest> _requestedBlocks = new HashSet<BlockRequest>();
+        private readonly HashSet<BlockRequest> _pendingBlocks = new HashSet<BlockRequest>();
 
-        public IReadOnlyCollection<BlockRequest> RequestedBlocks => requestedBlocks;
+        public IReadOnlyCollection<BlockRequest> RequestedBlocks => _requestedBlocks;
 
-        public IReadOnlyCollection<BlockRequest> DownloadedBlocks => pendingBlocks;
+        public IReadOnlyCollection<BlockRequest> DownloadedBlocks => _pendingBlocks;
 
         public void BlockRequested(BlockRequest block)
         {
-            requestedBlocks.Add(block);
+            _requestedBlocks.Add(block);
         }
 
         public void BlockReceived(Block block)
         {
-            pendingBlocks.Add(block.AsRequest());
-            requestedBlocks.Remove(block.AsRequest());
+            _pendingBlocks.Add(block.AsRequest());
+            _requestedBlocks.Remove(block.AsRequest());
         }
 
         public void ClearBlocksForPiece(Piece piece)
         {
-            pendingBlocks.RemoveWhere(block => block.PieceIndex == piece.Index);
+            _pendingBlocks.RemoveWhere(block => block.PieceIndex == piece.Index);
         }
     }
 }

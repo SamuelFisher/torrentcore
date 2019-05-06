@@ -26,29 +26,29 @@ namespace TorrentCore.Extensions.ExtensionProtocol
 
         private static readonly ILogger Log = LogManager.GetLogger<ExtensionProtocolModule>();
 
-        private readonly Dictionary<string, byte> supportedMessages = new Dictionary<string, byte>();
+        private readonly Dictionary<string, byte> _supportedMessages = new Dictionary<string, byte>();
 
-        private readonly Dictionary<byte, string> reverseSupportedMessages = new Dictionary<byte, string>();
+        private readonly Dictionary<byte, string> _reverseSupportedMessages = new Dictionary<byte, string>();
 
-        private readonly Dictionary<byte, IExtensionProtocolMessageHandler> messageHandlers =
+        private readonly Dictionary<byte, IExtensionProtocolMessageHandler> _messageHandlers =
             new Dictionary<byte, IExtensionProtocolMessageHandler>();
 
-        private readonly HashSet<IExtensionProtocolMessageHandler> registeredHandlers =
+        private readonly HashSet<IExtensionProtocolMessageHandler> _registeredHandlers =
             new HashSet<IExtensionProtocolMessageHandler>();
 
-        private byte nextMessageTypeId = 1;
+        private byte _nextMessageTypeId = 1;
 
         public void RegisterMessageHandler(IExtensionProtocolMessageHandler messageHandler)
         {
             foreach (var messageType in messageHandler.SupportedMessageTypes)
             {
-                Log.LogDebug($"Registering {messageHandler.GetType().Name} to receive {messageType.Key} messages using ID {nextMessageTypeId}");
-                messageHandlers.Add(nextMessageTypeId, messageHandler);
-                supportedMessages.Add(messageType.Key, nextMessageTypeId);
-                reverseSupportedMessages.Add(nextMessageTypeId, messageType.Key);
-                nextMessageTypeId++;
+                Log.LogDebug($"Registering {messageHandler.GetType().Name} to receive {messageType.Key} messages using ID {_nextMessageTypeId}");
+                _messageHandlers.Add(_nextMessageTypeId, messageHandler);
+                _supportedMessages.Add(messageType.Key, _nextMessageTypeId);
+                _reverseSupportedMessages.Add(_nextMessageTypeId, messageType.Key);
+                _nextMessageTypeId++;
             }
-            registeredHandlers.Add(messageHandler);
+            _registeredHandlers.Add(messageHandler);
         }
 
         void IModule.OnPrepareHandshake(IPrepareHandshakeContext context)
@@ -70,8 +70,8 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             // Send handshake message
             var handshake = new ExtensionProtocolHandshake
             {
-                MessageIds = supportedMessages,
-                Client = "TorrentCore 0.1" // todo
+                MessageIds = _supportedMessages,
+                Client = "TorrentCore 0.1", // todo
             };
 
             var handshakeDict = handshake.Serialize();
@@ -82,7 +82,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
                     context,
                     msg => SendExtensionMessage(context, msg));
 
-            foreach (var handler in registeredHandlers)
+            foreach (var handler in _registeredHandlers)
                 handler.PrepareExtensionProtocolHandshake(prepareHandshakeContext);
 
             SendMessage(context, writer =>
@@ -105,15 +105,15 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             {
                 HandshakeMessageReceived(context);
 
-                foreach (var rh in registeredHandlers)
+                foreach (var rh in _registeredHandlers)
                     rh.PeerConnected(new ExtensionProtocolPeerContext(context, reply => SendExtensionMessage(context, reply)));
 
                 return;
             }
 
             // Non-handshake message
-            var handler = messageHandlers[messageTypeId];
-            string messageTypeName = reverseSupportedMessages[messageTypeId];
+            var handler = _messageHandlers[messageTypeId];
+            string messageTypeName = _reverseSupportedMessages[messageTypeId];
 
             // Deserialize
             var message = handler.SupportedMessageTypes[messageTypeName]();

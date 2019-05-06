@@ -20,7 +20,7 @@ namespace TorrentCore.Data
     /// </summary>
     public class Metainfo
     {
-        private readonly ReadOnlyCollection<Piece> pieces;
+        private readonly ReadOnlyCollection<Piece> _pieces;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Metainfo"/> class.
@@ -39,13 +39,13 @@ namespace TorrentCore.Data
                         IReadOnlyList<byte> metadata)
         {
             Name = name;
-            this.pieces = new ReadOnlyCollection<Piece>(pieces.ToList());
+            _pieces = new ReadOnlyCollection<Piece>(pieces.ToList());
             InfoHash = infoHash;
             Files = new List<ContainedFile>();
             Files.AddRange(files);
             TotalSize = Files.Any() ? Files.Sum(f => f.Size) : 0;
             Trackers = trackers.Select(x => (IReadOnlyList<Uri>)new ReadOnlyCollection<Uri>(x.ToList())).ToList().AsReadOnly();
-            PieceSize = this.pieces.First().Size;
+            PieceSize = _pieces.First().Size;
             Metadata = metadata;
         }
 
@@ -87,7 +87,7 @@ namespace TorrentCore.Data
         /// <summary>
         /// Gets a read-only list of pieces for this set of files.
         /// </summary>
-        public IReadOnlyList<Piece> Pieces => pieces;
+        public IReadOnlyList<Piece> Pieces => _pieces;
 
         /// <summary>
         /// Returns the offset in bytes to the start of the specified piece.

@@ -23,7 +23,7 @@ namespace TorrentCore.Extensions.SendMetadata
         {
             Request = 0,
             Data = 1,
-            Reject = 2
+            Reject = 2,
         }
 
         string IExtensionProtocolMessage.MessageType => MessageType;
@@ -41,7 +41,7 @@ namespace TorrentCore.Extensions.SendMetadata
             var dict = new BDictionary
             {
                 ["msg_type"] = new BNumber((int)RequestType),
-                ["piece"] = new BNumber(PieceIndex)
+                ["piece"] = new BNumber(PieceIndex),
             };
 
             if (RequestType == Type.Data)

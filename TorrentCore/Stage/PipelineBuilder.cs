@@ -15,27 +15,27 @@ namespace TorrentCore.Stage
 {
     class PipelineBuilder
     {
-        private readonly List<IPipelineStageFactory> stages;
+        private readonly List<IPipelineStageFactory> _stages;
 
         public PipelineBuilder()
         {
-            stages = new List<IPipelineStageFactory>();
+            _stages = new List<IPipelineStageFactory>();
         }
 
         private PipelineBuilder(IEnumerable<IPipelineStageFactory> stages)
         {
-            this.stages = stages.ToList();
+            _stages = stages.ToList();
         }
 
         public PipelineBuilder AddStage<T>()
             where T : class, ITorrentStage
         {
-            return new PipelineBuilder(stages.Concat(new[] { new PipelineStageFactory<T>() }));
+            return new PipelineBuilder(_stages.Concat(new[] { new PipelineStageFactory<T>() }));
         }
 
         public Pipeline Build()
         {
-            return new Pipeline(stages);
+            return new Pipeline(_stages);
         }
 
         private class PipelineStageFactory<T> : IPipelineStageFactory

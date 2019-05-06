@@ -19,11 +19,11 @@ namespace TorrentCore.Application.BitTorrent
 {
     public class PeerConnection
     {
-        private readonly IPeerMessageHandler messageHandler;
-        private readonly BigEndianBinaryReader reader;
-        private readonly BigEndianBinaryWriter writer;
-        private readonly ITransportStream transportStream;
-        private readonly Dictionary<IModule, Dictionary<string, object>> customValues;
+        private readonly IPeerMessageHandler _messageHandler;
+        private readonly BigEndianBinaryReader _reader;
+        private readonly BigEndianBinaryWriter _writer;
+        private readonly ITransportStream _transportStream;
+        private readonly Dictionary<IModule, Dictionary<string, object>> _customValues;
 
         internal PeerConnection(
             Metainfo meta,
@@ -33,15 +33,15 @@ namespace TorrentCore.Application.BitTorrent
             IPeerMessageHandler messageHandler,
             ITransportStream transportStream)
         {
-            this.messageHandler = messageHandler;
-            this.transportStream = transportStream;
-            customValues = new Dictionary<IModule, Dictionary<string, object>>();
+            _messageHandler = messageHandler;
+            _transportStream = transportStream;
+            _customValues = new Dictionary<IModule, Dictionary<string, object>>();
             PeerId = peerId;
             ReservedBytes = reservedBytes;
             SupportedExtensions = supportedExtensions;
             InfoHash = meta.InfoHash;
-            reader = new BigEndianBinaryReader(transportStream.Stream);
-            writer = new BigEndianBinaryWriter(transportStream.Stream);
+            _reader = new BigEndianBinaryReader(transportStream.Stream);
+            _writer = new BigEndianBinaryWriter(transportStream.Stream);
             Available = new Bitfield(meta.Pieces.Count);
             RequestedByRemotePeer = new HashSet<BlockRequest>();
             Requested = new HashSet<BlockRequest>();
@@ -65,7 +65,7 @@ namespace TorrentCore.Application.BitTorrent
         /// <summary>
         /// Gets the address of this peer.
         /// </summary>
-        public string Address => transportStream.DisplayAddress;
+        public string Address => _transportStream.DisplayAddress;
 
         /// <summary>
         /// Gets the protocol extensions supported by this peer.
@@ -103,23 +103,23 @@ namespace TorrentCore.Application.BitTorrent
 
         public void Send(byte[] data)
         {
-            writer.Write(data.Length);
-            writer.Write(data);
-            writer.Flush();
+            _writer.Write(data.Length);
+            _writer.Write(data);
+            _writer.Flush();
         }
 
         public void Disconnect()
         {
-            transportStream.Disconnect();
-            messageHandler.PeerDisconnected(this);
+            _transportStream.Disconnect();
+            _messageHandler.PeerDisconnected(this);
         }
 
         internal Dictionary<string, object> GetCustomValues(IModule module)
         {
-            if (!customValues.TryGetValue(module, out Dictionary<string, object> moduleValues))
+            if (!_customValues.TryGetValue(module, out Dictionary<string, object> moduleValues))
             {
                 moduleValues = new Dictionary<string, object>();
-                customValues.Add(module, moduleValues);
+                _customValues.Add(module, moduleValues);
             }
 
             return moduleValues;
@@ -134,18 +134,18 @@ namespace TorrentCore.Application.BitTorrent
                     while (true)
                     {
                         // Read message length
-                        int length = reader.ReadInt32();
+                        int length = _reader.ReadInt32();
 
                         // Read data
-                        byte[] data = reader.ReadBytes(length);
+                        byte[] data = _reader.ReadBytes(length);
 
-                        messageHandler.MessageReceived(this, data);
+                        _messageHandler.MessageReceived(this, data);
                     }
                 }
                 catch (IOException)
                 {
                     // Disconnected
-                    messageHandler.PeerDisconnected(this);
+                    _messageHandler.PeerDisconnected(this);
                 }
             }, TaskCreationOptions.LongRunning);
         }

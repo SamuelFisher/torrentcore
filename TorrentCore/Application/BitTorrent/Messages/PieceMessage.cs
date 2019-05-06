@@ -35,7 +35,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         /// <param name="block">The block to be represented by the piece message.</param>
         public PieceMessage(Block block)
         {
-            this.Block = block;
+            Block = block;
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
             byte[] blockData = reader.ReadBytes(length - 8);
 
             // Create block
-            this.Block = new Block(pieceIndex, blockOffset, blockData);
+            Block = new Block(pieceIndex, blockOffset, blockData);
         }
     }
 }

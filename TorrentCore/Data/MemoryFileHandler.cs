@@ -19,33 +19,33 @@ namespace TorrentCore.Data
     /// </summary>
     public class MemoryFileHandler : IFileHandler
     {
-        private readonly Dictionary<string, MemoryStream> files;
+        private readonly Dictionary<string, MemoryStream> _files;
 
         public MemoryFileHandler()
         {
-            files = new Dictionary<string, MemoryStream>();
+            _files = new Dictionary<string, MemoryStream>();
         }
 
         public MemoryFileHandler(Dictionary<string, byte[]> existingFileData)
         {
-            files = new Dictionary<string, MemoryStream>();
+            _files = new Dictionary<string, MemoryStream>();
             foreach (var existing in existingFileData)
-                files.Add(existing.Key, new MemoryStream(existing.Value));
+                _files.Add(existing.Key, new MemoryStream(existing.Value));
         }
 
         public MemoryFileHandler(string existingFile, byte[] existingData)
         {
-            files = new Dictionary<string, MemoryStream>();
-            files.Add(existingFile, new MemoryStream(existingData));
+            _files = new Dictionary<string, MemoryStream>();
+            _files.Add(existingFile, new MemoryStream(existingData));
         }
 
         public Stream GetFileStream(string fileName)
         {
             MemoryStream stream;
-            if (!files.TryGetValue(fileName, out stream))
+            if (!_files.TryGetValue(fileName, out stream))
             {
                 stream = new MemoryStream();
-                files.Add(fileName, stream);
+                _files.Add(fileName, stream);
             }
 
             return stream;
@@ -63,7 +63,7 @@ namespace TorrentCore.Data
 
         public void Dispose()
         {
-            foreach (var file in files)
+            foreach (var file in _files)
                 file.Value.Dispose();
         }
     }

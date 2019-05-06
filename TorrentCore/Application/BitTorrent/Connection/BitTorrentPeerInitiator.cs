@@ -24,15 +24,15 @@ namespace TorrentCore.Application.BitTorrent.Connection
         private const string BitTorrentProtocol = "BitTorrent protocol";
         private const int BitTorrentProtocolReservedBytes = 8;
 
-        private readonly Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup;
-        private readonly IModuleManager modules;
+        private readonly Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> _applicationProtocolLookup;
+        private readonly IModuleManager _modules;
 
         public BitTorrentPeerInitiator(
             Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup,
             IModuleManager modules)
         {
-            this.applicationProtocolLookup = applicationProtocolLookup;
-            this.modules = modules;
+            _applicationProtocolLookup = applicationProtocolLookup;
+            _modules = modules;
         }
 
         public interface IContext
@@ -49,7 +49,7 @@ namespace TorrentCore.Application.BitTorrent.Connection
             var reader = new BigEndianBinaryReader(transportStream.Stream);
             var header = ReadConnectionHeader(reader);
             context = new PeerConnectionPreparationContext(header.PeerId, header.ReservedBytes, header.SupportedExtensions);
-            return applicationProtocolLookup(header.InfoHash);
+            return _applicationProtocolLookup(header.InfoHash);
         }
 
         IApplicationProtocol<PeerConnection> IApplicationProtocolPeerInitiator<PeerConnection, IContext, PeerConnectionArgs>.PrepareAcceptIncomingConnection(
@@ -114,7 +114,7 @@ namespace TorrentCore.Application.BitTorrent.Connection
             // Reserved bytes
             var reservedBytes = new byte[BitTorrentProtocolReservedBytes];
             var prepareHandshakeContext = new PrepareHandshakeContext(reservedBytes);
-            foreach (var module in modules.Modules)
+            foreach (var module in _modules.Modules)
                 module.OnPrepareHandshake(prepareHandshakeContext);
             writer.Write(prepareHandshakeContext.ReservedBytes);
 

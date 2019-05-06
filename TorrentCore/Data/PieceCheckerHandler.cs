@@ -25,9 +25,9 @@ namespace TorrentCore.Data
     {
         private static readonly ILogger Log = LogManager.GetLogger<PieceCheckerHandler>();
 
-        private readonly IBlockDataHandler baseHandler;
-        private readonly Dictionary<Piece, SortedSet<Block>> pendingBlocks;
-        private readonly HashSet<Piece> completedPieces;
+        private readonly IBlockDataHandler _baseHandler;
+        private readonly Dictionary<Piece, SortedSet<Block>> _pendingBlocks;
+        private readonly HashSet<Piece> _completedPieces;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PieceCheckerHandler"/> class,
@@ -36,9 +36,9 @@ namespace TorrentCore.Data
         /// <param name="baseHandler">File handler to use as backing store.</param>
         public PieceCheckerHandler(IBlockDataHandler baseHandler)
         {
-            this.baseHandler = baseHandler;
-            pendingBlocks = new Dictionary<Piece, SortedSet<Block>>(Metainfo.Pieces.Count);
-            completedPieces = new HashSet<Piece>();
+            _baseHandler = baseHandler;
+            _pendingBlocks = new Dictionary<Piece, SortedSet<Block>>(Metainfo.Pieces.Count);
+            _completedPieces = new HashSet<Piece>();
         }
 
         /// <summary>
@@ -54,16 +54,16 @@ namespace TorrentCore.Data
         /// <summary>
         /// Gets the metainfo describing the layout of the collection of files.
         /// </summary>
-        public Metainfo Metainfo => baseHandler.Metainfo;
+        public Metainfo Metainfo => _baseHandler.Metainfo;
 
         /// <summary>
         /// Gets the pieces that have already completed downloading.
         /// </summary>
-        public IReadOnlyCollection<Piece> CompletedPieces => completedPieces;
+        public IReadOnlyCollection<Piece> CompletedPieces => _completedPieces;
 
         public void MarkPieceAsCompleted(Piece piece)
         {
-            completedPieces.Add(piece);
+            _completedPieces.Add(piece);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace TorrentCore.Data
         /// <returns>Block data from specified region.</returns>
         public byte[] ReadBlockData(long offset, long length)
         {
-            return baseHandler.ReadBlockData(offset, length);
+            return _baseHandler.ReadBlockData(offset, length);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace TorrentCore.Data
         /// <returns>Block data from specified region.</returns>
         public bool TryReadBlockData(long offset, long length, out byte[] data)
         {
-            return baseHandler.TryReadBlockData(offset, length, out data);
+            return _baseHandler.TryReadBlockData(offset, length, out data);
         }
 
         /// <summary>
@@ -99,9 +99,9 @@ namespace TorrentCore.Data
             int pieceIndex = (int)(offset / Metainfo.PieceSize);
             int pieceOffset = (int)(offset % Metainfo.PieceSize);
             Block block = new Block(pieceIndex, pieceOffset, data);
-            if (!pendingBlocks.ContainsKey(Metainfo.Pieces[pieceIndex]))
-                pendingBlocks.Add(Metainfo.Pieces[pieceIndex], new SortedSet<Block>(new BlockComparer()));
-            pendingBlocks[Metainfo.Pieces[pieceIndex]].Add(block);
+            if (!_pendingBlocks.ContainsKey(Metainfo.Pieces[pieceIndex]))
+                _pendingBlocks.Add(Metainfo.Pieces[pieceIndex], new SortedSet<Block>(new BlockComparer()));
+            _pendingBlocks[Metainfo.Pieces[pieceIndex]].Add(block);
 
             WriteCompletedPieces();
         }
@@ -111,7 +111,7 @@ namespace TorrentCore.Data
         /// </summary>
         void WriteCompletedPieces()
         {
-            var completed = GetCompletedPieces(pendingBlocks);
+            var completed = GetCompletedPieces(_pendingBlocks);
 
             foreach (var piece in completed)
             {
@@ -122,9 +122,9 @@ namespace TorrentCore.Data
 
                     // Write piece
                     long pieceOffset = Metainfo.PieceOffset(piece.Key);
-                    baseHandler.WriteBlockData(pieceOffset, data);
+                    _baseHandler.WriteBlockData(pieceOffset, data);
 
-                    completedPieces.Add(piece.Key);
+                    _completedPieces.Add(piece.Key);
 
                     // Notify of completed piece
                     PieceCompleted?.Invoke(piece.Key);

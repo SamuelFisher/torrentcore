@@ -30,34 +30,34 @@ namespace TorrentCore
     {
         private static readonly ILogger Log = LogManager.GetLogger<TorrentClient>();
 
-        private readonly IDictionary<Sha1Hash, TorrentDownload> downloads;
-        private readonly MainLoop mainLoop;
-        private readonly ITrackerClientFactory trackerClientFactory;
-        private readonly BitTorrentPeerInitiator peerInitiator;
-        private Timer updateStatisticsTimer;
+        private readonly IDictionary<Sha1Hash, TorrentDownload> _downloads;
+        private readonly MainLoop _mainLoop;
+        private readonly ITrackerClientFactory _trackerClientFactory;
+        private readonly BitTorrentPeerInitiator _peerInitiator;
+        private Timer _updateStatisticsTimer;
 
         public TorrentClient(
             PeerId localPeerId,
             ITransportProtocol transport,
             ITrackerClientFactory trackerClientFactory)
         {
-            downloads = new Dictionary<Sha1Hash, TorrentDownload>();
-            mainLoop = new MainLoop();
+            _downloads = new Dictionary<Sha1Hash, TorrentDownload>();
+            _mainLoop = new MainLoop();
             Modules = new ModuleManager();
             Modules.Register(new CoreMessagingModule());
-            mainLoop.Start();
+            _mainLoop.Start();
 
             // TODO: allow supplying custom peer initiator
-            peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol, Modules);
+            _peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)_downloads[infoHash].Manager.ApplicationProtocol, Modules);
             LocalPeerId = localPeerId;
 
             Transport = transport;
             transport.AcceptConnectionHandler += AcceptConnection;
             Transport.Start();
 
-            this.trackerClientFactory = trackerClientFactory;
+            _trackerClientFactory = trackerClientFactory;
 
-            updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            _updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
         }
 
         /// <summary>
@@ -69,16 +69,16 @@ namespace TorrentCore
 
         internal ITransportProtocol Transport { get; }
 
-        public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());
+        public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(_downloads.Values.ToList());
 
         private void AcceptConnection(AcceptConnectionEventArgs e)
         {
-            var applicationProtocol = peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream, out BitTorrentPeerInitiator.IContext context);
+            var applicationProtocol = _peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream, out BitTorrentPeerInitiator.IContext context);
             applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
             {
                 e.Accept();
-                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Metainfo, new QueueingMessageHandler(mainLoop, applicationProtocol));
-                return peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
+                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Metainfo, new QueueingMessageHandler(_mainLoop, applicationProtocol));
+                return _peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
             }));
         }
 
@@ -95,28 +95,28 @@ namespace TorrentCore
 
         public TorrentDownload Add(Metainfo metainfo, string downloadDirectory)
         {
-            return Add(metainfo, new AggregatedTracker(trackerClientFactory, metainfo.Trackers), new DiskFileHandler(downloadDirectory));
+            return Add(metainfo, new AggregatedTracker(_trackerClientFactory, metainfo.Trackers), new DiskFileHandler(downloadDirectory));
         }
 
         internal TorrentDownload Add(Metainfo metainfo, ITracker tracker, IFileHandler fileHandler)
         {
             var dataHandler = new PieceCheckerHandler(new BlockDataHandler(fileHandler, metainfo));
-            var bitTorrentApplicationProtocol = new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, metainfo, peerInitiator, m => new QueueingMessageHandler(mainLoop, m), Modules, dataHandler);
+            var bitTorrentApplicationProtocol = new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, metainfo, _peerInitiator, m => new QueueingMessageHandler(_mainLoop, m), Modules, dataHandler);
             var downloadManager = new TorrentDownloadManager(LocalPeerId,
-                                                             mainLoop,
+                                                             _mainLoop,
                                                              bitTorrentApplicationProtocol,
                                                              tracker,
                                                              metainfo);
 
             var download = new TorrentDownload(downloadManager);
 
-            downloads.Add(metainfo.InfoHash, download);
+            _downloads.Add(metainfo.InfoHash, download);
             return download;
         }
 
         private void UpdateStatistics(object state)
         {
-            foreach (var dl in downloads)
+            foreach (var dl in _downloads)
                 dl.Value.Manager.UpdateStatistics();
         }
 
@@ -124,7 +124,7 @@ namespace TorrentCore
         {
             foreach (var download in Downloads)
                 download.Stop();
-            mainLoop.Stop();
+            _mainLoop.Stop();
         }
 
         /// <summary>

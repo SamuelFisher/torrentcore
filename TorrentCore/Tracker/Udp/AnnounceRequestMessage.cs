@@ -27,7 +27,7 @@ namespace TorrentCore.Tracker.Udp
             None = 0,
             Completed = 1,
             Started = 2,
-            Stopped = 3
+            Stopped = 3,
         }
 
         public Sha1Hash InfoHash { get; set; }

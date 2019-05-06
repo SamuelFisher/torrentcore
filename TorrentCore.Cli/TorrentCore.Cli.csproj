@@ -11,6 +11,16 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>..\StyleCopRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="..\stylecop.json" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\TorrentCore.Web\TorrentCore.Web.csproj" />
     <ProjectReference Include="..\TorrentCore\TorrentCore.csproj" />
@@ -21,6 +31,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="1.1.2" />
     <PackageReference Include="System.CommandLine" Version="0.1.0-e170729-1" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

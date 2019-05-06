@@ -21,7 +21,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         public const byte MessageID = 1;
 
         /// <summary>
-        /// The ID of the message.
+        /// Gets the ID of the message.
         /// </summary>
         public override byte ID
         {

@@ -19,10 +19,10 @@ namespace TorrentCore.Transport
     /// </summary>
     public class RateLimiter
     {
-        long lastUpload;
-        long startedDownload;
-        long toUpload = 0;
-        long downloadedBytes;
+        long _lastUpload;
+        long _startedDownload;
+        long _toUpload = 0;
+        long _downloadedBytes;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RateLimiter"/> class with upload and download set to unlimited.
@@ -83,23 +83,23 @@ namespace TorrentCore.Transport
 
             lock (this)
             {
-                toUpload += length;
+                _toUpload += length;
 
                 // If this is the first transmission, send without delay
-                if (lastUpload == 0)
+                if (_lastUpload == 0)
                 {
-                    lastUpload = CurrentMilliseconds;
+                    _lastUpload = CurrentMilliseconds;
                     return 0;
                 }
 
                 // How long should it take to send 'toUpload' bytes?
-                double timeInSeconds = (double)toUpload / (double)MaxUploadRate;
-                Debug.WriteLine("It should take {0} seconds to write {1} bytes.", timeInSeconds, toUpload);
+                double timeInSeconds = (double)_toUpload / (double)MaxUploadRate;
+                Debug.WriteLine("It should take {0} seconds to write {1} bytes.", timeInSeconds, _toUpload);
                 double timeInMilliseconds = timeInSeconds * 1000d;
 
                 // How long has it been since the last data was sent?
-                double interval = CurrentMilliseconds - lastUpload;
-                Debug.WriteLine(string.Format("It has actually been {0} seconds. (Last at {1}).", interval / 1000d, lastUpload));
+                double interval = CurrentMilliseconds - _lastUpload;
+                Debug.WriteLine(string.Format("It has actually been {0} seconds. (Last at {1}).", interval / 1000d, _lastUpload));
 
                 // Wait the difference
                 int difference = (int)Math.Round(timeInMilliseconds - interval);
@@ -108,8 +108,8 @@ namespace TorrentCore.Transport
                 if (wait > 0)
                 {
                     Debug.WriteLine(string.Format("So let's wait {0} seconds.", difference / 1000d));
-                    lastUpload = CurrentMilliseconds + wait; // Last upload happened at the target time
-                    toUpload = 0;
+                    _lastUpload = CurrentMilliseconds + wait; // Last upload happened at the target time
+                    _toUpload = 0;
                 }
                 else
                 {
@@ -127,20 +127,20 @@ namespace TorrentCore.Transport
         /// <returns>Amount of time in milliseconds.</returns>
         public int TimeUntilCanReceive(long length)
         {
-            if (startedDownload == 0)
-                startedDownload = CurrentMilliseconds;
+            if (_startedDownload == 0)
+                _startedDownload = CurrentMilliseconds;
 
             if (MaxDownloadRate == 0)
                 return 0; // Unlimited
 
-            if (downloadedBytes == 0)
+            if (_downloadedBytes == 0)
             {
-                downloadedBytes += length;
+                _downloadedBytes += length;
                 return 0;
             }
 
-            downloadedBytes += length;
-            long elapsedMilliseconds = CurrentMilliseconds - startedDownload;
+            _downloadedBytes += length;
+            long elapsedMilliseconds = CurrentMilliseconds - _startedDownload;
 
             // Prevent rate going too high if data hasn't been sent for a while
             elapsedMilliseconds = Math.Min(elapsedMilliseconds, 1000);
@@ -148,13 +148,13 @@ namespace TorrentCore.Transport
             if (elapsedMilliseconds > 0)
             {
                 // Calculate the current bps.
-                long bps = downloadedBytes * 1000L / elapsedMilliseconds;
+                long bps = _downloadedBytes * 1000L / elapsedMilliseconds;
 
                 // If the bps are more then the maximum bps, try to throttle.
                 if (bps > MaxDownloadRate)
                 {
                     // Calculate the time to sleep.
-                    long wakeElapsed = downloadedBytes * 1000L / MaxDownloadRate;
+                    long wakeElapsed = _downloadedBytes * 1000L / MaxDownloadRate;
                     int toSleep = (int)(wakeElapsed - elapsedMilliseconds);
 
                     if (toSleep > 1)
@@ -170,12 +170,12 @@ namespace TorrentCore.Transport
 
         void ResetDownload()
         {
-            long difference = CurrentMilliseconds - startedDownload;
+            long difference = CurrentMilliseconds - _startedDownload;
 
             if (difference > 1000)
             {
-                downloadedBytes = 0;
-                startedDownload = CurrentMilliseconds;
+                _downloadedBytes = 0;
+                _startedDownload = CurrentMilliseconds;
             }
         }
     }

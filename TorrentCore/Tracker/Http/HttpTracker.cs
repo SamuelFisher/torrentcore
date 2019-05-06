@@ -25,7 +25,7 @@ namespace TorrentCore.Tracker.Http
     /// </summary>
     class HttpTracker : ITracker
     {
-        private readonly LocalTcpConnectionDetails tcpConnectionDetails;
+        private readonly LocalTcpConnectionDetails _tcpConnectionDetails;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpTracker"/> class,
@@ -35,7 +35,7 @@ namespace TorrentCore.Tracker.Http
         /// <param name="baseUrl">URL of the remote tracker.</param>
         public HttpTracker(LocalTcpConnectionDetails tcpConnectionDetails, Uri baseUrl)
         {
-            this.tcpConnectionDetails = tcpConnectionDetails;
+            _tcpConnectionDetails = tcpConnectionDetails;
             BaseUrl = baseUrl;
         }
 
@@ -68,9 +68,9 @@ namespace TorrentCore.Tracker.Http
             // Prepare query
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder.Append("?event=started");
-            if (tcpConnectionDetails.PublicAddress != null)
-                queryBuilder.Append(string.Format("&ip={0}", tcpConnectionDetails.PublicAddress));
-            queryBuilder.Append(string.Format("&port={0}", tcpConnectionDetails.Port)); // TODO: use public port
+            if (_tcpConnectionDetails.PublicAddress != null)
+                queryBuilder.Append(string.Format("&ip={0}", _tcpConnectionDetails.PublicAddress));
+            queryBuilder.Append(string.Format("&port={0}", _tcpConnectionDetails.Port)); // TODO: use public port
             queryBuilder.Append(string.Format("&peer_id={0}", Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(peerId, 0, peerId.Length))));
             queryBuilder.Append(string.Format("&left={0}", request.Remaining));
             queryBuilder.Append(string.Format("&uploaded={0}", 0));
@@ -132,7 +132,7 @@ namespace TorrentCore.Tracker.Http
                 }
             }
 
-            return new AnnounceResult(resultPeers.Select(x => new TcpTransportStream(tcpConnectionDetails.BindAddress, x.IPAddress, x.Port)));
+            return new AnnounceResult(resultPeers.Select(x => new TcpTransportStream(_tcpConnectionDetails.BindAddress, x.IPAddress, x.Port)));
         }
     }
 }

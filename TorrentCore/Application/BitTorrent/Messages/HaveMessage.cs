@@ -35,7 +35,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         /// <param name="piece">The piece that is available.</param>
         public HaveMessage(Piece piece)
         {
-            this.Piece = piece;
+            Piece = piece;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
             int pieceIndex = reader.ReadInt32();
 
             // Create piece object
-            this.Piece = new Piece(pieceIndex);
+            Piece = new Piece(pieceIndex);
         }
     }
 }

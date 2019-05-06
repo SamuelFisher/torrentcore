@@ -29,7 +29,7 @@ namespace TorrentCore.Application.BitTorrent
             BitfieldMessage.MessageId,
             RequestMessage.MessageID,
             PieceMessage.MessageId,
-            CancelMessage.MessageID
+            CancelMessage.MessageID,
         };
 
         public void OnPrepareHandshake(IPrepareHandshakeContext context)

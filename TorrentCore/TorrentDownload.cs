@@ -17,14 +17,14 @@ namespace TorrentCore
 {
     public sealed class TorrentDownload
     {
-        private readonly TorrentDownloadManager download;
+        private readonly TorrentDownloadManager _download;
 
         internal TorrentDownload(TorrentDownloadManager download)
         {
-            this.download = download;
+            _download = download;
         }
 
-        internal TorrentDownloadManager Manager => download;
+        internal TorrentDownloadManager Manager => _download;
 
         public Metainfo Description => Manager.Description;
 
@@ -36,12 +36,12 @@ namespace TorrentCore
 
         public void Start()
         {
-            download.Start();
+            _download.Start();
         }
 
         public void Stop()
         {
-            download.Stop();
+            _download.Stop();
         }
 
         public Task WaitForDownloadCompletionAsync(TimeSpan? timeout = null)
@@ -50,7 +50,7 @@ namespace TorrentCore
             {
                 bool completed = false;
                 var completionEvent = new ManualResetEvent(false);
-                download.ApplicationProtocol.DownloadCompleted += (sender, args) =>
+                _download.ApplicationProtocol.DownloadCompleted += (sender, args) =>
                 {
                     completed = true;
                     completionEvent.Set();

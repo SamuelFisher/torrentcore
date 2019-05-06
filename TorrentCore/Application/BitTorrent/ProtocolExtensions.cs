@@ -29,7 +29,7 @@ namespace TorrentCore.Application.BitTorrent
         /// <summary>
         /// BEP 10 Extension Protocol.
         /// </summary>
-        ExtensionProtocol = 3
+        ExtensionProtocol = 3,
     }
 
     static class ProtocolExtensions

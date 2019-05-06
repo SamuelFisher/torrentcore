@@ -11,6 +11,16 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>..\StyleCopRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="..\stylecop.json" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\TorrentCore\TorrentCore.csproj" />
   </ItemGroup>
@@ -21,6 +31,7 @@
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

@@ -137,7 +137,7 @@ namespace TorrentCore.Application.BitTorrent
                     quickChecked.Add(i);
             }
 
-            int unavailable = this.Length - quickChecked.Count * 8;
+            int unavailable = Length - quickChecked.Count * 8;
             for (int i = 0; i < Length; i++)
             {
                 if (quickChecked.Contains((int)Math.Floor((double)i / 8)))
@@ -165,7 +165,7 @@ namespace TorrentCore.Application.BitTorrent
         /// </summary>
         /// <param name="a">Bitfield to check for more pieces in.</param>
         /// <param name="b">Bitfield to compare against.</param>
-        /// <returns>True if a has more pieces </returns>
+        /// <returns>True if a has more pieces.</returns>
         public static bool NotSubset(Bitfield a, Bitfield b)
         {
             for (int i = 0; i < a.Length; i++)

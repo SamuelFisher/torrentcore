@@ -36,12 +36,12 @@ namespace TorrentCore.Tracker
         public PeerId PeerId { get; }
 
         /// <summary>
-        /// Gets or sets the number of bytes left to download.
+        /// Gets the number of bytes left to download.
         /// </summary>
         public long Remaining { get; }
 
         /// <summary>
-        /// Gets or sets the infohash of the torrent being downloaded.
+        /// Gets the infohash of the torrent being downloaded.
         /// </summary>
         public Sha1Hash InfoHash { get; }
     }

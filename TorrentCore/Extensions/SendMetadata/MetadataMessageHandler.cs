@@ -25,7 +25,7 @@ namespace TorrentCore.Extensions.SendMetadata
 
         public IReadOnlyDictionary<string, Func<IExtensionProtocolMessage>> SupportedMessageTypes { get; } = new Dictionary<string, Func<IExtensionProtocolMessage>>
         {
-            [MetadataMessage.MessageType] = () => new MetadataMessage()
+            [MetadataMessage.MessageType] = () => new MetadataMessage(),
         };
 
         public void PrepareExtensionProtocolHandshake(IPrepareExtensionProtocolHandshakeContext context)
@@ -42,7 +42,7 @@ namespace TorrentCore.Extensions.SendMetadata
             context.SendMessage(new MetadataMessage
             {
                 RequestType = MetadataMessage.Type.Request,
-                PieceIndex = 0
+                PieceIndex = 0,
             });
         }
 

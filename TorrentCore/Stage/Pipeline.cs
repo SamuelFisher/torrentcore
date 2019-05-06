@@ -14,16 +14,16 @@ namespace TorrentCore.Stage
 {
     class Pipeline
     {
-        private readonly IList<IPipelineStageFactory> stageFactory;
+        private readonly IList<IPipelineStageFactory> _stageFactory;
 
         public Pipeline(IList<IPipelineStageFactory> stageFactory)
         {
-            this.stageFactory = stageFactory;
+            _stageFactory = stageFactory;
         }
 
         public void Run(Container container, IStageInterrupt interrupt, IProgress<StatusUpdate> progress)
         {
-            foreach (var stage in stageFactory)
+            foreach (var stage in _stageFactory)
             {
                 var instance = stage.Construct(container);
                 instance.Run(interrupt, progress);

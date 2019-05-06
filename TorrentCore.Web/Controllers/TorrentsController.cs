@@ -1,18 +1,9 @@
 ﻿// This file is part of TorrentCore.
-//     https://torrentcore.org
-// Copyright (c) 2017 Sam Fisher.
-// 
-// TorrentCore is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as
-// published by the Free Software Foundation, version 3.
-// 
-// TorrentCore is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with TorrentCore.  If not, see <http://www.gnu.org/licenses/>.
+//   https://torrentcore.org
+// Copyright (c) Samuel Fisher.
+//
+// Licensed under the GNU Lesser General Public License, version 3. See the
+// LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -25,30 +16,30 @@ namespace TorrentCore.Web.Controllers
     [Route("api/torrents")]
     public class TorrentsController : Controller
     {
-        private readonly TorrentClient client;
+        private readonly TorrentClient _client;
 
         public TorrentsController(TorrentClient client)
         {
-            this.client = client;
+            _client = client;
         }
 
         [HttpGet]
         public IEnumerable<object> Get()
         {
-            return client.Downloads.Select(x => new
+            return _client.Downloads.Select(x => new
             {
                 x.Description.Name,
                 InfoHash = x.Description.InfoHash.ToString(),
                 Peers = x.Manager.ApplicationProtocol.Peers.Count,
                 x.Progress,
-                State = x.State.ToString()
+                State = x.State.ToString(),
             });
         }
 
         [HttpGet("{infoHash}")]
         public object Details(string infoHash)
         {
-            var torrent = client.Downloads.First(x => x.Description.InfoHash.ToString() == infoHash);
+            var torrent = _client.Downloads.First(x => x.Description.InfoHash.ToString() == infoHash);
 
             return new
             {
@@ -61,15 +52,15 @@ namespace TorrentCore.Web.Controllers
                 Peers = torrent.Manager.ApplicationProtocol.Peers.Select(p => new
                 {
                     p.Address,
-                    PeerId = Convert.ToBase64String(p.PeerId.Value.ToArray())
+                    PeerId = Convert.ToBase64String(p.PeerId.Value.ToArray()),
                 }),
                 Pieces = torrent.Description.Pieces.Select(x => new
                 {
                     x.Index,
                     x.Size,
-                    Completed = torrent.Manager.ApplicationProtocol.DataHandler.CompletedPieces.Contains(x)
+                    Completed = torrent.Manager.ApplicationProtocol.DataHandler.CompletedPieces.Contains(x),
                 }),
-                torrent.Trackers
+                torrent.Trackers,
             };
         }
     }

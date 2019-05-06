@@ -13,7 +13,7 @@ using TorrentCore.Transport;
 namespace TorrentCore.Application
 {
     /// <summary>
-    /// Handshakes <see cref="ITransportStream"/> connections with new peers and determines which <see cref="IApplicationProtocol"/>
+    /// Handshakes <see cref="ITransportStream"/> connections with new peers and determines which <see cref="IApplicationProtocol{TConnection}"/>
     /// new connections should be given to.
     /// </summary>
     /// <typeparam name="TPeerConnection">The type that represents connections to peers.</typeparam>

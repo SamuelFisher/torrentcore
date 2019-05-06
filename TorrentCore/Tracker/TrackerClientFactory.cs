@@ -20,11 +20,11 @@ namespace TorrentCore.Tracker
     /// </summary>
     public class TrackerClientFactory : ITrackerClientFactory
     {
-        private readonly LocalTcpConnectionDetails connectionDetails;
+        private readonly LocalTcpConnectionDetails _connectionDetails;
 
         public TrackerClientFactory(LocalTcpConnectionDetails connectionDetails)
         {
-            this.connectionDetails = connectionDetails;
+            _connectionDetails = connectionDetails;
         }
 
         public ITracker CreateTrackerClient(Uri trackerUri)
@@ -32,9 +32,9 @@ namespace TorrentCore.Tracker
             switch (trackerUri.Scheme)
             {
                 case "http":
-                    return new HttpTracker(connectionDetails, trackerUri);
+                    return new HttpTracker(_connectionDetails, trackerUri);
                 case "udp":
-                    return new UdpTracker(connectionDetails, trackerUri);
+                    return new UdpTracker(_connectionDetails, trackerUri);
                 default:
                     // Unknown protocol
                     return null;

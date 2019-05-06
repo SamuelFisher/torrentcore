@@ -41,7 +41,7 @@ namespace TorrentCore.Data
             if (value == null || value.Length != Length)
                 throw new ArgumentException(string.Format("Value must be {0} bytes.", Length));
 
-            this.Value = value;
+            Value = value;
         }
 
         public byte[] Value { get; }
@@ -71,7 +71,7 @@ namespace TorrentCore.Data
             if (obj is Sha1Hash)
             {
                 Sha1Hash other = (Sha1Hash)obj;
-                return Enumerable.SequenceEqual(this.Value, other.Value);
+                return Enumerable.SequenceEqual(Value, other.Value);
             }
             else
             {

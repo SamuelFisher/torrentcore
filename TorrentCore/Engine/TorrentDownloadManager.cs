@@ -32,16 +32,16 @@ namespace TorrentCore
     {
         private static readonly ILogger Log = LogManager.GetLogger<TorrentDownloadManager>();
 
-        private readonly PeerId localPeerId;
-        private readonly IMainLoop mainLoop;
-        private readonly Pipeline pipeline;
-        private readonly StageInterrupt stageInterrupt;
-        private readonly Progress<StatusUpdate> progress;
+        private readonly PeerId _localPeerId;
+        private readonly IMainLoop _mainLoop;
+        private readonly Pipeline _pipeline;
+        private readonly StageInterrupt _stageInterrupt;
+        private readonly Progress<StatusUpdate> _progress;
 
-        private volatile int recentlyDownloaded;
-        private volatile int recentlyUploaded;
+        private volatile int _recentlyDownloaded;
+        private volatile int _recentlyUploaded;
 
-        private bool isRunning;
+        private bool _isRunning;
 
         internal TorrentDownloadManager(PeerId localPeerId,
                                         IMainLoop mainLoop,
@@ -49,8 +49,8 @@ namespace TorrentCore
                                         ITracker tracker,
                                         Metainfo description)
         {
-            this.localPeerId = localPeerId;
-            this.mainLoop = mainLoop;
+            _localPeerId = localPeerId;
+            _mainLoop = mainLoop;
             ApplicationProtocol = applicationProtocol;
             Description = description;
             Tracker = tracker;
@@ -58,15 +58,15 @@ namespace TorrentCore
             Downloaded = 0;
             DownloadRateMeasurer = new RateMeasurer();
             UploadRateMeasurer = new RateMeasurer();
-            progress = new Progress<StatusUpdate>();
-            progress.ProgressChanged += ProgressChanged;
+            _progress = new Progress<StatusUpdate>();
+            _progress.ProgressChanged += ProgressChanged;
 
-            pipeline = new PipelineBuilder()
+            _pipeline = new PipelineBuilder()
                 .AddStage<VerifyDownloadedPiecesStage>()
                 .AddStage<DownloadPiecesStage>()
                 .Build();
 
-            stageInterrupt = new StageInterrupt();
+            _stageInterrupt = new StageInterrupt();
         }
 
         internal IApplicationProtocol<PeerConnection> ApplicationProtocol { get; }
@@ -110,11 +110,11 @@ namespace TorrentCore
 
         public void Start()
         {
-            if (isRunning)
+            if (_isRunning)
                 throw new InvalidOperationException("Already started.");
-            isRunning = true;
+            _isRunning = true;
 
-            stageInterrupt.Reset();
+            _stageInterrupt.Reset();
 
             Task.Run(async () =>
             {
@@ -123,10 +123,10 @@ namespace TorrentCore
                 using (var container = new Container())
                 {
                     container.RegisterSingleton(ApplicationProtocol);
-                    container.RegisterSingleton(mainLoop);
+                    container.RegisterSingleton(_mainLoop);
                     container.RegisterSingleton<IPiecePicker>(new PiecePicker());
 
-                    pipeline.Run(container, stageInterrupt, progress);
+                    _pipeline.Run(container, _stageInterrupt, _progress);
                 }
             });
         }
@@ -138,7 +138,7 @@ namespace TorrentCore
             try
             {
                 var request = new AnnounceRequest(
-                    localPeerId,
+                    _localPeerId,
                     Remaining,
                     Description.InfoHash);
 
@@ -159,19 +159,19 @@ namespace TorrentCore
 
         public void Pause()
         {
-            isRunning = false;
-            stageInterrupt.Pause();
+            _isRunning = false;
+            _stageInterrupt.Pause();
         }
 
         public void Stop()
         {
-            isRunning = false;
-            stageInterrupt.Stop();
+            _isRunning = false;
+            _stageInterrupt.Stop();
         }
 
         public void Dispose()
         {
-            if (isRunning)
+            if (_isRunning)
                 Stop();
         }
 
@@ -182,11 +182,11 @@ namespace TorrentCore
 
         internal void UpdateStatistics()
         {
-            DownloadRateMeasurer.AddMeasure(recentlyDownloaded);
-            recentlyDownloaded = 0;
+            DownloadRateMeasurer.AddMeasure(_recentlyDownloaded);
+            _recentlyDownloaded = 0;
 
-            UploadRateMeasurer.AddMeasure(recentlyUploaded);
-            recentlyUploaded = 0;
+            UploadRateMeasurer.AddMeasure(_recentlyUploaded);
+            _recentlyUploaded = 0;
         }
     }
 }

@@ -21,7 +21,7 @@ namespace TorrentCore.Engine
     {
         private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
 
-        private readonly LinkedList<RateMeasurement> measurements = new LinkedList<RateMeasurement>();
+        private readonly LinkedList<RateMeasurement> _measurements = new LinkedList<RateMeasurement>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RateMeasurer"/> class.
@@ -36,9 +36,9 @@ namespace TorrentCore.Engine
         /// <param name="value">Change since last call to AddMeasure.</param>
         public void AddMeasure(long value)
         {
-            lock (measurements)
+            lock (_measurements)
             {
-                measurements.AddLast(new RateMeasurement(DateTime.UtcNow, value));
+                _measurements.AddLast(new RateMeasurement(DateTime.UtcNow, value));
 
                 Clean();
             }
@@ -49,9 +49,9 @@ namespace TorrentCore.Engine
         /// </summary>
         public void Reset()
         {
-            lock (measurements)
+            lock (_measurements)
             {
-                measurements.Clear();
+                _measurements.Clear();
             }
         }
 
@@ -61,15 +61,15 @@ namespace TorrentCore.Engine
         /// <returns>Average number of units per second.</returns>
         public long AverageRate()
         {
-            lock (measurements)
+            lock (_measurements)
             {
-                if (measurements.Count < 2)
+                if (_measurements.Count < 2)
                     return 0;
 
                 Clean();
 
                 long sum = 0;
-                foreach (var measurement in measurements)
+                foreach (var measurement in _measurements)
                     sum += measurement.Measurement;
 
                 long bytesPerMillisecond = (long)(sum / Interval.TotalMilliseconds);
@@ -80,8 +80,8 @@ namespace TorrentCore.Engine
         private void Clean()
         {
             var minTime = DateTime.UtcNow - Interval;
-            while (measurements != null && measurements.First().Time < minTime)
-                measurements.RemoveFirst();
+            while (_measurements != null && _measurements.First().Time < minTime)
+                _measurements.RemoveFirst();
         }
 
         class RateMeasurement

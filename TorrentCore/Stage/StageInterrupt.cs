@@ -14,48 +14,48 @@ namespace TorrentCore.Stage
 {
     public class StageInterrupt : IStageInterrupt
     {
-        private readonly ManualResetEvent pauseEvent = new ManualResetEvent(false);
-        private readonly ManualResetEvent stopEvent = new ManualResetEvent(false);
-        private readonly ManualResetEvent stateChangeEvent = new ManualResetEvent(false);
+        private readonly ManualResetEvent _pauseEvent = new ManualResetEvent(false);
+        private readonly ManualResetEvent _stopEvent = new ManualResetEvent(false);
+        private readonly ManualResetEvent _stateChangeEvent = new ManualResetEvent(false);
 
         public bool IsPauseRequested { get; private set; }
 
         public bool IsStopRequested { get; private set; }
 
-        public WaitHandle PauseWaitHandle => pauseEvent;
+        public WaitHandle PauseWaitHandle => _pauseEvent;
 
-        public WaitHandle StopWaitHandle => stopEvent;
+        public WaitHandle StopWaitHandle => _stopEvent;
 
-        public WaitHandle InterruptHandle => stateChangeEvent;
+        public WaitHandle InterruptHandle => _stateChangeEvent;
 
         public void Pause()
         {
             IsPauseRequested = true;
-            pauseEvent.Set();
-            stateChangeEvent.Set();
+            _pauseEvent.Set();
+            _stateChangeEvent.Set();
         }
 
         public void Resume()
         {
             IsPauseRequested = false;
-            pauseEvent.Reset();
-            stateChangeEvent.Set();
+            _pauseEvent.Reset();
+            _stateChangeEvent.Set();
         }
 
         public void Stop()
         {
             IsStopRequested = true;
-            stopEvent.Set();
-            stateChangeEvent.Set();
+            _stopEvent.Set();
+            _stateChangeEvent.Set();
         }
 
         public void Reset()
         {
             IsStopRequested = false;
             IsPauseRequested = false;
-            pauseEvent.Reset();
-            stopEvent.Reset();
-            stateChangeEvent.Reset();
+            _pauseEvent.Reset();
+            _stopEvent.Reset();
+            _stateChangeEvent.Reset();
         }
     }
 }

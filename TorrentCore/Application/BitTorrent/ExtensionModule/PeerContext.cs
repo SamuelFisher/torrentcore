@@ -18,9 +18,9 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
 {
     internal partial class PeerContext : IPeerContext
     {
-        private readonly ITorrentContext torrentContext;
-        private readonly Dictionary<string, object> customValues;
-        private readonly Action<byte> registerMessageHandler;
+        private readonly ITorrentContext _torrentContext;
+        private readonly Dictionary<string, object> _customValues;
+        private readonly Action<byte> _registerMessageHandler;
 
         public PeerContext(
             PeerConnection peer,
@@ -29,20 +29,20 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
             Action<byte> registerMessageHandler)
         {
             Peer = peer;
-            this.customValues = customValues;
-            this.registerMessageHandler = registerMessageHandler;
-            this.torrentContext = torrentContext;
+            _customValues = customValues;
+            _registerMessageHandler = registerMessageHandler;
+            _torrentContext = torrentContext;
         }
 
         public PeerConnection Peer { get; }
 
-        public IPieceDataHandler DataHandler => torrentContext.DataHandler;
+        public IPieceDataHandler DataHandler => _torrentContext.DataHandler;
 
-        public IBlockRequests BlockRequests => torrentContext.BlockRequests;
+        public IBlockRequests BlockRequests => _torrentContext.BlockRequests;
 
         public T GetValue<T>(string key)
         {
-            if (!customValues.TryGetValue(key, out object value))
+            if (!_customValues.TryGetValue(key, out object value))
                 return default(T);
 
             return (T)value;
@@ -50,12 +50,12 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
 
         public void SetValue<T>(string key, T value)
         {
-            customValues[key] = value;
+            _customValues[key] = value;
         }
 
         public void RegisterMessageHandler(byte messageId)
         {
-            registerMessageHandler(messageId);
+            _registerMessageHandler(messageId);
         }
 
         public void SendMessage(byte messageId, byte[] data)
@@ -73,13 +73,13 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
 
     internal partial class PeerContext : ITorrentContext
     {
-        public Metainfo Metainfo => torrentContext.Metainfo;
+        public Metainfo Metainfo => _torrentContext.Metainfo;
 
-        public IReadOnlyCollection<PeerConnection> Peers => torrentContext.Peers;
+        public IReadOnlyCollection<PeerConnection> Peers => _torrentContext.Peers;
 
         public void PeersAvailable(IEnumerable<ITransportStream> peers)
         {
-            torrentContext.PeersAvailable(peers);
+            _torrentContext.PeersAvailable(peers);
         }
     }
 }

@@ -19,32 +19,32 @@ namespace TorrentCore.Transport.Tcp
 {
     sealed class TcpTransportStream : ITransportStream
     {
-        private readonly ManualResetEvent connectionEvent = new ManualResetEvent(false);
-        private readonly TcpClient client;
+        private readonly ManualResetEvent _connectionEvent = new ManualResetEvent(false);
+        private readonly TcpClient _client;
 
         /// <summary>
-        /// Creates a new TcpTransportStream which can later connect to the remote peer at the specified address and port.
+        /// Initializes a new instance of the <see cref="TcpTransportStream"/> class.
         /// </summary>
         /// <param name="adapterAddress">Local IP address of the adapter to bind to.</param>
         /// <param name="remoteAddress">IP address of remote peer.</param>
         /// <param name="port">Port of remote peer.</param>
         public TcpTransportStream(IPAddress adapterAddress, IPAddress remoteAddress, int port)
         {
-            client = new TcpClient(adapterAddress.AddressFamily);
+            _client = new TcpClient(adapterAddress.AddressFamily);
 
             // Use the adapter for the IPAddress specified
-            client.Client.Bind(new IPEndPoint(adapterAddress, 0));
+            _client.Client.Bind(new IPEndPoint(adapterAddress, 0));
 
             RemoteEndPoint = new IPEndPoint(remoteAddress, port);
         }
 
         /// <summary>
-        /// Creates a new TcpTransportStream from the existing TcpClient.
+        /// Initializes a new instance of the <see cref="TcpTransportStream"/> class.
         /// </summary>
         /// <param name="client">Existing connection.</param>
         public TcpTransportStream(TcpClient client)
         {
-            this.client = client;
+            _client = client;
             Stream = new RateLimitedStream(client.GetStream());
             RemoteEndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
         }
@@ -60,7 +60,7 @@ namespace TorrentCore.Transport.Tcp
         /// <summary>
         /// Gets a value indicating whether this connection is active.
         /// </summary>
-        public bool IsConnected => client.Connected;
+        public bool IsConnected => _client.Connected;
 
         /// <summary>
         /// Gets a value indicating whether a connection attempt is in progress for this stream.
@@ -81,7 +81,7 @@ namespace TorrentCore.Transport.Tcp
 
             if (IsConnecting)
             {
-                connectionEvent.WaitOne();
+                _connectionEvent.WaitOne();
                 return;
             }
 
@@ -89,23 +89,23 @@ namespace TorrentCore.Transport.Tcp
 
             try
             {
-                await client.ConnectAsync(RemoteEndPoint.Address, RemoteEndPoint.Port);
+                await _client.ConnectAsync(RemoteEndPoint.Address, RemoteEndPoint.Port);
             }
             finally
             {
                 IsConnecting = false;
-                connectionEvent.Set();
+                _connectionEvent.Set();
             }
 
-            Stream = new RateLimitedStream(client.GetStream());
+            Stream = new RateLimitedStream(_client.GetStream());
 
             IsConnecting = false;
-            connectionEvent.Set();
+            _connectionEvent.Set();
         }
 
         public void Disconnect()
         {
-            client.Dispose();
+            _client.Dispose();
         }
     }
 }

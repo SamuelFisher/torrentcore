@@ -1,18 +1,9 @@
 ﻿// This file is part of TorrentCore.
-//     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
-// 
-// TorrentCore is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as
-// published by the Free Software Foundation, version 3.
-// 
-// TorrentCore is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with TorrentCore.  If not, see <http://www.gnu.org/licenses/>.
+//   https://torrentcore.org
+// Copyright (c) Samuel Fisher.
+//
+// Licensed under the GNU Lesser General Public License, version 3. See the
+// LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,13 +19,13 @@ namespace TorrentCore.Test.Data
     [TestFixture]
     public class PieceCheckerHandlerTest
     {
-        private List<Tuple<long, byte[]>> writtenData;
-        private PieceCheckerHandler pieceChecker;
+        private List<Tuple<long, byte[]>> _writtenData;
+        private PieceCheckerHandler _pieceChecker;
 
         [SetUp]
         public void Setup()
         {
-            writtenData = new List<Tuple<long, byte[]>>();
+            _writtenData = new List<Tuple<long, byte[]>>();
 
             Sha1Hash hash;
             using (var sha1 = SHA1.Create())
@@ -59,9 +50,9 @@ namespace TorrentCore.Test.Data
                        .Returns(metainfo);
             baseHandler.Setup(x => x.WriteBlockData(It.IsAny<long>(),
                                                     It.IsAny<byte[]>()))
-                       .Callback<long, byte[]>((offset, data) => writtenData.Add(Tuple.Create(offset, data)));
+                       .Callback<long, byte[]>((offset, data) => _writtenData.Add(Tuple.Create(offset, data)));
 
-            pieceChecker = new PieceCheckerHandler(baseHandler.Object);
+            _pieceChecker = new PieceCheckerHandler(baseHandler.Object);
         }
 
         [Test]
@@ -69,20 +60,20 @@ namespace TorrentCore.Test.Data
         {
             var completed = new List<Piece>();
 
-            pieceChecker.PieceCompleted += args => { completed.Add(args); };
+            _pieceChecker.PieceCompleted += args => { completed.Add(args); };
 
-            pieceChecker.PieceCorrupted += args => { Assert.Fail("Piece marked as corrupted."); };
+            _pieceChecker.PieceCorrupted += args => { Assert.Fail("Piece marked as corrupted."); };
 
             var data = Enumerable.Repeat((byte)0, 50).ToArray();
-            pieceChecker.WriteBlockData(0, data);
+            _pieceChecker.WriteBlockData(0, data);
 
             Assert.That(completed, Has.Count.EqualTo(1));
             Assert.That(completed[0].Index, Is.EqualTo(0));
             Assert.That(completed[0].Size, Is.EqualTo(50));
 
-            Assert.That(writtenData, Has.Count.EqualTo(1));
-            Assert.That(writtenData[0].Item1, Is.EqualTo(0));
-            CollectionAssert.AreEqual(data, writtenData[0].Item2);
+            Assert.That(_writtenData, Has.Count.EqualTo(1));
+            Assert.That(_writtenData[0].Item1, Is.EqualTo(0));
+            CollectionAssert.AreEqual(data, _writtenData[0].Item2);
         }
 
         [Test]
@@ -90,17 +81,17 @@ namespace TorrentCore.Test.Data
         {
             var corrupted = new List<Piece>();
 
-            pieceChecker.PieceCompleted += args => { Assert.Fail("Piece marked as completed."); };
+            _pieceChecker.PieceCompleted += args => { Assert.Fail("Piece marked as completed."); };
 
-            pieceChecker.PieceCorrupted += args => { corrupted.Add(args); };
+            _pieceChecker.PieceCorrupted += args => { corrupted.Add(args); };
 
-            pieceChecker.WriteBlockData(0, Enumerable.Repeat((byte)1, 50).ToArray());
+            _pieceChecker.WriteBlockData(0, Enumerable.Repeat((byte)1, 50).ToArray());
 
             Assert.That(corrupted, Has.Count.EqualTo(1));
             Assert.That(corrupted[0].Index, Is.EqualTo(0));
             Assert.That(corrupted[0].Size, Is.EqualTo(50));
 
-            Assert.That(writtenData, Is.Empty);
+            Assert.That(_writtenData, Is.Empty);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
     {
         public const byte MessageId = 5;
 
-        private readonly int bitfieldLength;
+        private readonly int _bitfieldLength;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BitfieldMessage"/> class.
@@ -30,7 +30,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         /// <param name="bitfieldLength">Number of pieces in the bitfield.</param>
         public BitfieldMessage(int bitfieldLength)
         {
-            this.bitfieldLength = bitfieldLength;
+            _bitfieldLength = bitfieldLength;
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         {
             // Bitfield
             byte[] bitfieldData = reader.ReadBytes(length);
-            Bitfield = new Bitfield(bitfieldData, bitfieldLength);
+            Bitfield = new Bitfield(bitfieldData, _bitfieldLength);
         }
     }
 }

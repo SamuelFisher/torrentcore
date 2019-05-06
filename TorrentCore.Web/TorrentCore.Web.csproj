@@ -19,6 +19,16 @@
     <OutputType>Library</OutputType>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>..\StyleCopRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="..\stylecop.json" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <Embeddedresource Include="..\torrentcore-webui\build\**\*.*" />
   </ItemGroup>
@@ -28,6 +38,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.2" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.0" />

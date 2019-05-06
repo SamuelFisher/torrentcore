@@ -16,16 +16,16 @@ namespace TorrentCore.Engine
 {
     class MainLoop : IMainLoop
     {
-        private readonly AutoResetEvent handle = new AutoResetEvent(false);
-        private readonly ConcurrentQueue<Action> queue = new ConcurrentQueue<Action>();
-        private readonly HashSet<RegularTask> regularTasks = new HashSet<RegularTask>();
+        private readonly AutoResetEvent _handle = new AutoResetEvent(false);
+        private readonly ConcurrentQueue<Action> _queue = new ConcurrentQueue<Action>();
+        private readonly HashSet<RegularTask> _regularTasks = new HashSet<RegularTask>();
 
-        private Thread mainLoop;
-        private CancellationTokenSource cancelToken;
-        private Timer regularTaskTimer;
+        private Thread _mainLoop;
+        private CancellationTokenSource _cancelToken;
+        private Timer _regularTaskTimer;
 
         /// <summary>
-        /// Gets or a value indicating whether the loop is running.
+        /// Gets a value indicating whether the loop is running.
         /// </summary>
         public bool IsRunning { get; private set; }
 
@@ -36,24 +36,24 @@ namespace TorrentCore.Engine
                 IsRunning = true;
 
                 // Start main loop
-                cancelToken = new CancellationTokenSource();
-                mainLoop = new Thread(() =>
+                _cancelToken = new CancellationTokenSource();
+                _mainLoop = new Thread(() =>
                 {
                     Thread.CurrentThread.Name = "MainLoop";
-                    Loop(cancelToken.Token);
+                    Loop(_cancelToken.Token);
                 });
-                mainLoop.Start();
+                _mainLoop.Start();
 
                 var scheduleRegularTasks = new Action(() =>
                 {
                     AddTask(() =>
                     {
-                        foreach (var task in regularTasks)
+                        foreach (var task in _regularTasks)
                             task.Execute();
-                        regularTaskTimer.Change(100, Timeout.Infinite);
+                        _regularTaskTimer.Change(100, Timeout.Infinite);
                     });
                 });
-                regularTaskTimer = new Timer(state => scheduleRegularTasks(), null, -1, Timeout.Infinite);
+                _regularTaskTimer = new Timer(state => scheduleRegularTasks(), null, -1, Timeout.Infinite);
                 scheduleRegularTasks();
             }
         }
@@ -65,21 +65,21 @@ namespace TorrentCore.Engine
                 IsRunning = false;
 
                 // Stop main loop
-                cancelToken.Cancel();
+                _cancelToken.Cancel();
                 AddTask(() => { });
             }
         }
 
         public void AddTask(Action t)
         {
-            queue.Enqueue(t);
-            handle.Set();
+            _queue.Enqueue(t);
+            _handle.Set();
         }
 
         public IRegularTask AddRegularTask(Action t)
         {
             var rt = new RegularTask(t, RemoveRegularTask);
-            regularTasks.Add(rt);
+            _regularTasks.Add(rt);
             return rt;
         }
 
@@ -88,11 +88,11 @@ namespace TorrentCore.Engine
             while (true)
             {
                 Action task = null;
-                if (queue.Count > 0)
-                    queue.TryDequeue(out task);
+                if (_queue.Count > 0)
+                    _queue.TryDequeue(out task);
 
                 if (task == null)
-                    handle.WaitOne();
+                    _handle.WaitOne();
                 else
                     task();
 
@@ -103,23 +103,23 @@ namespace TorrentCore.Engine
 
         void RemoveRegularTask(RegularTask task)
         {
-            regularTasks.Remove(task);
+            _regularTasks.Remove(task);
         }
 
         private class RegularTask : IRegularTask
         {
-            private readonly Action execute;
-            private readonly Action<RegularTask> cancel;
+            private readonly Action _execute;
+            private readonly Action<RegularTask> _cancel;
 
             public RegularTask(Action execute, Action<RegularTask> cancel)
             {
-                this.execute = execute;
-                this.cancel = cancel;
+                _execute = execute;
+                _cancel = cancel;
             }
 
-            public void Execute() => execute();
+            public void Execute() => _execute();
 
-            public void Cancel() => cancel(this);
+            public void Cancel() => _cancel(this);
         }
     }
 }

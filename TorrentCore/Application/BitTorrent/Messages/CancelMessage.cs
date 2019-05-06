@@ -34,7 +34,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
         /// <param name="block">The block request to be cancelled by the cancel message.</param>
         public CancelMessage(BlockRequest block)
         {
-            this.Block = block;
+            Block = block;
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace TorrentCore.Application.BitTorrent.Messages
             int blockLength = reader.ReadInt32();
 
             // Set block
-            this.Block = new BlockRequest(pieceIndex, blockOffset, blockLength);
+            Block = new BlockRequest(pieceIndex, blockOffset, blockLength);
         }
     }
 }

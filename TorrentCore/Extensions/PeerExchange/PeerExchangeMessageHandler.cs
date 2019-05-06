@@ -21,16 +21,16 @@ namespace TorrentCore.Extensions.PeerExchange
     {
         private static readonly ILogger Log = LogManager.GetLogger<PeerExchangeMessageHandler>();
 
-        private readonly IPAddress adapterAddress;
+        private readonly IPAddress _adapterAddress;
 
         public PeerExchangeMessageHandler(IPAddress adapterAddress)
         {
-            this.adapterAddress = adapterAddress;
+            _adapterAddress = adapterAddress;
         }
 
         public IReadOnlyDictionary<string, Func<IExtensionProtocolMessage>> SupportedMessageTypes { get; } = new Dictionary<string, Func<IExtensionProtocolMessage>>
         {
-            [PeerExchangeMessage.MessageType] = () => new PeerExchangeMessage()
+            [PeerExchangeMessage.MessageType] = () => new PeerExchangeMessage(),
         };
 
         public void PrepareExtensionProtocolHandshake(IPrepareExtensionProtocolHandshakeContext context)
@@ -54,7 +54,7 @@ namespace TorrentCore.Extensions.PeerExchange
 
         private ITransportStream CreateTransportStream(IPEndPoint endPoint)
         {
-            return new TcpTransportStream(adapterAddress, endPoint.Address, endPoint.Port);
+            return new TcpTransportStream(_adapterAddress, endPoint.Address, endPoint.Port);
         }
     }
 }

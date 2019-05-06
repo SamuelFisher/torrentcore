@@ -13,13 +13,13 @@ namespace TorrentCore.Modularity
 {
     class ModuleManager : IModuleManager
     {
-        private readonly List<IModule> modules = new List<IModule>();
+        private readonly List<IModule> _modules = new List<IModule>();
 
-        public IEnumerable<IModule> Modules => modules;
+        public IEnumerable<IModule> Modules => _modules;
 
         public void Register(IModule module)
         {
-            modules.Add(module);
+            _modules.Add(module);
         }
     }
 }

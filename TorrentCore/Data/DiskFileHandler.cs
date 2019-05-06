@@ -19,7 +19,7 @@ namespace TorrentCore.Data
     /// </summary>
     public class DiskFileHandler : IFileHandler
     {
-        private readonly Dictionary<string, FileStream> openFiles;
+        private readonly Dictionary<string, FileStream> _openFiles;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DiskFileHandler"/> class using the specified directory.
@@ -28,7 +28,7 @@ namespace TorrentCore.Data
         public DiskFileHandler(string directory)
         {
             Directory = directory;
-            openFiles = new Dictionary<string, FileStream>();
+            _openFiles = new Dictionary<string, FileStream>();
         }
 
         /// <summary>
@@ -43,10 +43,10 @@ namespace TorrentCore.Data
                 File.WriteAllText(path, string.Empty);
 
             FileStream stream;
-            if (!openFiles.TryGetValue(fileName, out stream))
+            if (!_openFiles.TryGetValue(fileName, out stream))
             {
                 stream = File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
-                openFiles.Add(fileName, stream);
+                _openFiles.Add(fileName, stream);
             }
 
             return stream;
@@ -54,12 +54,12 @@ namespace TorrentCore.Data
 
         public void CloseFileStream(Stream file)
         {
-            if (!openFiles.ContainsValue((FileStream)file))
+            if (!_openFiles.ContainsValue((FileStream)file))
                 throw new InvalidOperationException("Cannot close stream. File is not open.");
 
             // Remove from collection of open files
             string fileName = null;
-            foreach (var stream in openFiles)
+            foreach (var stream in _openFiles)
             {
                 if (stream.Value == file)
                 {
@@ -67,14 +67,14 @@ namespace TorrentCore.Data
                     break;
                 }
             }
-            openFiles.Remove(fileName);
+            _openFiles.Remove(fileName);
 
             file.Dispose();
         }
 
         public void Flush()
         {
-            foreach (var file in openFiles)
+            foreach (var file in _openFiles)
             {
                 file.Value.Flush();
             }
@@ -82,7 +82,7 @@ namespace TorrentCore.Data
 
         public void Dispose()
         {
-            foreach (var file in openFiles)
+            foreach (var file in _openFiles)
                 file.Value.Dispose();
         }
 

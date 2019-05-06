@@ -1,18 +1,9 @@
 ﻿// This file is part of TorrentCore.
-//     https://torrentcore.org
-// Copyright (c) 2016 Sam Fisher.
-// 
-// TorrentCore is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as
-// published by the Free Software Foundation, version 3.
-// 
-// TorrentCore is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with TorrentCore.  If not, see <http://www.gnu.org/licenses/>.
+//   https://torrentcore.org
+// Copyright (c) Samuel Fisher.
+//
+// Licensed under the GNU Lesser General Public License, version 3. See the
+// LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -26,20 +17,20 @@ namespace TorrentCore.Test.Engine
     [TestFixture]
     public class MainLoopTest
     {
-        private IMainLoop mainLoop;
+        private IMainLoop _mainLoop;
 
         [SetUp]
         public void Setup()
         {
-            mainLoop = new MainLoop();
-            mainLoop.Start();
+            _mainLoop = new MainLoop();
+            _mainLoop.Start();
         }
-        
+
         [Test]
         public void RunTask()
         {
             int invoked = 0;
-            mainLoop.AddTask(() => invoked++);
+            _mainLoop.AddTask(() => invoked++);
 
             Task.Delay(TimeSpan.FromMilliseconds(200)).Wait();
 
@@ -49,20 +40,20 @@ namespace TorrentCore.Test.Engine
         [Test]
         public void IsRunning()
         {
-            Assert.That(mainLoop.IsRunning);
+            Assert.That(_mainLoop.IsRunning);
         }
 
         [Test]
         public void Stop()
         {
-            mainLoop.Stop();
-            Assert.That(mainLoop.IsRunning, Is.False);
+            _mainLoop.Stop();
+            Assert.That(_mainLoop.IsRunning, Is.False);
         }
 
         [TearDown]
         public void TearDown()
         {
-            mainLoop.Stop();
+            _mainLoop.Stop();
         }
     }
 }

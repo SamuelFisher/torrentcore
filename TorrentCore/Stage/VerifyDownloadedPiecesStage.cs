@@ -20,16 +20,16 @@ namespace TorrentCore.Stage
 {
     class VerifyDownloadedPiecesStage : ITorrentStage
     {
-        private readonly IApplicationProtocol<PeerConnection> application;
+        private readonly IApplicationProtocol<PeerConnection> _application;
 
         public VerifyDownloadedPiecesStage(IApplicationProtocol<PeerConnection> application)
         {
-            this.application = application;
+            _application = application;
         }
 
         public void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress)
         {
-            if (application.DataHandler.IncompletePieces().Any())
+            if (_application.DataHandler.IncompletePieces().Any())
                 HashPiecesData(interrupt, progress);
         }
 
@@ -38,24 +38,24 @@ namespace TorrentCore.Stage
             progress.Report(new StatusUpdate(DownloadState.Checking, 0.0));
             using (var sha1 = SHA1.Create())
             {
-                foreach (Piece piece in application.Metainfo.Pieces)
+                foreach (Piece piece in _application.Metainfo.Pieces)
                 {
                     // Verify piece hash
-                    long pieceOffset = application.Metainfo.PieceOffset(piece);
+                    long pieceOffset = _application.Metainfo.PieceOffset(piece);
                     byte[] pieceData;
-                    if (!application.DataHandler.TryReadBlockData(pieceOffset, piece.Size, out pieceData))
+                    if (!_application.DataHandler.TryReadBlockData(pieceOffset, piece.Size, out pieceData))
                     {
                         progress.Report(new StatusUpdate(DownloadState.Checking,
-                            (piece.Index + 1d) / application.Metainfo.Pieces.Count));
+                            (piece.Index + 1d) / _application.Metainfo.Pieces.Count));
                         continue;
                     }
 
                     var hash = new Sha1Hash(sha1.ComputeHash(pieceData));
                     if (hash == piece.Hash)
-                        application.DataHandler.MarkPieceAsCompleted(piece);
+                        _application.DataHandler.MarkPieceAsCompleted(piece);
 
                     progress.Report(new StatusUpdate(DownloadState.Checking,
-                        (piece.Index + 1d) / application.Metainfo.Pieces.Count));
+                        (piece.Index + 1d) / _application.Metainfo.Pieces.Count));
 
                     if (interrupt.IsPauseRequested)
                         interrupt.InterruptHandle.WaitOne();

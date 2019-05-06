@@ -23,10 +23,10 @@ namespace TorrentCore.Transport
     /// </summary>
     internal partial class RateLimitedStream
     {
-        private readonly Queue<byte[]> writeQueue = new Queue<byte[]>();
-        private readonly ManualResetEvent writeFinished = new ManualResetEvent(true);
+        private readonly Queue<byte[]> _writeQueue = new Queue<byte[]>();
+        private readonly ManualResetEvent _writeFinished = new ManualResetEvent(true);
 
-        bool isWriting = false;
+        bool _isWriting = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RateLimitedStream"/> class.
@@ -86,40 +86,40 @@ namespace TorrentCore.Transport
             Array.Copy(buffer, offset, data, 0, count);
 
             bool startWriting = false;
-            lock (writeQueue)
+            lock (_writeQueue)
             {
-                if (!isWriting)
+                if (!_isWriting)
                 {
                     startWriting = true;
-                    isWriting = true;
+                    _isWriting = true;
                 }
             }
 
-            lock (writeQueue)
+            lock (_writeQueue)
             {
-                writeQueue.Enqueue(data);
-                writeFinished.Reset();
+                _writeQueue.Enqueue(data);
+                _writeFinished.Reset();
             }
 
             if (startWriting)
             {
                 Task.Factory.StartNew(() =>
                 {
-                    while (writeQueue.Count > 0)
+                    while (_writeQueue.Count > 0)
                     {
                         byte[] d;
-                        lock (writeQueue)
-                            d = writeQueue.Dequeue();
+                        lock (_writeQueue)
+                            d = _writeQueue.Dequeue();
                         int wait = Limiter.TimeUntilCanSend(d.Length);
                         if (wait > 0)
                             Task.Delay(wait).Wait();
                         BaseStream.Write(d, 0, d.Length);
                     }
 
-                    lock (writeQueue)
+                    lock (_writeQueue)
                     {
-                        isWriting = false;
-                        writeFinished.Set();
+                        _isWriting = false;
+                        _writeFinished.Set();
                     }
                 });
             }
@@ -145,8 +145,8 @@ namespace TorrentCore.Transport
         public override void Flush()
         {
             // Wait for data to be written
-            if (writeQueue.Count > 0)
-                writeFinished.WaitOne();
+            if (_writeQueue.Count > 0)
+                _writeFinished.WaitOne();
 
             BaseStream.Flush();
         }

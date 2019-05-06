@@ -18,35 +18,35 @@ namespace TorrentCore.Tracker
     /// </summary>
     class AggregatedTracker : ITracker
     {
-        private readonly ITrackerClientFactory trackerClientFactory;
-        private readonly IReadOnlyList<IReadOnlyList<Uri>> trackers;
+        private readonly ITrackerClientFactory _trackerClientFactory;
+        private readonly IReadOnlyList<IReadOnlyList<Uri>> _trackers;
 
-        private readonly Dictionary<ITracker, TrackerStatistics> activeTrackers;
+        private readonly Dictionary<ITracker, TrackerStatistics> _activeTrackers;
 
         public AggregatedTracker(ITrackerClientFactory trackerClientFactory, IReadOnlyList<IReadOnlyList<Uri>> trackers)
         {
-            this.trackerClientFactory = trackerClientFactory;
-            this.trackers = trackers;
-            activeTrackers = new Dictionary<ITracker, TrackerStatistics>();
+            _trackerClientFactory = trackerClientFactory;
+            _trackers = trackers;
+            _activeTrackers = new Dictionary<ITracker, TrackerStatistics>();
         }
 
         public string Type => throw new NotSupportedException();
 
-        public IReadOnlyCollection<ITrackerDetails> Trackers => activeTrackers.Values;
+        public IReadOnlyCollection<ITrackerDetails> Trackers => _activeTrackers.Values;
 
         public async Task<AnnounceResult> Announce(AnnounceRequest request)
         {
-            if (!activeTrackers.Any())
+            if (!_activeTrackers.Any())
                 CreateCandidateTrackers();
 
             var announceTime = DateTime.Now;
-            var announceTasks = activeTrackers.Select(tracker =>
+            var announceTasks = _activeTrackers.Select(tracker =>
             {
                 tracker.Value.LastAnnounce = announceTime;
                 return new
                 {
                     AnnounceTask = tracker.Key.Announce(request),
-                    Statistics = tracker.Value
+                    Statistics = tracker.Value,
                 };
             }).ToArray();
             await Task.WhenAll(announceTasks.Select(x => x.AnnounceTask));
@@ -61,12 +61,12 @@ namespace TorrentCore.Tracker
         private void CreateCandidateTrackers()
         {
             // TODO: currently just take the first tracker.
-            var trackerUri = trackers.First().First();
-            var tracker = trackerClientFactory.CreateTrackerClient(trackerUri);
-            activeTrackers.Add(tracker, new TrackerStatistics
+            var trackerUri = _trackers.First().First();
+            var tracker = _trackerClientFactory.CreateTrackerClient(trackerUri);
+            _activeTrackers.Add(tracker, new TrackerStatistics
             {
                 Uri = trackerUri,
-                Type = tracker.Type
+                Type = tracker.Type,
             });
         }
 
