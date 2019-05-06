@@ -36,7 +36,7 @@ AppVeyor. For more information, see
 [getting started](https://torrentcore.org/getting-started/).
 
 ```csharp
-var client = new TorrentClient();
+var client = TorrentClient.Create();
 var download = client.Add("sintel.torrent",
                           @"C:\Downloads\sintel");
 download.Start();

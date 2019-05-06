@@ -23,6 +23,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using TorrentCore.Data;
+using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Test.Functional
 {
@@ -44,11 +45,11 @@ namespace TorrentCore.Test.Functional
 
             var sourceFiles = new MemoryFileHandler("file.dat", fileData);
 
-            var seed = new TorrentClient(0);
+            var seed = TorrentClient.Create(new TorrentClientSettings { ListenPort = 0 });
             var seedDownload = seed.Add(metainfo, tracker.CreateTrackerClient(null), sourceFiles);
-            tracker.RegisterPeer(seed.Transport.Port);
+            tracker.RegisterPeer(((TcpTransportProtocol)seed.Transport).Port);
 
-            var peer = new TorrentClient(0);
+            var peer = TorrentClient.Create(new TorrentClientSettings { ListenPort = 0 });
             var peerFileHandler = new MemoryFileHandler();
             var peerDownload = peer.Add(metainfo, tracker.CreateTrackerClient(null), peerFileHandler);
 

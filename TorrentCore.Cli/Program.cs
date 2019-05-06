@@ -56,7 +56,7 @@ namespace TorrentCore.Cli
             else
                 LogManager.Configure(factory => factory.AddConsole(LogLevel.Information));
 
-            var client = new TorrentClient(port);
+            var client = TorrentClient.Create(new TorrentClientSettings { ListenPort = port });
             var extensionProtocolModule = new ExtensionProtocolModule();
             //extensionProtocolModule.RegisterMessageHandler(new PeerExchangeMessageHandler(client.AdapterAddress));
             extensionProtocolModule.RegisterMessageHandler(new MetadataMessageHandler());

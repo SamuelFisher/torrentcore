@@ -148,8 +148,10 @@ namespace TorrentCore
 
                 ApplicationProtocol.PeersAvailable(result.Peers);
             }
-            catch (System.Net.Http.HttpRequestException)
+            catch (System.Net.Http.HttpRequestException ex)
             {
+                Log.LogError(default(EventId), ex, "Unable to contact tracker");
+
                 // Cannot connect to tracker
                 State = DownloadState.Error;
             }

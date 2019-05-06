@@ -15,7 +15,10 @@ using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore.Tracker
 {
-    class TrackerClientFactory : ITrackerClientFactory
+    /// <summary>
+    /// Default implementation of <see cref="ITrackerClientFactory"/> supporting HTTP and UDP trackers.
+    /// </summary>
+    public class TrackerClientFactory : ITrackerClientFactory
     {
         private readonly LocalTcpConnectionDetails connectionDetails;
 

@@ -37,15 +37,12 @@ namespace TorrentCore.Transport.Tcp
         /// <param name="port">Port to listen on for incoming connections.</param>
         /// <param name="bindToNextAvailablePort">If the specified port is in use, attempts to bind to the next available port.</param>
         /// <param name="localBindAddress">The local address to use for connections.</param>
-        /// <param name="acceptConnectionHandler">Invoked to accept the connection.</param>
         public TcpTransportProtocol(
             int port,
             bool bindToNextAvailablePort,
-            IPAddress localBindAddress,
-            Action<AcceptConnectionEventArgs> acceptConnectionHandler)
+            IPAddress localBindAddress)
         {
             streams = new ConcurrentBag<TcpTransportStream>();
-            AcceptConnectionHandler = acceptConnectionHandler;
             this.bindToNextAvailablePort = bindToNextAvailablePort;
             Port = port;
             LocalBindAddress = localBindAddress;
@@ -53,7 +50,7 @@ namespace TorrentCore.Transport.Tcp
             RateLimiter = new RateLimiter();
         }
 
-        public Action<AcceptConnectionEventArgs> AcceptConnectionHandler { get; }
+        public event Action<AcceptConnectionEventArgs> AcceptConnectionHandler;
 
         /// <summary>
         /// Gets or sets the maximum upload and download rates for all streams using this transport protocol.
@@ -100,7 +97,7 @@ namespace TorrentCore.Transport.Tcp
                 accepted = true;
                 streams.Add(stream);
             });
-            AcceptConnectionHandler(applicationEE);
+            AcceptConnectionHandler?.Invoke(applicationEE);
 
             if (!accepted)
                 e.Client.Dispose();

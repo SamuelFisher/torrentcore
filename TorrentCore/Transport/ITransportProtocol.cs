@@ -10,14 +10,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using TorrentCore.Data;
-using TorrentCore.Tracker;
 
 namespace TorrentCore.Transport
 {
-    interface ITransportProtocol
+    public interface ITransportProtocol
     {
+        /// <summary>
+        /// Invoked when a new peer wants to connect.
+        /// </summary>
+        event Action<AcceptConnectionEventArgs> AcceptConnectionHandler;
+
         /// <summary>
         /// Gets a collection of the active transport streams.
         /// </summary>

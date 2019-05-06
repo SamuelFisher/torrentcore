@@ -43,8 +43,7 @@ namespace TorrentCore.Test.Transport
         {
             return new TcpTransportProtocol(6881,
                                             true,
-                                            IPAddress.Loopback,
-                                            _ => { });
+                                            IPAddress.Loopback);
         }
     }
 }

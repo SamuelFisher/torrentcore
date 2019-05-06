@@ -16,6 +16,9 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent.Connection
 {
+    /// <summary>
+    /// Initiates new peer connections using the <see cref="BitTorrentApplicationProtocol{TConnectionContext}"/>.
+    /// </summary>
     class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator<PeerConnection, BitTorrentPeerInitiator.IContext, PeerConnectionArgs>
     {
         private const string BitTorrentProtocol = "BitTorrent protocol";

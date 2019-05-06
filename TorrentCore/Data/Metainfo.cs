@@ -20,16 +20,17 @@ namespace TorrentCore.Data
     /// </summary>
     public class Metainfo
     {
-        private readonly List<Piece> pieces;
+        private readonly ReadOnlyCollection<Piece> pieces;
 
         /// <summary>
-        /// Creates a new Metainfo with the specified data.
+        /// Initializes a new instance of the <see cref="Metainfo"/> class.
         /// </summary>
         /// <param name="name">The name of the torrent.</param>
         /// <param name="infoHash">SHA-1 hash of the metadata.</param>
         /// <param name="files">List of files to include.</param>
         /// <param name="pieces">List of pieces to include.</param>
         /// <param name="trackers">URLs of the trackers.</param>
+        /// <param name="metadata">Info section of the metadata file.</param>
         public Metainfo(string name,
                         Sha1Hash infoHash,
                         IEnumerable<ContainedFile> files,
@@ -38,8 +39,7 @@ namespace TorrentCore.Data
                         IReadOnlyList<byte> metadata)
         {
             Name = name;
-            this.pieces = new List<Piece>();
-            this.pieces.AddRange(pieces);
+            this.pieces = new ReadOnlyCollection<Piece>(pieces.ToList());
             InfoHash = infoHash;
             Files = new List<ContainedFile>();
             Files.AddRange(files);
@@ -60,7 +60,7 @@ namespace TorrentCore.Data
         public Sha1Hash InfoHash { get; }
 
         /// <summary>
-        /// The 'info' section of the metainfo file.
+        /// Gets the 'info' section of the metainfo file.
         /// </summary>
         public IReadOnlyList<byte> Metadata { get; }
 
@@ -87,7 +87,7 @@ namespace TorrentCore.Data
         /// <summary>
         /// Gets a read-only list of pieces for this set of files.
         /// </summary>
-        public IReadOnlyList<Piece> Pieces => pieces.AsReadOnly();
+        public IReadOnlyList<Piece> Pieces => pieces;
 
         /// <summary>
         /// Returns the offset in bytes to the start of the specified piece.

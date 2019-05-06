@@ -26,48 +26,38 @@ using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore
 {
-    public class TorrentClient : IDisposable
+    public class TorrentClient : ITorrentClient
     {
         private static readonly ILogger Log = LogManager.GetLogger<TorrentClient>();
 
         private readonly IDictionary<Sha1Hash, TorrentDownload> downloads;
         private readonly MainLoop mainLoop;
-        private readonly TcpTransportProtocol transport;
         private readonly ITrackerClientFactory trackerClientFactory;
         private readonly BitTorrentPeerInitiator peerInitiator;
-        private readonly IModuleManager moduleManager;
         private Timer updateStatisticsTimer;
 
-        public TorrentClient()
-            : this(new TorrentClientSettings { FindAvailablePort = true })
-        {
-        }
-
-        public TorrentClient(int listenPort)
-            : this(new TorrentClientSettings { ListenPort = listenPort })
-        {
-        }
-
-        public TorrentClient(TorrentClientSettings settings)
+        public TorrentClient(
+            PeerId localPeerId,
+            ITransportProtocol transport,
+            ITrackerClientFactory trackerClientFactory)
         {
             downloads = new Dictionary<Sha1Hash, TorrentDownload>();
             mainLoop = new MainLoop();
-            moduleManager = new ModuleManager();
-            moduleManager.Register(new CoreMessagingModule());
+            Modules = new ModuleManager();
+            Modules.Register(new CoreMessagingModule());
             mainLoop.Start();
-            peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol, moduleManager);
-            LocalPeerId = settings.PeerId;
 
-            transport = new TcpTransportProtocol(
-                settings.ListenPort,
-                settings.FindAvailablePort,
-                settings.AdapterAddress,
-                AcceptConnection);
+            // TODO: allow supplying custom peer initiator
+            peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)downloads[infoHash].Manager.ApplicationProtocol, Modules);
+            LocalPeerId = localPeerId;
 
-            transport.Start();
-            trackerClientFactory = new TrackerClientFactory(transport.LocalConection);
+            Transport = transport;
+            transport.AcceptConnectionHandler += AcceptConnection;
+            Transport.Start();
+
+            this.trackerClientFactory = trackerClientFactory;
+
             updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
-            AdapterAddress = settings.AdapterAddress;
         }
 
         /// <summary>
@@ -75,14 +65,9 @@ namespace TorrentCore
         /// </summary>
         public PeerId LocalPeerId { get; }
 
-        /// <summary>
-        /// Gets the address of the adapter used for connections.
-        /// </summary>
-        public IPAddress AdapterAddress { get; }
+        public IModuleManager Modules { get; }
 
-        public IModuleManager Modules => moduleManager;
-
-        internal TcpTransportProtocol Transport => transport;
+        internal ITransportProtocol Transport { get; }
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(downloads.Values.ToList());
 
@@ -116,7 +101,7 @@ namespace TorrentCore
         internal TorrentDownload Add(Metainfo metainfo, ITracker tracker, IFileHandler fileHandler)
         {
             var dataHandler = new PieceCheckerHandler(new BlockDataHandler(fileHandler, metainfo));
-            var bitTorrentApplicationProtocol = new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, metainfo, peerInitiator, m => new QueueingMessageHandler(mainLoop, m), moduleManager, dataHandler);
+            var bitTorrentApplicationProtocol = new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, metainfo, peerInitiator, m => new QueueingMessageHandler(mainLoop, m), Modules, dataHandler);
             var downloadManager = new TorrentDownloadManager(LocalPeerId,
                                                              mainLoop,
                                                              bitTorrentApplicationProtocol,
@@ -140,6 +125,32 @@ namespace TorrentCore
             foreach (var download in Downloads)
                 download.Stop();
             mainLoop.Stop();
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="TorrentClient"/> using the default settings.
+        /// </summary>
+        /// <returns>A new <see cref="TorrentClient"/>.</returns>
+        public static TorrentClient Create()
+        {
+            return Create(new TorrentClientSettings());
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="TorrentClient"/> using the supplied settings.
+        /// </summary>
+        /// <param name="settings">Settings to configure the torrent client.</param>
+        /// <returns>A new <see cref="TorrentClient"/>.</returns>
+        public static TorrentClient Create(TorrentClientSettings settings)
+        {
+            var transport = new TcpTransportProtocol(
+                settings.ListenPort,
+                settings.FindAvailablePort,
+                settings.AdapterAddress);
+
+            var trackerClientFactory = new TrackerClientFactory(transport.LocalConection);
+
+            return new TorrentClient(settings.PeerId, transport, trackerClientFactory);
         }
     }
 }
