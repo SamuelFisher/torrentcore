@@ -38,7 +38,7 @@ The directory structure is as follows (all relative to the working directory):
 - `downloader` - the downloader will download the torrent into this directory
 - `transport` - directory used by the `FileTransportProtocol`
   - `announce` - peers announce to the file-based tracker by placing the file `{PeerId}.txt` containing their peer ID into this directory
-  - `{PeerA}/{PeerB}` - contains the data sent from PeerA to PeerB
+  - `{PeerA}/{PeerB}` - contains the data sent from PeerB to PeerA
 
 After running the example you should see that `downloader/TorrentContent.txt` contains the data downloaded from the seeder:
 
