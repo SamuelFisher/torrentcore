@@ -30,8 +30,8 @@ missing features.
 TorrentCore is designed to be easy to use, while supporting more advanced
 features if required.
 
-There are no stable releases yet, but you can use the unstable NuGet feed from
-AppVeyor. For more information, see
+There are no stable releases yet, but you can use the unstable **NuGet feed from
+AppVeyor**. For more information, see
 [getting started](https://torrentcore.org/getting-started/).
 
 ```csharp
@@ -40,6 +40,14 @@ var download = client.Add("sintel.torrent",
                           @"C:\Downloads\sintel");
 download.Start();
 await download.WaitForDownloadCompletionAsync();
+```
+
+For more customisation of the `TorrentClient`, use `TorrentClientBuilder`:
+
+```csharp
+var client = TorrentClientBuilder.CreateDefaultBuilder()
+    .UsePort(8000)
+    .Build();
 ```
 
 See the [examples](examples) directory for more in-depth examples.

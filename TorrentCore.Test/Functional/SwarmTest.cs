@@ -36,11 +36,11 @@ namespace TorrentCore.Test.Functional
 
             var sourceFiles = new MemoryFileHandler("file.dat", fileData);
 
-            var seed = (TorrentClient)TorrentClient.CreateDefault();
+            var seed = (TorrentClient)TorrentClient.Create();
             var seedDownload = seed.Add(metainfo, tracker.CreateTrackerClient(null), sourceFiles);
             tracker.RegisterPeer(((TcpTransportProtocol)seed.Transport).Port);
 
-            var peer = (TorrentClient)TorrentClient.CreateDefault();
+            var peer = (TorrentClient)TorrentClient.Create();
             var peerFileHandler = new MemoryFileHandler();
             var peerDownload = peer.Add(metainfo, tracker.CreateTrackerClient(null), peerFileHandler);
 

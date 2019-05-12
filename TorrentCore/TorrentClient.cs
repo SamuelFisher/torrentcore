@@ -116,7 +116,7 @@ namespace TorrentCore
             _mainLoop.Stop();
         }
 
-        public static ITorrentClient CreateDefault()
+        public static ITorrentClient Create()
         {
             return TorrentClientBuilder.CreateDefaultBuilder().Build();
         }
