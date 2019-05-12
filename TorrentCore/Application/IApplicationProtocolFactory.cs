@@ -8,13 +8,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TorrentCore.Data;
 
-namespace TorrentCore.Modularity
+namespace TorrentCore.Application
 {
-    public interface IModuleManager
+    public interface IApplicationProtocolFactory
     {
-        IEnumerable<IModule> Modules { get; }
-
-        void Register(IModule module);
+        IApplicationProtocol Create(Metainfo metainfo, IBlockDataHandler blockDataHandler);
     }
 }

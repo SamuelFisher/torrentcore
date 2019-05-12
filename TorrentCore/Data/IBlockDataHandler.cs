@@ -46,5 +46,10 @@ namespace TorrentCore.Data
         /// <param name="offset">Offset at which to start writing.</param>
         /// <param name="data">Block data to write.</param>
         void WriteBlockData(long offset, byte[] data);
+
+        /// <summary>
+        /// Flushes any underlying streams to ensure all data has been written.
+        /// </summary>
+        void Flush();
     }
 }

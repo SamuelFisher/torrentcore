@@ -13,21 +13,17 @@ using TorrentCore.Transport;
 namespace TorrentCore.Application
 {
     /// <summary>
-    /// Handshakes <see cref="ITransportStream"/> connections with new peers and determines which <see cref="IApplicationProtocol{TConnection}"/>
+    /// Handshakes <see cref="ITransportStream"/> connections with new peers and determines which <see cref="IApplicationProtocol"/>
     /// new connections should be given to.
     /// </summary>
-    /// <typeparam name="TPeerConnection">The type that represents connections to peers.</typeparam>
-    /// <typeparam name="TPreparationContext">The context supplied when accepting an incoming connection.</typeparam>
-    /// <typeparam name="TConnectionArgs">The connection args supplied when a new connection is accepted or initiated.</typeparam>
-    public interface IApplicationProtocolPeerInitiator<TPeerConnection, TPreparationContext, in TConnectionArgs>
+    public interface IApplicationProtocolPeerInitiator
     {
-        IApplicationProtocol<TPeerConnection> PrepareAcceptIncomingConnection(ITransportStream transportStream,
-                                                                              out TPreparationContext context);
+        void OnApplicationProtocolAdded(IApplicationProtocol instance);
 
-        TPeerConnection AcceptIncomingConnection(ITransportStream transportStream,
-                                                 TPreparationContext context,
-                                                 TConnectionArgs c);
+        void OnApplicationProtocolRemoved(IApplicationProtocol instance);
 
-        TPeerConnection InitiateOutgoingConnection(ITransportStream transportStream, TConnectionArgs c);
+        void AcceptIncomingConnection(AcceptConnectionEventArgs e);
+
+        IPeer InitiateOutgoingConnection(ITransportStream transportStream, IApplicationProtocol applicationProtocol);
     }
 }

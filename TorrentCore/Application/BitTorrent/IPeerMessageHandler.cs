@@ -21,12 +21,12 @@ namespace TorrentCore.Application.BitTorrent
         /// </summary>
         /// <param name="peer">Peer the message was received from.</param>
         /// <param name="data">Received message data.</param>
-        void MessageReceived(PeerConnection peer, byte[] data);
+        void MessageReceived(BitTorrentPeer peer, byte[] data);
 
         /// <summary>
         /// Invoked when a peer disconnects.
         /// </summary>
         /// <param name="peer">The peer that disconnected.</param>
-        void PeerDisconnected(PeerConnection peer);
+        void PeerDisconnected(BitTorrentPeer peer);
     }
 }

@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Extensions.ExtensionProtocol;
 using TorrentCore.Extensions.PeerExchange;
@@ -42,30 +43,45 @@ namespace TorrentCore.Cli
                 syntax.DefineParameter("input", ref input, "Path of torrent file to download.");
             });
 
-            if (verbose)
-                LogManager.Configure(factory => factory.AddConsole(LogLevel.Debug));
-            else
-                LogManager.Configure(factory => factory.AddConsole(LogLevel.Information));
+            var builder = TorrentClientBuilder.CreateDefaultBuilder();
 
-            var client = TorrentClient.Create(new TorrentClientSettings { ListenPort = port });
+            // Configure logging
+            builder.ConfigureServices(services => services.AddLogging(loggingBuilder =>
+                loggingBuilder.AddConsole().SetMinimumLevel(verbose ? LogLevel.Debug : LogLevel.Information)));
+
+            builder.UsePort(port);
+
+            var client = builder.Build();
+
             var extensionProtocolModule = new ExtensionProtocolModule();
             ////extensionProtocolModule.RegisterMessageHandler(new PeerExchangeMessageHandler(client.AdapterAddress));
-            extensionProtocolModule.RegisterMessageHandler(new MetadataMessageHandler());
-            client.Modules.Register(extensionProtocolModule);
+            ////extensionProtocolModule.RegisterMessageHandler(new MetadataMessageHandler());
+            ////client.Modules.Register(extensionProtocolModule);
 
-            if (runWebUi)
-            {
-                var uri = client.EnableWebUI(uiPort);
-                Console.WriteLine($"Web UI started at {uri}");
-            }
+            ////if (runWebUi)
+            ////{
+            ////    var uri = client.EnableWebUI(uiPort);
+            ////    Console.WriteLine($"Web UI started at {uri}");
+            ////}
 
             var download = client.Add(input, output);
             download.Start();
 
             Console.WriteLine("Downloading...");
 
-            download.WaitForDownloadCompletionAsync().Wait();
+            using (var timer = new System.Timers.Timer(TimeSpan.FromSeconds(1).TotalMilliseconds))
+            {
+                timer.Elapsed += (o, e) => LogStatus(download);
+                timer.Start();
+
+                download.WaitForDownloadCompletionAsync().Wait();
+            }
             Console.ReadKey();
+        }
+
+        private static void LogStatus(TorrentDownload download)
+        {
+            Console.WriteLine($"{download.State} ({download.Progress:P})");
         }
     }
 }

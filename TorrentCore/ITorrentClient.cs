@@ -24,8 +24,6 @@ namespace TorrentCore
 
         PeerId LocalPeerId { get; }
 
-        IModuleManager Modules { get; }
-
         TorrentDownload Add(Metainfo metainfo, string downloadDirectory);
 
         TorrentDownload Add(Stream torrentFileStream, string downloadDirectory);

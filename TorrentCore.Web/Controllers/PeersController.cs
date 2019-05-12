@@ -30,7 +30,7 @@ namespace TorrentCore.Web.Controllers
         [HttpGet]
         public IList<PeerDetails> Get()
         {
-            return _client.Downloads.SelectMany(x => x.Manager.ApplicationProtocol.Peers).Select(x => new PeerDetails(x)).ToList();
+            return _client.Downloads.SelectMany(x => x.Manager.ApplicationProtocol.Peers).Select(x => new PeerDetails((BitTorrentPeer)x)).ToList();
         }
 
         [HttpGet("{peerId}")]
@@ -41,7 +41,7 @@ namespace TorrentCore.Web.Controllers
 
         public class PeerDetails
         {
-            internal PeerDetails(PeerConnection x)
+            internal PeerDetails(BitTorrentPeer x)
             {
                 Address = x.Address;
                 PeerId = Convert.ToBase64String(x.PeerId.Value.ToArray());

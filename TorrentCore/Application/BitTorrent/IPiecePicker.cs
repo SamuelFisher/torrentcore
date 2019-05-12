@@ -25,7 +25,7 @@ namespace TorrentCore.Application.BitTorrent
         /// <param name="blockRequests">Provides details of which blocks have been requested already.</param>
         IEnumerable<BlockRequest> BlocksToRequest(IReadOnlyList<Piece> incompletePieces,
                                                   Bitfield availability,
-                                                  IReadOnlyCollection<PeerConnection> peers,
+                                                  IReadOnlyCollection<IPeer> peers,
                                                   IBlockRequests blockRequests);
     }
 }

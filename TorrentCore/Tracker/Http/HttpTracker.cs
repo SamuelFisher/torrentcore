@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BencodeNET.Objects;
 using BencodeNET.Parsing;
+using Microsoft.Extensions.Logging;
 using TorrentCore.Transport;
 using TorrentCore.Transport.Tcp;
 
@@ -25,16 +26,19 @@ namespace TorrentCore.Tracker.Http
     /// </summary>
     class HttpTracker : ITracker
     {
-        private readonly LocalTcpConnectionDetails _tcpConnectionDetails;
+        private readonly ILogger<HttpTracker> _logger;
+        private readonly LocalTcpConnectionOptions _tcpConnectionDetails;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpTracker"/> class,
         /// with the remote tracker at the specified URL.
         /// </summary>
+        /// <param name="logger">Logger.</param>
         /// <param name="tcpConnectionDetails">Provides details on which port and local address to use.</param>
         /// <param name="baseUrl">URL of the remote tracker.</param>
-        public HttpTracker(LocalTcpConnectionDetails tcpConnectionDetails, Uri baseUrl)
+        public HttpTracker(ILogger<HttpTracker> logger, LocalTcpConnectionOptions tcpConnectionDetails, Uri baseUrl)
         {
+            _logger = logger;
             _tcpConnectionDetails = tcpConnectionDetails;
             BaseUrl = baseUrl;
         }
@@ -52,6 +56,8 @@ namespace TorrentCore.Tracker.Http
         /// <param name="request">The request to send.</param>
         public virtual async Task<AnnounceResult> Announce(AnnounceRequest request)
         {
+            _logger.LogInformation($"Announcing to {BaseUrl}");
+
             var response = await SendRequest(request);
             return ProcessResponse(response);
         }
@@ -93,6 +99,8 @@ namespace TorrentCore.Tracker.Http
 
         private AnnounceResult ProcessResponse(Stream response)
         {
+            _logger.LogInformation($"Received response from {BaseUrl}");
+
             var resultPeers = new List<AnnounceResultPeer>();
 
             var parser = new BencodeParser();

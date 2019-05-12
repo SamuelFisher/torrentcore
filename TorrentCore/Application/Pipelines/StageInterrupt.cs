@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace TorrentCore.Stage
+namespace TorrentCore.Pipelines
 {
     public class StageInterrupt : IStageInterrupt
     {

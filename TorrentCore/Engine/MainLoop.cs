@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace TorrentCore.Engine
 {
-    class MainLoop : IMainLoop
+    public class MainLoop : IMainLoop
     {
         private readonly AutoResetEvent _handle = new AutoResetEvent(false);
         private readonly ConcurrentQueue<Action> _queue = new ConcurrentQueue<Action>();
@@ -119,7 +119,7 @@ namespace TorrentCore.Engine
 
             public void Execute() => _execute();
 
-            public void Cancel() => _cancel(this);
+            public void Dispose() => _cancel(this);
         }
     }
 }

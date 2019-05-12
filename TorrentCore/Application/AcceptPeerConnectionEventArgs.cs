@@ -15,9 +15,9 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Application
 {
-    public class AcceptPeerConnectionEventArgs<TConnection> : EventArgs
+    public class AcceptPeerConnectionEventArgs : EventArgs
     {
-        public AcceptPeerConnectionEventArgs(ITransportStream ts, Func<TConnection> accept)
+        public AcceptPeerConnectionEventArgs(ITransportStream ts, Func<IPeer> accept)
         {
             TransportStream = ts;
             Accept = accept;
@@ -25,6 +25,6 @@ namespace TorrentCore.Application
 
         public ITransportStream TransportStream { get; }
 
-        public Func<TConnection> Accept { get; }
+        public Func<IPeer> Accept { get; }
     }
 }

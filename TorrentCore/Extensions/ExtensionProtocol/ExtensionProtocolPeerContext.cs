@@ -42,11 +42,11 @@ namespace TorrentCore.Extensions.ExtensionProtocol
     {
         public IBlockRequests BlockRequests => _peerContext.BlockRequests;
 
-        public PeerConnection Peer => _peerContext.Peer;
+        public BitTorrentPeer Peer => _peerContext.Peer;
 
         public Metainfo Metainfo => _peerContext.Metainfo;
 
-        public IReadOnlyCollection<PeerConnection> Peers => _peerContext.Peers;
+        public IReadOnlyCollection<BitTorrentPeer> Peers => _peerContext.Peers;
 
         public IPieceDataHandler DataHandler => _peerContext.DataHandler;
 

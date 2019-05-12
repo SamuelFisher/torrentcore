@@ -112,22 +112,22 @@ namespace TorrentCore.Application.BitTorrent
             }
         }
 
-        private void SetBlockCancelledByPeer(PeerConnection peer, BlockRequest blockRequest)
+        private void SetBlockCancelledByPeer(BitTorrentPeer peer, BlockRequest blockRequest)
         {
             peer.RequestedByRemotePeer.Remove(blockRequest);
         }
 
-        private void SetBlockRequestedByPeer(PeerConnection peer, BlockRequest blockRequest)
+        private void SetBlockRequestedByPeer(BitTorrentPeer peer, BlockRequest blockRequest)
         {
             peer.RequestedByRemotePeer.Add(blockRequest);
         }
 
-        private void SetPeerBitfield(PeerConnection peer, Bitfield bitfield)
+        private void SetPeerBitfield(BitTorrentPeer peer, Bitfield bitfield)
         {
             peer.Available = bitfield;
         }
 
-        private void SetPeerBitfield(IMessageReceivedContext context, PeerConnection peer, int pieceIndex, bool available)
+        private void SetPeerBitfield(IMessageReceivedContext context, BitTorrentPeer peer, int pieceIndex, bool available)
         {
             peer.Available.SetPieceAvailable(pieceIndex, available);
 
@@ -139,23 +139,23 @@ namespace TorrentCore.Application.BitTorrent
             }
         }
 
-        private void SetPeerInterested(PeerConnection peer, bool isInterested)
+        private void SetPeerInterested(BitTorrentPeer peer, bool isInterested)
         {
             peer.IsRemotePeerInterested = isInterested;
         }
 
-        private void UnchokePeer(PeerConnection peer)
+        private void UnchokePeer(BitTorrentPeer peer)
         {
             peer.IsChokingRemotePeer = false;
             peer.SendMessage(new UnchokeMessage());
         }
 
-        private void SetChokedByPeer(PeerConnection peer, bool choked)
+        private void SetChokedByPeer(BitTorrentPeer peer, bool choked)
         {
             peer.IsChokedByRemotePeer = choked;
         }
 
-        private void BlockReceived(IMessageReceivedContext context, PeerConnection peer, Block block)
+        private void BlockReceived(IMessageReceivedContext context, BitTorrentPeer peer, Block block)
         {
             peer.Requested.Remove(block.AsRequest());
             context.BlockRequests.BlockReceived(block);

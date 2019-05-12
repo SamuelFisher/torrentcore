@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,62 +15,62 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SimpleInjector;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
 using TorrentCore.Engine;
-using TorrentCore.Stage;
+using TorrentCore.Pipelines;
 using TorrentCore.Tracker;
 
 namespace TorrentCore
 {
     /// <summary>
-    /// Manages the download of a torrent by executing the pipeline and keeping track of downloaded data.
+    /// Runs a Torrent pipeline.
     /// </summary>
-    class TorrentDownloadManager : ITorrentDownloadManager
+    class PipelineRunner : ITorrentPipelineRunner
     {
-        private static readonly ILogger Log = LogManager.GetLogger<TorrentDownloadManager>();
-
+        private readonly ILogger<PipelineRunner> _logger;
         private readonly PeerId _localPeerId;
         private readonly IMainLoop _mainLoop;
-        private readonly Pipeline _pipeline;
+        private readonly IServiceProvider _parentContainer;
+        private readonly IPipelineFactory _pipelineFactory;
         private readonly StageInterrupt _stageInterrupt;
         private readonly Progress<StatusUpdate> _progress;
 
+        private IPipeline _pipeline;
         private volatile int _recentlyDownloaded;
         private volatile int _recentlyUploaded;
 
         private bool _isRunning;
 
-        internal TorrentDownloadManager(PeerId localPeerId,
-                                        IMainLoop mainLoop,
-                                        IApplicationProtocol<PeerConnection> applicationProtocol,
-                                        ITracker tracker,
-                                        Metainfo description)
+        public PipelineRunner(ILogger<PipelineRunner> logger,
+                              PeerId localPeerId,
+                              IMainLoop mainLoop,
+                              IApplicationProtocol applicationProtocol,
+                              ITracker tracker,
+                              IServiceProvider parentContainer,
+                              IPipelineFactory pipelineFactory)
         {
+            _logger = logger;
             _localPeerId = localPeerId;
             _mainLoop = mainLoop;
             ApplicationProtocol = applicationProtocol;
-            Description = description;
+            Description = applicationProtocol.Metainfo;
+            _parentContainer = parentContainer;
+            _pipelineFactory = pipelineFactory;
             Tracker = tracker;
             State = DownloadState.Pending;
-            Downloaded = 0;
             DownloadRateMeasurer = new RateMeasurer();
             UploadRateMeasurer = new RateMeasurer();
             _progress = new Progress<StatusUpdate>();
             _progress.ProgressChanged += ProgressChanged;
 
-            _pipeline = new PipelineBuilder()
-                .AddStage<VerifyDownloadedPiecesStage>()
-                .AddStage<DownloadPiecesStage>()
-                .Build();
-
             _stageInterrupt = new StageInterrupt();
         }
 
-        internal IApplicationProtocol<PeerConnection> ApplicationProtocol { get; }
+        public IApplicationProtocol ApplicationProtocol { get; }
 
         internal ITracker Tracker { get; }
 
@@ -79,9 +80,9 @@ namespace TorrentCore
         public Metainfo Description { get; }
 
         /// <summary>
-        /// Gets or sets the number of bytes downloaded so far.
+        /// Gets the number of bytes downloaded so far.
         /// </summary>
-        public long Downloaded { get; set; }
+        public long Downloaded => ApplicationProtocol.DataHandler.CompletedPieces.Sum(x => x.Size);
 
         /// <summary>
         /// Gets the number of bytes still to be downloaded.
@@ -120,20 +121,17 @@ namespace TorrentCore
             {
                 await ContactTracker();
 
-                using (var container = new Container())
+                using (var pipelineScope = _parentContainer.CreateScope())
                 {
-                    container.RegisterSingleton(ApplicationProtocol);
-                    container.RegisterSingleton(_mainLoop);
-                    container.RegisterSingleton<IPiecePicker>(new PiecePicker());
-
-                    _pipeline.Run(container, _stageInterrupt, _progress);
+                    _pipeline = _pipelineFactory.CreatePipeline(pipelineScope.ServiceProvider, ApplicationProtocol);
+                    _pipeline.Run(_stageInterrupt, _progress);
                 }
             });
         }
 
         private async Task ContactTracker()
         {
-            Log.LogInformation("Contacting tracker");
+            _logger.LogInformation("Contacting tracker");
 
             try
             {
@@ -144,13 +142,13 @@ namespace TorrentCore
 
                 var result = await Tracker.Announce(request);
 
-                Log.LogInformation($"{result.Peers.Count} peers available");
+                _logger.LogInformation($"{result.Peers.Count} peers available");
 
                 ApplicationProtocol.PeersAvailable(result.Peers);
             }
-            catch (System.Net.Http.HttpRequestException ex)
+            catch (Exception ex)
             {
-                Log.LogError(default(EventId), ex, "Unable to contact tracker");
+                _logger.LogError(ex, "Unable to contact tracker");
 
                 // Cannot connect to tracker
                 State = DownloadState.Error;
@@ -177,6 +175,7 @@ namespace TorrentCore
 
         private void ProgressChanged(object sender, StatusUpdate e)
         {
+            _logger.LogTrace($"Progress: {e}");
             State = e.State;
         }
 

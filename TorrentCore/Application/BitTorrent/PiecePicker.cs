@@ -25,7 +25,7 @@ namespace TorrentCore.Application.BitTorrent
 
         public IEnumerable<BlockRequest> BlocksToRequest(IReadOnlyList<Piece> incompletePieces,
                                                          Bitfield availability,
-                                                         IReadOnlyCollection<PeerConnection> peers,
+                                                         IReadOnlyCollection<IPeer> peers,
                                                          IBlockRequests blockRequests)
         {
             var toRequest = new List<BlockRequest>();

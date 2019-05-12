@@ -23,7 +23,7 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
         private readonly Action<byte> _registerMessageHandler;
 
         public PeerContext(
-            PeerConnection peer,
+            BitTorrentPeer peer,
             Dictionary<string, object> customValues,
             ITorrentContext torrentContext,
             Action<byte> registerMessageHandler)
@@ -34,7 +34,7 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
             _torrentContext = torrentContext;
         }
 
-        public PeerConnection Peer { get; }
+        public BitTorrentPeer Peer { get; }
 
         public IPieceDataHandler DataHandler => _torrentContext.DataHandler;
 
@@ -75,7 +75,7 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
     {
         public Metainfo Metainfo => _torrentContext.Metainfo;
 
-        public IReadOnlyCollection<PeerConnection> Peers => _torrentContext.Peers;
+        public IReadOnlyCollection<BitTorrentPeer> Peers => _torrentContext.Peers;
 
         public void PeersAvailable(IEnumerable<ITransportStream> peers)
         {

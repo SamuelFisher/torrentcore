@@ -83,7 +83,10 @@ namespace TorrentCore.Data
         public void Dispose()
         {
             foreach (var file in _openFiles)
+            {
+                file.Value.Flush();
                 file.Value.Dispose();
+            }
         }
 
         string FullName(string fileName)

@@ -11,92 +11,77 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using TorrentCore.Data;
+using TorrentCore.Engine;
 using TorrentCore.Modularity;
 using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent.Connection
 {
     /// <summary>
-    /// Initiates new peer connections using the <see cref="BitTorrentApplicationProtocol{TConnectionContext}"/>.
+    /// Initiates new peer connections using the <see cref="BitTorrentApplicationProtocol"/>.
     /// </summary>
-    class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator<PeerConnection, BitTorrentPeerInitiator.IContext, PeerConnectionArgs>
+    class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator
     {
         private const string BitTorrentProtocol = "BitTorrent protocol";
         private const int BitTorrentProtocolReservedBytes = 8;
 
-        private readonly Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> _applicationProtocolLookup;
-        private readonly IModuleManager _modules;
+        private readonly Dictionary<Sha1Hash, IApplicationProtocol> _applicationProtocolLookup;
+        private readonly PeerId _localPeerId;
+        private readonly IMainLoop _mainLoop;
+        private readonly IReadOnlyCollection<IModule> _modules;
 
-        public BitTorrentPeerInitiator(
-            Func<Sha1Hash, BitTorrentApplicationProtocol<IContext>> applicationProtocolLookup,
-            IModuleManager modules)
+        public BitTorrentPeerInitiator(PeerId localPeerId, IMainLoop mainLoop, IEnumerable<IModule> modules)
         {
-            _applicationProtocolLookup = applicationProtocolLookup;
-            _modules = modules;
+            _applicationProtocolLookup = new Dictionary<Sha1Hash, IApplicationProtocol>();
+            _localPeerId = localPeerId;
+            _mainLoop = mainLoop;
+            _modules = modules.ToList().AsReadOnly();
         }
 
-        public interface IContext
+        public void AcceptIncomingConnection(AcceptConnectionEventArgs e)
         {
-            PeerId PeerId { get; }
-
-            byte[] ReservedBytes { get; }
-
-            ProtocolExtension SupportedExtensions { get; }
-        }
-
-        public BitTorrentApplicationProtocol<IContext> PrepareAcceptIncomingConnection(ITransportStream transportStream, out IContext context)
-        {
-            var reader = new BigEndianBinaryReader(transportStream.Stream);
+            var reader = new BigEndianBinaryReader(e.TransportStream.Stream);
             var header = ReadConnectionHeader(reader);
-            context = new PeerConnectionPreparationContext(header.PeerId, header.ReservedBytes, header.SupportedExtensions);
-            return _applicationProtocolLookup(header.InfoHash);
+
+            // TODO: check if exists
+            var applicationProtocol = _applicationProtocolLookup[header.InfoHash];
+
+            applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs(e.TransportStream, () =>
+            {
+                e.Accept();
+
+                var writer = new BigEndianBinaryWriter(e.TransportStream.Stream);
+                WriteConnectionHeader(writer, applicationProtocol.Metainfo.InfoHash, _localPeerId);
+
+                return new BitTorrentPeer(
+                    applicationProtocol.Metainfo,
+                    header.PeerId,
+                    header.ReservedBytes,
+                    header.SupportedExtensions,
+                    new QueueingMessageHandler(_mainLoop, (BitTorrentApplicationProtocol)applicationProtocol),
+                    e.TransportStream);
+            }));
         }
 
-        IApplicationProtocol<PeerConnection> IApplicationProtocolPeerInitiator<PeerConnection, IContext, PeerConnectionArgs>.PrepareAcceptIncomingConnection(
-            ITransportStream transportStream,
-            out IContext context)
-        {
-            return PrepareAcceptIncomingConnection(transportStream, out context);
-        }
-
-        public PeerConnection AcceptIncomingConnection(
-            ITransportStream transportStream,
-            IContext context,
-            PeerConnectionArgs c)
-        {
-            var writer = new BigEndianBinaryWriter(transportStream.Stream);
-            WriteConnectionHeader(writer, c.Metainfo.InfoHash, c.LocalPeerId);
-
-            return new PeerConnection(
-                c.Metainfo,
-                context.PeerId,
-                context.ReservedBytes,
-                context.SupportedExtensions,
-                c.MessageHandler,
-                transportStream);
-        }
-
-        public PeerConnection InitiateOutgoingConnection(
-            ITransportStream transportStream,
-            PeerConnectionArgs c)
+        public IPeer InitiateOutgoingConnection(ITransportStream transportStream, IApplicationProtocol applicationProtocol)
         {
             var writer = new BigEndianBinaryWriter(transportStream.Stream);
             var reader = new BigEndianBinaryReader(transportStream.Stream);
-            WriteConnectionHeader(writer, c.Metainfo.InfoHash, c.LocalPeerId);
+            WriteConnectionHeader(writer, applicationProtocol.Metainfo.InfoHash, _localPeerId);
             var header = ReadConnectionHeader(reader);
 
-            if (header.InfoHash != c.Metainfo.InfoHash)
+            if (header.InfoHash != applicationProtocol.Metainfo.InfoHash)
             {
                 // Infohash mismatch
                 throw new NotImplementedException();
             }
 
-            return new PeerConnection(
-                c.Metainfo,
+            return new BitTorrentPeer(
+                applicationProtocol.Metainfo,
                 header.PeerId,
                 header.ReservedBytes,
                 header.SupportedExtensions,
-                c.MessageHandler,
+                new QueueingMessageHandler(_mainLoop, (BitTorrentApplicationProtocol)applicationProtocol),
                 transportStream);
         }
 
@@ -114,7 +99,7 @@ namespace TorrentCore.Application.BitTorrent.Connection
             // Reserved bytes
             var reservedBytes = new byte[BitTorrentProtocolReservedBytes];
             var prepareHandshakeContext = new PrepareHandshakeContext(reservedBytes);
-            foreach (var module in _modules.Modules)
+            foreach (var module in _modules)
                 module.OnPrepareHandshake(prepareHandshakeContext);
             writer.Write(prepareHandshakeContext.ReservedBytes);
 
@@ -150,6 +135,16 @@ namespace TorrentCore.Application.BitTorrent.Connection
             return result;
         }
 
+        public void OnApplicationProtocolAdded(IApplicationProtocol instance)
+        {
+            _applicationProtocolLookup.Add(instance.Metainfo.InfoHash, instance);
+        }
+
+        public void OnApplicationProtocolRemoved(IApplicationProtocol instance)
+        {
+            _applicationProtocolLookup.Remove(instance.Metainfo.InfoHash);
+        }
+
         private class ConnectionHeader
         {
             public Sha1Hash InfoHash { get; set; }
@@ -159,25 +154,6 @@ namespace TorrentCore.Application.BitTorrent.Connection
             public ProtocolExtension SupportedExtensions { get; set; }
 
             public byte[] ReservedBytes { get; set; }
-        }
-
-        private class PeerConnectionPreparationContext : IContext
-        {
-            internal PeerConnectionPreparationContext(
-                PeerId peerId,
-                byte[] reservedBytes,
-                ProtocolExtension supportExtensions)
-            {
-                PeerId = peerId;
-                ReservedBytes = reservedBytes;
-                SupportedExtensions = supportExtensions;
-            }
-
-            public PeerId PeerId { get; }
-
-            public byte[] ReservedBytes { get; }
-
-            public ProtocolExtension SupportedExtensions { get; }
         }
 
         private class PrepareHandshakeContext : IPrepareHandshakeContext

@@ -3,10 +3,9 @@
 [![Build Status](https://travis-ci.org/SamuelFisher/torrentcore.svg?branch=master)](https://travis-ci.org/SamuelFisher/torrentcore)
 [![Build status](https://ci.appveyor.com/api/projects/status/p1kf1e1upjsiw60n/branch/master?svg=true)](https://ci.appveyor.com/project/SamuelFisher/torrentcore/branch/master)
 
-A BitTorrent library that runs on all platforms supporting the .NET Platform
-Standard 1.4.
+A BitTorrent library that runs on all platforms supporting .NET Standard 2.0.
 
-## Feature progress:
+## Feature Progress
 
 This project is currently work-in-progress and there are likely to be bugs and
 missing features.
@@ -43,11 +42,14 @@ download.Start();
 await download.WaitForDownloadCompletionAsync();
 ```
 
+See the [examples](examples) directory for more in-depth examples.
+
 ## Extensible and Modular
 
 TorrentCore is designed to allow custom extensions to be added and parts of the
-built-in functionality to be swapped out. Below are some examples of the ways in
-which functionality can be added or changed.
+built-in functionality to be swapped out. TorrentCore uses the same dependency
+injection framework as ASP.NET Core to make this possible. Below are some examples of
+the ways in which functionality can be added or changed.
 
 The public interface for extensions is unstable and subject to change while
 TorrentCore is under pre-release development.
@@ -60,6 +62,10 @@ connections to peers as a `System.IO.Stream`. (Of course, protocols other than
 TCP and uTP are incompatible with other BitTorrent clients.)
 
 For more information, see [custom transport protocols](https://torrentcore.org/extend/transport-protocol/).
+
+The [CustomTransportProtocol example](examples/CustomTransportProtocol) demonstrates a
+custom transport protocol by sending data as files on disk without any use of TCP or
+sockets.
 
 ### BitTorrent Extension Protocol
 
@@ -110,6 +116,8 @@ For more information, see [piece picking](https://torrentcore.org/extend/piece-p
 
 ## Web UI
 
+*Web UI is work in progress. Package not currently published.*
+
 TorrentCore includes an optional web UI that can be used for detailed monitoring
 of Torrent downloads. It does not provide any functionality to control
 downloads.
@@ -123,8 +131,6 @@ client.EnableWebUI();
 This starts a web interface on `http://localhost:5001/`.
 
 ![/webui-screenshot.png](/webui-screenshot.png)
-
-The web interface requires .NET Platform Standard 1.6.
 
 ## Command-Line Client
 

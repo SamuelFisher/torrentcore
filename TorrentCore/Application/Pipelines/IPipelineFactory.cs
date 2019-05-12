@@ -8,10 +8,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TorrentCore.Application;
 
-namespace TorrentCore.Engine
+namespace TorrentCore.Pipelines
 {
-    public interface IRegularTask : IDisposable
+    public interface IPipelineFactory
     {
+        IPipeline CreatePipeline(IServiceProvider services, IApplicationProtocol applicationProtocol);
     }
 }

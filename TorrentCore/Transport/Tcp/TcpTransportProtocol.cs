@@ -15,6 +15,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace TorrentCore.Transport.Tcp
 {
@@ -26,7 +27,6 @@ namespace TorrentCore.Transport.Tcp
     {
         private static readonly ILogger Log = LogManager.GetLogger<TcpTransportProtocol>();
 
-        private readonly bool _bindToNextAvailablePort;
         private readonly ConcurrentBag<TcpTransportStream> _streams;
 
         private TcpListener _listener;
@@ -34,19 +34,12 @@ namespace TorrentCore.Transport.Tcp
         /// <summary>
         /// Initializes a new instance of the <see cref="TcpTransportProtocol"/> class that will listen on the specified port.
         /// </summary>
-        /// <param name="port">Port to listen on for incoming connections.</param>
-        /// <param name="bindToNextAvailablePort">If the specified port is in use, attempts to bind to the next available port.</param>
-        /// <param name="localBindAddress">The local address to use for connections.</param>
-        public TcpTransportProtocol(
-            int port,
-            bool bindToNextAvailablePort,
-            IPAddress localBindAddress)
+        /// <param name="options">Listen options.</param>
+        public TcpTransportProtocol(IOptions<LocalTcpConnectionOptions> options)
         {
             _streams = new ConcurrentBag<TcpTransportStream>();
-            _bindToNextAvailablePort = bindToNextAvailablePort;
-            Port = port;
-            LocalBindAddress = localBindAddress;
-            LocalConection = new LocalTcpConnectionDetails(port, null, localBindAddress);
+            Port = options.Value.Port;
+            LocalBindAddress = options.Value.BindAddress ?? IPAddress.Any;
             RateLimiter = new RateLimiter();
         }
 
@@ -57,7 +50,7 @@ namespace TorrentCore.Transport.Tcp
         /// </summary>
         public RateLimiter RateLimiter { get; set; }
 
-        public LocalTcpConnectionDetails LocalConection { get; private set; }
+        public LocalTcpConnectionOptions LocalConection { get; private set; }
 
         /// <summary>
         /// Gets the port on which incoming connections can be made.
@@ -108,27 +101,11 @@ namespace TorrentCore.Transport.Tcp
         /// </summary>
         public void Start()
         {
-            int port = Port;
-            for (int attempt = 0; attempt < 5; attempt++)
-            {
-                try
-                {
-                    _listener = new TcpListener(LocalBindAddress, port + attempt);
-                    _listener.Start();
-                }
-                catch (SocketException ex)
-                    when (ex.SocketErrorCode == SocketError.AddressAlreadyInUse && _bindToNextAvailablePort)
-                {
-                    // Try next available port
-                    continue;
-                }
-
-                break;
-            }
+            _listener = new TcpListener(LocalBindAddress, Port);
+            _listener.Start();
 
             // If port=0 was supplied, set the actual port we are listening on.
             Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
-            LocalConection = new LocalTcpConnectionDetails(Port, null, LocalBindAddress);
             ListenForIncomingConnections();
         }
 

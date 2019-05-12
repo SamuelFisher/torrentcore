@@ -13,6 +13,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using BencodeNET.Objects;
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
@@ -34,7 +35,15 @@ namespace TorrentCore.Test.Tracker
         [TestCase(true, Description = "Announce with compact response")]
         public void Announce(bool compact)
         {
-            var tracker = new MockHttpTracker(new LocalTcpConnectionDetails(5000, IPAddress.Loopback, IPAddress.Loopback), compact, new Uri("http://example.com/announce"));
+            var tracker = new MockHttpTracker(
+                new LocalTcpConnectionOptions
+                {
+                    Port = 5000,
+                    BindAddress = IPAddress.Loopback,
+                    PublicAddress = IPAddress.Loopback,
+                },
+                compact,
+                new Uri("http://example.com/announce"));
 
             var response = tracker.Announce(_request).Result;
             var peers = response.Peers.Cast<TcpTransportStream>().ToArray();
@@ -52,8 +61,8 @@ namespace TorrentCore.Test.Tracker
         {
             private readonly bool _compact;
 
-            public MockHttpTracker(LocalTcpConnectionDetails tcpConnectionDetails, bool compact, Uri baseUrl)
-                : base(tcpConnectionDetails, baseUrl)
+            public MockHttpTracker(LocalTcpConnectionOptions tcpConnectionDetails, bool compact, Uri baseUrl)
+                : base(new NullLogger<MockHttpTracker>(), tcpConnectionDetails, baseUrl)
             {
                 this._compact = compact;
             }

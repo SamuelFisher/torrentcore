@@ -19,7 +19,7 @@ namespace TorrentCore.Application.BitTorrent.ExtensionModule
     class MessageReceivedContext : PeerContext, IMessageReceivedContext
     {
         public MessageReceivedContext(
-            PeerConnection peer,
+            BitTorrentPeer peer,
             ITorrentContext torrentContext,
             int messageId,
             int messageLength,

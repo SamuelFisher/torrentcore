@@ -25,7 +25,7 @@ namespace TorrentCore.Modularity
         /// <summary>
         /// Gets the collection of currently connected peers.
         /// </summary>
-        IReadOnlyCollection<PeerConnection> Peers { get; }
+        IReadOnlyCollection<BitTorrentPeer> Peers { get; }
 
         /// <summary>
         /// Gets the handler providing access to downloaded pieces and block data.

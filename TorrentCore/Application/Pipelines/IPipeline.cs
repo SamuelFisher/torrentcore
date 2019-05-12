@@ -8,18 +8,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TorrentCore.Application;
 
-namespace TorrentCore.Modularity
+namespace TorrentCore.Pipelines
 {
-    class ModuleManager : IModuleManager
+    public interface IPipeline
     {
-        private readonly List<IModule> _modules = new List<IModule>();
-
-        public IEnumerable<IModule> Modules => _modules;
-
-        public void Register(IModule module)
-        {
-            _modules.Add(module);
-        }
+        void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress);
     }
 }

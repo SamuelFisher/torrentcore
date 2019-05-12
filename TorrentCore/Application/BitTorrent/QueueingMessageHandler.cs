@@ -20,16 +20,16 @@ namespace TorrentCore.Application.BitTorrent
 
         public QueueingMessageHandler(IMainLoop mainLoop, IPeerMessageHandler underlying)
         {
-            _mainLoop = mainLoop;
-            _underlying = underlying;
+            _mainLoop = mainLoop ?? throw new ArgumentNullException(nameof(mainLoop));
+            _underlying = underlying ?? throw new ArgumentNullException(nameof(underlying));
         }
 
-        public void MessageReceived(PeerConnection peer, byte[] data)
+        public void MessageReceived(BitTorrentPeer peer, byte[] data)
         {
             _mainLoop.AddTask(() => _underlying.MessageReceived(peer, data));
         }
 
-        public void PeerDisconnected(PeerConnection peer)
+        public void PeerDisconnected(BitTorrentPeer peer)
         {
             _mainLoop.AddTask(() => _underlying.PeerDisconnected(peer));
         }

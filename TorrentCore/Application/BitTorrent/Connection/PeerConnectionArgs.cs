@@ -18,18 +18,14 @@ namespace TorrentCore.Application.BitTorrent.Connection
     {
         public PeerConnectionArgs(
             PeerId localPeerId,
-            Metainfo metainfo,
-            IPeerMessageHandler messageHandler)
+            Metainfo metainfo)
         {
             LocalPeerId = localPeerId;
             Metainfo = metainfo;
-            MessageHandler = messageHandler;
         }
 
         public PeerId LocalPeerId { get; }
 
         public Metainfo Metainfo { get; }
-
-        public IPeerMessageHandler MessageHandler { get; }
     }
 }

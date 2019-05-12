@@ -8,6 +8,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using TorrentCore.Tracker.Http;
 using TorrentCore.Tracker.Udp;
 using TorrentCore.Transport;
@@ -20,11 +22,13 @@ namespace TorrentCore.Tracker
     /// </summary>
     public class TrackerClientFactory : ITrackerClientFactory
     {
-        private readonly LocalTcpConnectionDetails _connectionDetails;
+        private readonly LocalTcpConnectionOptions _connectionDetails;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public TrackerClientFactory(LocalTcpConnectionDetails connectionDetails)
+        public TrackerClientFactory(ILoggerFactory loggerFactory, IOptions<LocalTcpConnectionOptions> connectionDetails)
         {
-            _connectionDetails = connectionDetails;
+            _connectionDetails = connectionDetails.Value;
+            _loggerFactory = loggerFactory;
         }
 
         public ITracker CreateTrackerClient(Uri trackerUri)
@@ -32,7 +36,7 @@ namespace TorrentCore.Tracker
             switch (trackerUri.Scheme)
             {
                 case "http":
-                    return new HttpTracker(_connectionDetails, trackerUri);
+                    return new HttpTracker(_loggerFactory.CreateLogger<HttpTracker>(), _connectionDetails, trackerUri);
                 case "udp":
                     return new UdpTracker(_connectionDetails, trackerUri);
                 default:

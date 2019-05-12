@@ -21,12 +21,12 @@ namespace TorrentCore.Tracker.Udp
     {
         private const long ConnectionProtocolId = 0x41727101980L;
 
-        private readonly LocalTcpConnectionDetails _tcpConnectionDetails;
+        private readonly LocalTcpConnectionOptions _tcpConnectionDetails;
         private readonly Uri _trackerUri;
         private readonly Random _rand;
         private readonly UdpClient _client;
 
-        public UdpTracker(LocalTcpConnectionDetails tcpConnectionDetails, Uri trackerUri)
+        public UdpTracker(LocalTcpConnectionOptions tcpConnectionDetails, Uri trackerUri)
         {
             _tcpConnectionDetails = tcpConnectionDetails;
             _trackerUri = trackerUri;

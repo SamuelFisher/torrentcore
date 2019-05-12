@@ -17,7 +17,10 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Application.BitTorrent
 {
-    public class PeerConnection
+    /// <summary>
+    /// Represents a connection to a peer used by the <see cref="BitTorrentApplicationProtocol" />.
+    /// </summary>
+    public class BitTorrentPeer : IPeer
     {
         private readonly IPeerMessageHandler _messageHandler;
         private readonly BigEndianBinaryReader _reader;
@@ -25,7 +28,7 @@ namespace TorrentCore.Application.BitTorrent
         private readonly ITransportStream _transportStream;
         private readonly Dictionary<IModule, Dictionary<string, object>> _customValues;
 
-        internal PeerConnection(
+        internal BitTorrentPeer(
             Metainfo meta,
             PeerId peerId,
             IReadOnlyList<byte> reservedBytes,

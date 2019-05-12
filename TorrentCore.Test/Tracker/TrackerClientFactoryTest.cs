@@ -8,6 +8,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using TorrentCore.Tracker;
 using TorrentCore.Tracker.Http;
@@ -19,7 +21,8 @@ namespace TorrentCore.Test.Tracker
     [TestFixture]
     public class TrackerClientFactoryTest
     {
-        private readonly TrackerClientFactory _factory = new TrackerClientFactory(new LocalTcpConnectionDetails(0, null, null));
+        private readonly TrackerClientFactory _factory =
+            new TrackerClientFactory(new NullLoggerFactory(), Options.Create(new LocalTcpConnectionOptions()));
 
         [Test]
         public void HttpTracker()

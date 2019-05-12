@@ -37,14 +37,13 @@ namespace TorrentCore.Web
             // Add framework services.
             services.AddMvc();
             services.AddCors();
+
+            services.AddLogging(builder => builder.AddConsole());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
-
             app.UseCors(builder => builder.AllowAnyOrigin());
             app.UseMvc(routes => routes.MapRoute("default", "{*path}", new { controller = "EmbeddedStaticContent", action = "Index" }));
         }

@@ -17,14 +17,14 @@ namespace TorrentCore
 {
     public sealed class TorrentDownload
     {
-        private readonly TorrentDownloadManager _download;
+        private readonly PipelineRunner _download;
 
-        internal TorrentDownload(TorrentDownloadManager download)
+        internal TorrentDownload(PipelineRunner download)
         {
             _download = download;
         }
 
-        internal TorrentDownloadManager Manager => _download;
+        internal PipelineRunner Manager => _download;
 
         public Metainfo Description => Manager.Description;
 
@@ -65,5 +65,15 @@ namespace TorrentCore
                     throw new TimeoutException("Download did not complete within the specified timeout.");
             });
         }
+
+        /// <summary>
+        /// Gets the average download rate in bytes per second.
+        /// </summary>
+        public long DownloadRate() => _download.DownloadRateMeasurer.AverageRate();
+
+        /// <summary>
+        /// Gets the average upload rate in bytes per second.
+        /// </summary>
+        public long UploadRate() => _download.UploadRateMeasurer.AverageRate();
     }
 }

@@ -185,5 +185,10 @@ namespace TorrentCore.Data
                 }
             }
         }
+
+        public void Flush()
+        {
+            _baseHandler.Flush();
+        }
     }
 }

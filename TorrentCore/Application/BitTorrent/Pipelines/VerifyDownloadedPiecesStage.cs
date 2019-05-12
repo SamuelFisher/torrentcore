@@ -11,19 +11,27 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
 using TorrentCore.Data.Pieces;
+using TorrentCore.Pipelines;
 
-namespace TorrentCore.Stage
+namespace TorrentCore.Application.BitTorrent.Pipelines
 {
-    class VerifyDownloadedPiecesStage : ITorrentStage
+    /// <summary>
+    /// Checks for existing pieces that were previously downloaded.
+    /// Completes when all pieces have been checked.
+    /// </summary>
+    class VerifyDownloadedPiecesStage : IPipelineStage
     {
-        private readonly IApplicationProtocol<PeerConnection> _application;
+        private readonly ILogger<VerifyDownloadedPiecesStage> _logger;
+        private readonly IApplicationProtocol _application;
 
-        public VerifyDownloadedPiecesStage(IApplicationProtocol<PeerConnection> application)
+        public VerifyDownloadedPiecesStage(ILogger<VerifyDownloadedPiecesStage> logger, IApplicationProtocol application)
         {
+            _logger = logger;
             _application = application;
         }
 
@@ -31,6 +39,8 @@ namespace TorrentCore.Stage
         {
             if (_application.DataHandler.IncompletePieces().Any())
                 HashPiecesData(interrupt, progress);
+
+            _logger.LogInformation($"{_application.DataHandler.CompletedPieces.Count} pieces already downloaded");
         }
 
         private void HashPiecesData(IStageInterrupt interrupt, IProgress<StatusUpdate> progress)

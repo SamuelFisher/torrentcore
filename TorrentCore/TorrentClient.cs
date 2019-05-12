@@ -13,6 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
@@ -20,44 +21,44 @@ using TorrentCore.Application.BitTorrent.Connection;
 using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Modularity;
+using TorrentCore.Pipelines;
 using TorrentCore.Tracker;
 using TorrentCore.Transport;
-using TorrentCore.Transport.Tcp;
 
 namespace TorrentCore
 {
     public class TorrentClient : ITorrentClient
     {
-        private static readonly ILogger Log = LogManager.GetLogger<TorrentClient>();
-
+        private readonly ILogger _logger;
         private readonly IDictionary<Sha1Hash, TorrentDownload> _downloads;
-        private readonly MainLoop _mainLoop;
+        private readonly IMainLoop _mainLoop;
         private readonly ITrackerClientFactory _trackerClientFactory;
-        private readonly BitTorrentPeerInitiator _peerInitiator;
-        private Timer _updateStatisticsTimer;
+        private readonly IServiceProvider _services;
+        private readonly IApplicationProtocolPeerInitiator _peerInitiator;
+        private readonly Timer _updateStatisticsTimer;
 
         public TorrentClient(
+            ILogger<TorrentClient> logger,
             PeerId localPeerId,
+            IMainLoop mainLoop,
             ITransportProtocol transport,
-            ITrackerClientFactory trackerClientFactory)
+            ITrackerClientFactory trackerClientFactory,
+            IApplicationProtocolPeerInitiator peerInitiator,
+            IServiceProvider services)
         {
+            _logger = logger;
             _downloads = new Dictionary<Sha1Hash, TorrentDownload>();
-            _mainLoop = new MainLoop();
-            Modules = new ModuleManager();
-            Modules.Register(new CoreMessagingModule());
+            _mainLoop = mainLoop;
             _mainLoop.Start();
-
-            // TODO: allow supplying custom peer initiator
-            _peerInitiator = new BitTorrentPeerInitiator(infoHash => (BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>)_downloads[infoHash].Manager.ApplicationProtocol, Modules);
+            _trackerClientFactory = trackerClientFactory;
+            _services = services;
+            _updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            _peerInitiator = peerInitiator;
             LocalPeerId = localPeerId;
 
             Transport = transport;
-            transport.AcceptConnectionHandler += AcceptConnection;
+            transport.AcceptConnectionHandler += _peerInitiator.AcceptIncomingConnection;
             Transport.Start();
-
-            _trackerClientFactory = trackerClientFactory;
-
-            _updateStatisticsTimer = new Timer(UpdateStatistics, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
         }
 
         /// <summary>
@@ -65,22 +66,9 @@ namespace TorrentCore
         /// </summary>
         public PeerId LocalPeerId { get; }
 
-        public IModuleManager Modules { get; }
-
         internal ITransportProtocol Transport { get; }
 
         public IReadOnlyCollection<TorrentDownload> Downloads => new ReadOnlyCollection<TorrentDownload>(_downloads.Values.ToList());
-
-        private void AcceptConnection(AcceptConnectionEventArgs e)
-        {
-            var applicationProtocol = _peerInitiator.PrepareAcceptIncomingConnection(e.TransportStream, out BitTorrentPeerInitiator.IContext context);
-            applicationProtocol.AcceptConnection(new AcceptPeerConnectionEventArgs<PeerConnection>(e.TransportStream, () =>
-            {
-                e.Accept();
-                var c = new PeerConnectionArgs(LocalPeerId, applicationProtocol.Metainfo, new QueueingMessageHandler(_mainLoop, applicationProtocol));
-                return _peerInitiator.AcceptIncomingConnection(e.TransportStream, context, c);
-            }));
-        }
 
         public TorrentDownload Add(string torrentFile, string downloadDirectory)
         {
@@ -101,14 +89,15 @@ namespace TorrentCore
         internal TorrentDownload Add(Metainfo metainfo, ITracker tracker, IFileHandler fileHandler)
         {
             var dataHandler = new PieceCheckerHandler(new BlockDataHandler(fileHandler, metainfo));
-            var bitTorrentApplicationProtocol = new BitTorrentApplicationProtocol<BitTorrentPeerInitiator.IContext>(LocalPeerId, metainfo, _peerInitiator, m => new QueueingMessageHandler(_mainLoop, m), Modules, dataHandler);
-            var downloadManager = new TorrentDownloadManager(LocalPeerId,
-                                                             _mainLoop,
-                                                             bitTorrentApplicationProtocol,
-                                                             tracker,
-                                                             metainfo);
 
-            var download = new TorrentDownload(downloadManager);
+            // Create a new scope for this download
+            var scope = _services.CreateScope();
+            var applicationProtocolFactory = scope.ServiceProvider.GetRequiredService<IApplicationProtocolFactory>();
+            var applicationProtocol = applicationProtocolFactory.Create(metainfo, dataHandler);
+            var pipelineRunner = ActivatorUtilities.CreateInstance<PipelineRunner>(scope.ServiceProvider, applicationProtocol, tracker);
+            _peerInitiator.OnApplicationProtocolAdded(pipelineRunner.ApplicationProtocol);
+
+            var download = new TorrentDownload(pipelineRunner);
 
             _downloads.Add(metainfo.InfoHash, download);
             return download;
@@ -127,30 +116,9 @@ namespace TorrentCore
             _mainLoop.Stop();
         }
 
-        /// <summary>
-        /// Creates a new <see cref="TorrentClient"/> using the default settings.
-        /// </summary>
-        /// <returns>A new <see cref="TorrentClient"/>.</returns>
-        public static TorrentClient Create()
+        public static ITorrentClient CreateDefault()
         {
-            return Create(new TorrentClientSettings());
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="TorrentClient"/> using the supplied settings.
-        /// </summary>
-        /// <param name="settings">Settings to configure the torrent client.</param>
-        /// <returns>A new <see cref="TorrentClient"/>.</returns>
-        public static TorrentClient Create(TorrentClientSettings settings)
-        {
-            var transport = new TcpTransportProtocol(
-                settings.ListenPort,
-                settings.FindAvailablePort,
-                settings.AdapterAddress);
-
-            var trackerClientFactory = new TrackerClientFactory(transport.LocalConection);
-
-            return new TorrentClient(settings.PeerId, transport, trackerClientFactory);
+            return TorrentClientBuilder.CreateDefaultBuilder().Build();
         }
     }
 }

@@ -16,12 +16,15 @@ namespace TorrentCore.Engine
     /// <summary>
     /// Manages the download of a torrent.
     /// </summary>
-    interface ITorrentDownloadManager
+    interface ITorrentPipelineRunner
     {
+        /// <summary>
+        /// Gets the details of the torrent being managed by this pipeline.
+        /// </summary>
         Metainfo Description { get; }
 
         /// <summary>
-        /// Gets the current state of the download.
+        /// Gets the current state of the pipeline.
         /// </summary>
         DownloadState State { get; }
     }

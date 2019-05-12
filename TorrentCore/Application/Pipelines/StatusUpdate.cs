@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace TorrentCore.Stage
+namespace TorrentCore.Pipelines
 {
     public sealed class StatusUpdate
     {
@@ -22,5 +22,7 @@ namespace TorrentCore.Stage
         public DownloadState State { get; }
 
         public double Progress { get; }
+
+        public override string ToString() => $"{State} ({Progress:P})";
     }
 }

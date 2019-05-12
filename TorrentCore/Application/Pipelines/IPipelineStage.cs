@@ -8,12 +8,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SimpleInjector;
+using TorrentCore.Application;
 
-namespace TorrentCore.Stage
+namespace TorrentCore.Pipelines
 {
-    interface IPipelineStageFactory
+    public interface IPipelineStage
     {
-        ITorrentStage Construct(Container container);
+        void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress);
     }
 }

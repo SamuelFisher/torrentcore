@@ -15,7 +15,7 @@ namespace TorrentCore.Engine
     /// <summary>
     /// Provides methods for queueing and processing tasks.
     /// </summary>
-    interface IMainLoop
+    public interface IMainLoop
     {
         bool IsRunning { get; }
 

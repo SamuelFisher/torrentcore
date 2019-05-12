@@ -14,7 +14,7 @@ namespace TorrentCore.Modularity
 {
     public interface IPeerContext : ITorrentContext
     {
-        PeerConnection Peer { get; }
+        BitTorrentPeer Peer { get; }
 
         /// <summary>
         /// Retrieves a value with the specified key that is associated with this peer.

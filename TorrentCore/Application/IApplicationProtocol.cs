@@ -16,7 +16,7 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Application
 {
-    public interface IApplicationProtocol<TConnection>
+    public interface IApplicationProtocol
     {
         event EventHandler DownloadCompleted;
 
@@ -29,7 +29,7 @@ namespace TorrentCore.Application
         /// <summary>
         /// Gets the peers that are currently connected.
         /// </summary>
-        IReadOnlyCollection<TConnection> Peers { get; }
+        IReadOnlyCollection<IPeer> Peers { get; }
 
         /// <summary>
         /// Gets the peers that are available to connect to but are not currently connected.
@@ -51,7 +51,7 @@ namespace TorrentCore.Application
         /// Handles new incoming connection requests.
         /// </summary>
         /// <param name="e">Event args for handling the request.</param>
-        void AcceptConnection(AcceptPeerConnectionEventArgs<TConnection> e);
+        void AcceptConnection(AcceptPeerConnectionEventArgs e);
 
         /// <summary>
         /// Invoked when a pieces has been fully downloaded but fails its hash check.

@@ -41,6 +41,11 @@ namespace TorrentCore.Data
         /// </summary>
         public Metainfo Metainfo { get; }
 
+        public void Flush()
+        {
+            FileHandler.Flush();
+        }
+
         /// <summary>
         /// Returns a copy of the contiguous file data starting at the specified offset.
         /// </summary>

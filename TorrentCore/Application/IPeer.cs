@@ -8,11 +8,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TorrentCore.Application.BitTorrent;
 
-namespace TorrentCore.Stage
+namespace TorrentCore.Application
 {
-    public interface ITorrentStage
+    public interface IPeer
     {
-        void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress);
+        PeerId PeerId { get; }
+
+        string Address { get; }
+
+        Bitfield Available { get; }
     }
 }
