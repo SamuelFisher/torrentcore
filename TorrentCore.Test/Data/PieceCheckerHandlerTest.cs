@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
 using TorrentCore.Data;
@@ -52,7 +53,7 @@ namespace TorrentCore.Test.Data
                                                     It.IsAny<byte[]>()))
                        .Callback<long, byte[]>((offset, data) => _writtenData.Add(Tuple.Create(offset, data)));
 
-            _pieceChecker = new PieceCheckerHandler(baseHandler.Object);
+            _pieceChecker = new PieceCheckerHandler(new NullLogger<PieceCheckerHandler>(), baseHandler.Object);
         }
 
         [Test]

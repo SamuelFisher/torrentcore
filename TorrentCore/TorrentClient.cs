@@ -88,10 +88,9 @@ namespace TorrentCore
 
         internal TorrentDownload Add(Metainfo metainfo, ITracker tracker, IFileHandler fileHandler)
         {
-            var dataHandler = new PieceCheckerHandler(new BlockDataHandler(fileHandler, metainfo));
-
             // Create a new scope for this download
             var scope = _services.CreateScope();
+            var dataHandler = ActivatorUtilities.CreateInstance<PieceCheckerHandler>(scope.ServiceProvider, new BlockDataHandler(fileHandler, metainfo));
             var applicationProtocolFactory = scope.ServiceProvider.GetRequiredService<IApplicationProtocolFactory>();
             var applicationProtocol = applicationProtocolFactory.Create(metainfo, dataHandler);
             var pipelineRunner = ActivatorUtilities.CreateInstance<PipelineRunner>(scope.ServiceProvider, applicationProtocol, tracker);

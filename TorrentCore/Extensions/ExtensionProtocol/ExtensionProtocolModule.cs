@@ -24,7 +24,7 @@ namespace TorrentCore.Extensions.ExtensionProtocol
         private const byte ExtensionProtocolMessageId = 20;
         internal const string ExtensionProtocolMessageIds = "EXTENSION_PROTOCOL_MESSAGE_IDS";
 
-        private static readonly ILogger Log = LogManager.GetLogger<ExtensionProtocolModule>();
+        private readonly ILogger<ExtensionProtocolModule> _logger;
 
         private readonly Dictionary<string, byte> _supportedMessages = new Dictionary<string, byte>();
 
@@ -38,11 +38,16 @@ namespace TorrentCore.Extensions.ExtensionProtocol
 
         private byte _nextMessageTypeId = 1;
 
+        public ExtensionProtocolModule(ILogger<ExtensionProtocolModule> logger)
+        {
+            _logger = logger;
+        }
+
         public void RegisterMessageHandler(IExtensionProtocolMessageHandler messageHandler)
         {
             foreach (var messageType in messageHandler.SupportedMessageTypes)
             {
-                Log.LogDebug($"Registering {messageHandler.GetType().Name} to receive {messageType.Key} messages using ID {_nextMessageTypeId}");
+                _logger.LogDebug($"Registering {messageHandler.GetType().Name} to receive {messageType.Key} messages using ID {_nextMessageTypeId}");
                 _messageHandlers.Add(_nextMessageTypeId, messageHandler);
                 _supportedMessages.Add(messageType.Key, _nextMessageTypeId);
                 _reverseSupportedMessages.Add(_nextMessageTypeId, messageType.Key);

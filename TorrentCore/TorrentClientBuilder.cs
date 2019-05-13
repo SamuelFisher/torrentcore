@@ -46,7 +46,8 @@ namespace TorrentCore
 
         public TorrentClientBuilder AddTcpTransportProtocol()
         {
-            _services.AddSingleton<ITransportProtocol, TcpTransportProtocol>();
+            _services.AddSingleton<ITcpTransportProtocol, TcpTransportProtocol>();
+            _services.AddSingleton<ITransportProtocol>(s => s.GetRequiredService<ITcpTransportProtocol>());
             _services.AddSingleton<ITrackerClientFactory, TrackerClientFactory>();
             return this;
         }

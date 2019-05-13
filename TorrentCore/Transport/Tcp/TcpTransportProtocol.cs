@@ -23,10 +23,9 @@ namespace TorrentCore.Transport.Tcp
     /// Base class for transport protocols using TCP.
     /// Provides a TCP listener for incoming connections.
     /// </summary>
-    class TcpTransportProtocol : ITransportProtocol
+    class TcpTransportProtocol : ITcpTransportProtocol
     {
-        private static readonly ILogger Log = LogManager.GetLogger<TcpTransportProtocol>();
-
+        private readonly ILogger<TcpTransportProtocol> _logger;
         private readonly ConcurrentBag<TcpTransportStream> _streams;
 
         private TcpListener _listener;
@@ -34,9 +33,11 @@ namespace TorrentCore.Transport.Tcp
         /// <summary>
         /// Initializes a new instance of the <see cref="TcpTransportProtocol"/> class that will listen on the specified port.
         /// </summary>
+        /// <param name="logger">Logger.</param>
         /// <param name="options">Listen options.</param>
-        public TcpTransportProtocol(IOptions<LocalTcpConnectionOptions> options)
+        public TcpTransportProtocol(ILogger<TcpTransportProtocol> logger, IOptions<LocalTcpConnectionOptions> options)
         {
+            _logger = logger;
             _streams = new ConcurrentBag<TcpTransportStream>();
             Port = options.Value.Port;
             LocalBindAddress = options.Value.BindAddress ?? IPAddress.Any;
@@ -85,7 +86,7 @@ namespace TorrentCore.Transport.Tcp
             bool accepted = false;
             var applicationEE = new AcceptConnectionEventArgs(stream, () =>
             {
-                Log.LogInformation($"Accepted connection from {stream.RemoteEndPoint}");
+                _logger.LogInformation($"Accepted connection from {stream.RemoteEndPoint}");
 
                 accepted = true;
                 _streams.Add(stream);
@@ -138,6 +139,13 @@ namespace TorrentCore.Transport.Tcp
                     // Socket closed
                 }
             });
+        }
+
+        public ITransportStream CreateTransportStream(IPAddress remoteAddress, int port)
+        {
+            var transportStream = new TcpTransportStream(LocalBindAddress, remoteAddress, port);
+            _streams.Add(transportStream);
+            return transportStream;
         }
     }
 }

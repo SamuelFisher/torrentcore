@@ -19,13 +19,13 @@ namespace TorrentCore.Extensions.PeerExchange
 {
     public class PeerExchangeMessageHandler : IExtensionProtocolMessageHandler
     {
-        private static readonly ILogger Log = LogManager.GetLogger<PeerExchangeMessageHandler>();
+        private readonly ILogger<PeerExchangeMessageHandler> _logger;
+        private readonly ITcpTransportProtocol _tcpTransportProtocol;
 
-        private readonly IPAddress _adapterAddress;
-
-        public PeerExchangeMessageHandler(IPAddress adapterAddress)
+        public PeerExchangeMessageHandler(ILogger<PeerExchangeMessageHandler> logger, ITcpTransportProtocol tcpTransportProtocol)
         {
-            _adapterAddress = adapterAddress;
+            _logger = logger;
+            _tcpTransportProtocol = tcpTransportProtocol;
         }
 
         public IReadOnlyDictionary<string, Func<IExtensionProtocolMessage>> SupportedMessageTypes { get; } = new Dictionary<string, Func<IExtensionProtocolMessage>>
@@ -47,14 +47,14 @@ namespace TorrentCore.Extensions.PeerExchange
             if (message == null)
                 throw new InvalidOperationException($"Expected a {nameof(PeerExchangeMessage)} but received a {context.Message.GetType().Name}");
 
-            Log.LogDebug($"{message.Added.Count} peers received from PEX message");
+            _logger.LogDebug($"{message.Added.Count} peers received from PEX message");
 
             context.PeersAvailable(message.Added.Select(CreateTransportStream));
         }
 
         private ITransportStream CreateTransportStream(IPEndPoint endPoint)
         {
-            return new TcpTransportStream(_adapterAddress, endPoint.Address, endPoint.Port);
+            return _tcpTransportProtocol.CreateTransportStream(endPoint.Address, endPoint.Port);
         }
     }
 }

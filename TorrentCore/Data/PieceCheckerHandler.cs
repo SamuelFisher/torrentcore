@@ -23,8 +23,7 @@ namespace TorrentCore.Data
     /// </summary>
     internal class PieceCheckerHandler : IPieceDataHandler
     {
-        private static readonly ILogger Log = LogManager.GetLogger<PieceCheckerHandler>();
-
+        private readonly ILogger<PieceCheckerHandler> _logger;
         private readonly IBlockDataHandler _baseHandler;
         private readonly Dictionary<Piece, SortedSet<Block>> _pendingBlocks;
         private readonly HashSet<Piece> _completedPieces;
@@ -33,9 +32,11 @@ namespace TorrentCore.Data
         /// Initializes a new instance of the <see cref="PieceCheckerHandler"/> class,
         /// using the provided file handler as the backing store.
         /// </summary>
+        /// <param name="logger">Logger.</param>
         /// <param name="baseHandler">File handler to use as backing store.</param>
-        public PieceCheckerHandler(IBlockDataHandler baseHandler)
+        public PieceCheckerHandler(ILogger<PieceCheckerHandler> logger, IBlockDataHandler baseHandler)
         {
+            _logger = logger;
             _baseHandler = baseHandler;
             _pendingBlocks = new Dictionary<Piece, SortedSet<Block>>(Metainfo.Pieces.Count);
             _completedPieces = new HashSet<Piece>();
@@ -118,7 +119,7 @@ namespace TorrentCore.Data
                 byte[] data;
                 if (VerifyPiece(piece.Key, piece.Value, out data))
                 {
-                    Log.LogDebug($"Writing piece #{piece.Key.Index}");
+                    _logger.LogDebug($"Writing piece #{piece.Key.Index}");
 
                     // Write piece
                     long pieceOffset = Metainfo.PieceOffset(piece.Key);
@@ -131,7 +132,7 @@ namespace TorrentCore.Data
                 }
                 else
                 {
-                    Log.LogInformation($"Piece #{piece.Key.Index} is corrupted");
+                    _logger.LogInformation($"Piece #{piece.Key.Index} is corrupted");
 
                     // Notify of corrupted piece
                     PieceCorrupted?.Invoke(piece.Key);
