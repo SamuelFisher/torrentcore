@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
+using TorrentCore.Application.Pipelines;
 using TorrentCore.Data;
 using TorrentCore.Data.Pieces;
-using TorrentCore.Pipelines;
 
 namespace TorrentCore.Application.BitTorrent.Pipelines
 {

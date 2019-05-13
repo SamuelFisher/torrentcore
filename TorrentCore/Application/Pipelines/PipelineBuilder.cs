@@ -13,7 +13,7 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using TorrentCore.Application;
 
-namespace TorrentCore.Pipelines
+namespace TorrentCore.Application.Pipelines
 {
     public class PipelineBuilder
     {

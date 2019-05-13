@@ -13,10 +13,10 @@ using System.Threading.Tasks;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Application.BitTorrent.Messages;
+using TorrentCore.Application.Pipelines;
 using TorrentCore.Data;
 using TorrentCore.Data.Pieces;
 using TorrentCore.Engine;
-using TorrentCore.Pipelines;
 
 namespace TorrentCore.Application.BitTorrent.Pipelines
 {

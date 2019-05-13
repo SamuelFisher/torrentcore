@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using TorrentCore.Application;
 
-namespace TorrentCore.Pipelines
+namespace TorrentCore.Application.Pipelines
 {
     public interface IPipelineStage
     {

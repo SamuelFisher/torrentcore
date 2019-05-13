@@ -11,7 +11,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
 
-namespace TorrentCore.Pipelines
+namespace TorrentCore.Application.Pipelines
 {
     class Pipeline : IPipeline
     {

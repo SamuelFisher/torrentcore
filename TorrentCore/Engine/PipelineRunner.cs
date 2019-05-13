@@ -19,9 +19,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
+using TorrentCore.Application.Pipelines;
 using TorrentCore.Data;
 using TorrentCore.Engine;
-using TorrentCore.Pipelines;
 using TorrentCore.Tracker;
 
 namespace TorrentCore

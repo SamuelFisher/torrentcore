@@ -18,10 +18,10 @@ using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Application.BitTorrent.Connection;
+using TorrentCore.Application.Pipelines;
 using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Modularity;
-using TorrentCore.Pipelines;
 using TorrentCore.Tracker;
 using TorrentCore.Transport;
 
