@@ -64,23 +64,16 @@ namespace TorrentCore.Tracker.Http
 
         private async Task<Stream> SendRequest(AnnounceRequest request)
         {
-            byte[] peerId = new byte[20];
-            Array.Copy(Encoding.UTF8.GetBytes("-AZ5501-"), peerId, 8);
-            byte[] rand = new byte[12];
-            Random r = new Random();
-            r.NextBytes(rand);
-            Array.Copy(rand, 0, peerId, 8, 12);
-
             // Prepare query
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder.Append("?event=started");
             if (_tcpConnectionDetails.PublicAddress != null)
                 queryBuilder.Append(string.Format("&ip={0}", _tcpConnectionDetails.PublicAddress));
             queryBuilder.Append(string.Format("&port={0}", _tcpConnectionDetails.Port)); // TODO: use public port
-            queryBuilder.Append(string.Format("&peer_id={0}", Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(peerId, 0, peerId.Length))));
+            queryBuilder.Append(string.Format("&peer_id={0}", request.PeerId));
             queryBuilder.Append(string.Format("&left={0}", request.Remaining));
-            queryBuilder.Append(string.Format("&uploaded={0}", 0));
-            queryBuilder.Append(string.Format("&downloaded={0}", 0));
+            queryBuilder.Append(string.Format("&uploaded={0}", request.Uploaded));
+            queryBuilder.Append(string.Format("&downloaded={0}", request.Downloaded));
             queryBuilder.Append(string.Format("&compact=1", 0));
             queryBuilder.Append("&info_hash=" + Encoding.UTF8.GetString(WebUtility.UrlEncodeToBytes(request.InfoHash.Value, 0, request.InfoHash.Value.Length)));
 

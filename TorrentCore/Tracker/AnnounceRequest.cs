@@ -23,10 +23,14 @@ namespace TorrentCore.Tracker
     {
         public AnnounceRequest(PeerId peerId,
                                long remaining,
+                               long downloaded,
+                               long uploaded,
                                Sha1Hash infoHash)
         {
             PeerId = peerId;
             Remaining = remaining;
+            Downloaded = downloaded;
+            Uploaded = uploaded;
             InfoHash = infoHash;
         }
 
@@ -39,6 +43,16 @@ namespace TorrentCore.Tracker
         /// Gets the number of bytes left to download.
         /// </summary>
         public long Remaining { get; }
+
+        /// <summary>
+        /// Gets the number of bytes downloaded.
+        /// </summary>
+        public long Downloaded { get; }
+
+        /// <summary>
+        /// Gets the number of bytes uploaded.
+        /// </summary>
+        public long Uploaded { get; }
 
         /// <summary>
         /// Gets the infohash of the torrent being downloaded.

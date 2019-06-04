@@ -85,6 +85,11 @@ namespace TorrentCore
         public long Downloaded => ApplicationProtocol.DataHandler.CompletedPieces.Sum(x => x.Size);
 
         /// <summary>
+        /// Gets the number of bytes uploaded.
+        /// </summary>
+        public long Uploaded => ApplicationProtocol.Uploaded;
+
+        /// <summary>
         /// Gets the number of bytes still to be downloaded.
         /// </summary>
         public long Remaining => Description.TotalSize - Downloaded;
@@ -138,6 +143,8 @@ namespace TorrentCore
                 var request = new AnnounceRequest(
                     _localPeerId,
                     Remaining,
+                    Downloaded,
+                    Uploaded,
                     Description.InfoHash);
 
                 var result = await Tracker.Announce(request);
