@@ -64,13 +64,15 @@ namespace TorrentCore.Tracker.Http
 
         private async Task<Stream> SendRequest(AnnounceRequest request)
         {
+            var encodedPeerId = WebUtility.UrlEncodeToBytes(request.PeerId.Value.ToArray(), 0, request.PeerId.Value.Count);
+
             // Prepare query
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder.Append("?event=started");
             if (_tcpConnectionDetails.PublicAddress != null)
                 queryBuilder.Append(string.Format("&ip={0}", _tcpConnectionDetails.PublicAddress));
             queryBuilder.Append(string.Format("&port={0}", _tcpConnectionDetails.Port)); // TODO: use public port
-            queryBuilder.Append(string.Format("&peer_id={0}", request.PeerId));
+            queryBuilder.Append(string.Format("&peer_id={0}", Encoding.UTF8.GetString(encodedPeerId)));
             queryBuilder.Append(string.Format("&left={0}", request.Remaining));
             queryBuilder.Append(string.Format("&uploaded={0}", request.Uploaded));
             queryBuilder.Append(string.Format("&downloaded={0}", request.Downloaded));
