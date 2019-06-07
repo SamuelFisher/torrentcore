@@ -72,7 +72,7 @@ namespace TorrentCore.Test.Tracker
                 {
                     // Announce response payload
                     int action = (int)MessageAction.Announce;
-                    int transactionId = default;
+                    int transactionId = 0;
                     int interval = 1;
                     int leechers = 0;
                     int seeders = 0;
@@ -97,7 +97,7 @@ namespace TorrentCore.Test.Tracker
                 {
                     // Connection response payload
                     int action = (int)MessageAction.Connect;
-                    int transactionId = default;
+                    int transactionId = 0;
                     long connectionId = 1;
 
                     writer.Write(action);
@@ -119,7 +119,7 @@ namespace TorrentCore.Test.Tracker
 
             protected override int GenerateTransactionId()
             {
-                return default;
+                return 0;
             }
 
             private class UdpPeer
