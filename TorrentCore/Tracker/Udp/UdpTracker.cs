@@ -43,7 +43,7 @@ namespace TorrentCore.Tracker.Udp
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            int transactionId = _rand.Next();
+            int transactionId = GenerateTransactionId();
             var connectionResponse = await SendAndWaitForResponse<ConnectionResponseMessage>(new ConnectionRequestMessage
             {
                 ConnectionId = ConnectionProtocolId, // Identifies tracker UDP protocol
@@ -55,7 +55,7 @@ namespace TorrentCore.Tracker.Udp
 
             long connectionId = connectionResponse.ConnectionId;
 
-            transactionId = _rand.Next();
+            transactionId = GenerateTransactionId();
             var announceResponse = await SendAndWaitForResponse<AnnounceResponseMessage>(new AnnounceRequestMessage
             {
                 ConnectionId = connectionId,
@@ -85,7 +85,7 @@ namespace TorrentCore.Tracker.Udp
             return await Receive<T>();
         }
 
-        protected Task Send(UdpTrackerRequestMessage message)
+        protected virtual Task Send(UdpTrackerRequestMessage message)
         {
             var ms = new MemoryStream();
             var writer = new BigEndianBinaryWriter(ms);
@@ -98,12 +98,22 @@ namespace TorrentCore.Tracker.Udp
         protected async Task<T> Receive<T>()
             where T : UdpTrackerResponseMessage, new()
         {
-            var result = await _client.ReceiveAsync();
             var message = new T();
-            var ms = new MemoryStream(result.Buffer);
+            var ms = await Receive();
             var reader = new BigEndianBinaryReader(ms);
             message.ReadFrom(reader);
             return message;
+        }
+
+        protected virtual async Task<MemoryStream> Receive()
+        {
+            var result = await _client.ReceiveAsync();
+            return new MemoryStream(result.Buffer);
+        }
+
+        protected virtual int GenerateTransactionId()
+        {
+            return _rand.Next();
         }
     }
 }
