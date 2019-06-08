@@ -29,6 +29,8 @@ namespace TorrentCore.Test.Tracker
     public class UdpTrackerTest
     {
         private readonly AnnounceRequest _request = new AnnounceRequest(PeerId.CreateNew(),
+                                                                       0,
+                                                                       0,
                                                                        1000,
                                                                        Sha1Hash.Empty);
 
