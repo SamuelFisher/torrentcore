@@ -29,6 +29,8 @@ namespace TorrentCore.Test.Tracker
     {
         private readonly AnnounceRequest _request = new AnnounceRequest(PeerId.CreateNew(),
                                                                        1000,
+                                                                       0,
+                                                                       0,
                                                                        Sha1Hash.Empty);
 
         [TestCase(false, Description = "Announce with normal response")]

@@ -42,6 +42,11 @@ namespace TorrentCore.Application
         IReadOnlyCollection<ITransportStream> ConnectingPeers { get; }
 
         /// <summary>
+        /// Gets the number of bytes uploaded.
+        /// </summary>
+        long Uploaded { get; }
+
+        /// <summary>
         /// Attempts to connect to the peer addressed by the supplied transport stream.
         /// </summary>
         /// <param name="peerTransport">Transport stream to the peer.</param>

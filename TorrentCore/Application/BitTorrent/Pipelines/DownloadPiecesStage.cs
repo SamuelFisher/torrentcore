@@ -115,6 +115,7 @@ namespace TorrentCore.Application.BitTorrent.Pipelines
             byte[] data = ApplicationProtocol.DataHandler.ReadBlockData(dataOffset, request.Length);
 
             peer.SendMessage(new PieceMessage(request.ToBlock(data)));
+            ApplicationProtocol.UploadedData(data);
         }
 
         private void ConnectToPeers()
