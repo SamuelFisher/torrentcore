@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using BencodeNET.Objects;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -34,16 +35,18 @@ namespace TorrentCore.Test.Tracker
         [Test]
         public void Announce()
         {
-            var tracker = new MockUdpTracker(
-               new LocalTcpConnectionOptions
-               {
-                   Port = 5000,
-                   BindAddress = IPAddress.Loopback,
-                   PublicAddress = IPAddress.Loopback,
-               },
-               new Uri("udp://example.com/announce"));
+            var fakeTracker = new FakeUdpTracker(5001);
+            fakeTracker.Start();
 
-            var response = tracker.Announce(_request).Result;
+            var trackerClient = new UdpTracker(new LocalTcpConnectionOptions
+            {
+                Port = 5000,
+                BindAddress = IPAddress.Loopback,
+                PublicAddress = IPAddress.Loopback,
+            },
+            new Uri("udp://localhost:5001"));
+
+            var response = trackerClient.Announce(_request).Result;
             var peers = response.Peers.Cast<TcpTransportStream>().ToArray();
 
             Assert.That(peers, Has.Length.EqualTo(2));
@@ -53,26 +56,87 @@ namespace TorrentCore.Test.Tracker
 
             var peer2 = peers.Single(x => x.RemoteEndPoint.Port == 5002);
             Assert.That(peer2.RemoteEndPoint.Address, Is.EqualTo(IPAddress.Parse("192.168.0.2")));
+
+            fakeTracker.Stop();
         }
 
-        private class MockUdpTracker : UdpTracker
+        private class FakeUdpTracker
         {
-            private bool _connected;
+            private UdpClient _client;
+            IPEndPoint _sender;
 
-            public MockUdpTracker(LocalTcpConnectionOptions tcpConnectionDetails, Uri baseUrl)
-                : base(tcpConnectionDetails, baseUrl)
+            public FakeUdpTracker(int port)
             {
+                _client = new UdpClient(port);
+                _sender = new IPEndPoint(IPAddress.Any, 0);
             }
 
-            protected override Task<MemoryStream> Receive()
+            public void Start()
             {
-                var ms = new MemoryStream();
-                var writer = new BigEndianBinaryWriter(ms);
-                if (_connected)
+                Task.Run(async () =>
                 {
-                    // Announce response payload
+                    try
+                    {
+                        while (true)
+                        {
+                            var message = _client.Receive(ref _sender);
+                            await HandleMessage(message);
+                        }
+                    }
+                    catch
+                    {
+                        // Socket closed
+                    }
+                });
+            }
+
+            private async Task HandleMessage(byte[] message)
+            {
+                using (var ms = new MemoryStream(message))
+                {
+                    var reader = new BigEndianBinaryReader(ms);
+                    var connectionId = reader.ReadInt64();
+                    var action = reader.ReadInt32();
+                    var transactionId = reader.ReadInt32();
+
+                    if (action == (int)MessageAction.Connect)
+                    {
+                        await SendConnectResponse(transactionId, connectionId);
+                    }
+                    else
+                    {
+                        await SendAnnounceResponse(transactionId);
+                    }
+                }
+            }
+
+            public void Stop()
+            {
+                _client.Dispose();
+            }
+
+            private async Task SendConnectResponse(int transactionId, long connectionId)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    int action = (int)MessageAction.Connect;
+
+                    var writer = new BigEndianBinaryWriter(ms);
+                    writer.Write(action);
+                    writer.Write(transactionId);
+                    writer.Write(connectionId);
+
+                    var data = ms.ToArray();
+
+                    await _client.SendAsync(data, data.Length, _sender);
+                }
+            }
+
+            private async Task SendAnnounceResponse(int transactionId)
+            {
+                using (var ms = new MemoryStream())
+                {
                     int action = (int)MessageAction.Announce;
-                    int transactionId = 0;
                     int interval = 1;
                     int leechers = 0;
                     int seeders = 0;
@@ -82,6 +146,7 @@ namespace TorrentCore.Test.Tracker
                         new UdpPeer(new byte[] { 192, 168, 0, 2 }, 5002),
                     };
 
+                    var writer = new BigEndianBinaryWriter(ms);
                     writer.Write(action);
                     writer.Write(transactionId);
                     writer.Write(interval);
@@ -92,34 +157,10 @@ namespace TorrentCore.Test.Tracker
                         writer.Write(peer.IpAddress);
                         writer.Write(peer.Port);
                     }
+
+                    var data = ms.ToArray();
+                    await _client.SendAsync(data, data.Length, _sender);
                 }
-                else
-                {
-                    // Connection response payload
-                    int action = (int)MessageAction.Connect;
-                    int transactionId = 0;
-                    long connectionId = 1;
-
-                    writer.Write(action);
-                    writer.Write(transactionId);
-                    writer.Write(connectionId);
-                    _connected = true;
-                }
-
-                writer.Flush();
-                ms.Position = 0;
-
-                return Task.FromResult(ms);
-            }
-
-            protected override Task Send(UdpTrackerRequestMessage message)
-            {
-                return Task.CompletedTask;
-            }
-
-            protected override int GenerateTransactionId()
-            {
-                return 0;
             }
 
             private class UdpPeer
