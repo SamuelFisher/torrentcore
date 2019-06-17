@@ -33,11 +33,13 @@ namespace TorrentCore.Cli
             string input = null;
             string output = null;
             bool verbose = false;
+            bool upnp = false;
             ArgumentSyntax.Parse(args, syntax =>
             {
                 syntax.DefineOption("p|port", ref port, "Port to listen for incoming connections on.");
                 syntax.DefineOption("o|output", ref output, "Path to save downloaded files to.");
                 syntax.DefineOption("v|verbose", ref verbose, "Show detailed logging information.");
+                syntax.DefineOption("u|upnp", ref upnp, "Use UPnP for port forwarding.");
                 var uiPortArgument = syntax.DefineOption("ui", ref uiPort, false, "Run a web UI, optionally specifying the port to listen on (default: 5001).");
                 runWebUi = uiPortArgument.IsSpecified;
 
@@ -52,6 +54,10 @@ namespace TorrentCore.Cli
 
             // Listen for incoming connections on the specified port
             builder.UsePort(port);
+
+            // If upnp is selected use it.
+            if (upnp)
+                builder.AddUPnP();
 
             // Add extension protocol
             builder.ConfigureServices(services =>
