@@ -6,13 +6,11 @@
 // LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using BencodeNET.Objects;
+using HttpMock.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using TorrentCore.Application.BitTorrent;
@@ -37,17 +35,20 @@ namespace TorrentCore.Test.Tracker
         [TestCase(true, Description = "Announce with compact response")]
         public void Announce(bool compact)
         {
-            var tracker = new MockHttpTracker(
+            var fakeHttpTracker = new FakeHttpTracker(compact, 5001);
+            fakeHttpTracker.Start();
+
+            var trackerClient = new HttpTracker(
+                new NullLogger<HttpTracker>(),
                 new LocalTcpConnectionOptions
                 {
                     Port = 5000,
                     BindAddress = IPAddress.Loopback,
                     PublicAddress = IPAddress.Loopback,
                 },
-                compact,
-                new Uri("http://example.com/announce"));
+                new Uri("http://localhost:5001/announce"));
 
-            var response = tracker.Announce(_request).Result;
+            var response = trackerClient.Announce(_request).Result;
             var peers = response.Peers.Cast<TcpTransportStream>().ToArray();
 
             Assert.That(peers, Has.Length.EqualTo(2));
@@ -57,20 +58,43 @@ namespace TorrentCore.Test.Tracker
 
             var peer2 = peers.Single(x => x.RemoteEndPoint.Port == 5002);
             Assert.That(peer2.RemoteEndPoint.Address, Is.EqualTo(IPAddress.Parse("192.168.0.2")));
+
+            fakeHttpTracker.Stop();
         }
 
-        private class MockHttpTracker : HttpTracker
+        private class FakeHttpTracker
         {
             private readonly bool _compact;
+            private readonly int _port;
 
-            public MockHttpTracker(LocalTcpConnectionOptions tcpConnectionDetails, bool compact, Uri baseUrl)
-                : base(new NullLogger<MockHttpTracker>(), tcpConnectionDetails, baseUrl)
+            private HttpHandlerBuilder _server;
+
+            public FakeHttpTracker(bool compact, int port)
             {
-                this._compact = compact;
+                _compact = compact;
+                _port = port;
             }
 
-            // Mock out the web request
-            protected override Task<Stream> HttpGet(string requestUri)
+            public void Start()
+            {
+                _server = Server.Start(_port);
+
+                _server
+                    .When(c => c.Request.Method.Equals("GET") && c.Request.Path.Value.StartsWith("/announce"))
+                    .Do(c =>
+                    {
+                        var response = BuildResponse();
+                        c.Response.Body.Write(response, 0, response.Length);
+                    });
+            }
+
+            public void Stop()
+            {
+                _server.Clear();
+                _server.Dispose();
+            }
+
+            private byte[] BuildResponse()
             {
                 BDictionary response;
 
@@ -114,8 +138,7 @@ namespace TorrentCore.Test.Tracker
                     };
                 }
 
-                var resultStream = new MemoryStream(response.EncodeAsBytes());
-                return Task.FromResult((Stream)resultStream);
+                return response.EncodeAsBytes();
             }
         }
     }
