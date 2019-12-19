@@ -7,7 +7,7 @@
     <PackageVersion>0.0-dev</PackageVersion>
     <PackageProjectUrl>https://torrentcore.org/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/SamuelFisher/torrentcore</RepositoryUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/SamuelFisher/torrentcore/master/LICENSE.md</PackageLicenseUrl>
+    <PackageLicenseExpression>LGPL-3.0-only</PackageLicenseExpression>
     <Description>A BitTorrent library that runs on all platforms supporting the .NET Platform Standard 2.0.</Description>
     <Authors>SamuelFisher</Authors>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
