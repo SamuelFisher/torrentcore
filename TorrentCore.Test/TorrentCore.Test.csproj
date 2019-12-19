@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>TorrentCore.Test</AssemblyName>
     <PackageId>TorrentCore.Test</PackageId>
     <IsPackable>False</IsPackable>
