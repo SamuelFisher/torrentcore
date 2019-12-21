@@ -5,12 +5,10 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using BencodeNET.Objects;
 using BencodeNET.Parsing;
 using TorrentCore.Extensions.ExtensionProtocol;
@@ -27,9 +25,21 @@ namespace TorrentCore.Extensions.PeerExchange
 
         public IList<IPEndPoint> Added { get; set; }
 
+        public IList<IPEndPoint> Dropped { get; set; }
+
         public byte[] Serialize()
         {
-            throw new NotImplementedException();
+            var dict = new BDictionary
+            {
+                ["added"] = EncodeEndPoints(Added),
+                ["dropped"] = EncodeEndPoints(Dropped),
+            };
+
+            using (var ms = new MemoryStream())
+            {
+                dict.EncodeTo(ms);
+                return ms.ToArray();
+            }
         }
 
         public void Deserialize(byte[] data)
@@ -39,6 +49,20 @@ namespace TorrentCore.Extensions.PeerExchange
 
             if (dict.TryGetValue("added", out IBObject added))
                 Added = ParseEndPoints((BString)added).ToList();
+        }
+
+        private BString EncodeEndPoints(IList<IPEndPoint> endpoints)
+        {
+            using (var ms = new MemoryStream())
+            {
+                var writer = new BigEndianBinaryWriter(ms);
+                foreach (var endpoint in endpoints)
+                {
+                    writer.Write(endpoint.Address.GetAddressBytes());
+                    writer.Write((ushort)endpoint.Port);
+                }
+                return new BString(ms.ToArray());
+            }
         }
 
         private IEnumerable<IPEndPoint> ParseEndPoints(BString input)
