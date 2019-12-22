@@ -89,6 +89,16 @@ namespace TorrentCore
         }
 
         /// <summary>
+        /// Add UPnP port forwarding feature.
+        /// </summary>
+        /// <returns>TorrentClientBuilder.</returns>
+        public TorrentClientBuilder AddUPnP()
+        {
+            _services.Configure<LocalTcpConnectionOptions>(options => options.UseUPnP = true);
+            return this;
+        }
+
+        /// <summary>
         /// Sets up a default Torrent Client using the TCP transport protocol and the BitTorrent application protocol.
         /// </summary>
         /// <returns>Builder configured to construct a default torrent client.</returns>
