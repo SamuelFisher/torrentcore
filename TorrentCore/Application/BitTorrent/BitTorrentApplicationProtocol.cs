@@ -91,7 +91,7 @@ namespace TorrentCore.Application.BitTorrent
                 {
                     bool added = _availablePeers.Add(peer);
                     if (!added)
-                        _logger.LogInformation($"Discarded duplicate peer {peer}");
+                        _logger.LogInformation($"Discarded duplicate peer {peer.DisplayAddress}");
                 }
             }
         }

@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using TorrentCore.Extensions.ExtensionProtocol;
 using TorrentCore.Extensions.PeerExchange;
 using TorrentCore.Extensions.SendMetadata;
@@ -47,8 +48,13 @@ namespace TorrentCore.Cli
             var builder = TorrentClientBuilder.CreateDefaultBuilder();
 
             // Configure logging
-            builder.ConfigureServices(services => services.AddLogging(loggingBuilder =>
-                loggingBuilder.AddConsole().SetMinimumLevel(verbose ? LogLevel.Debug : LogLevel.Information)));
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Is(verbose ? Serilog.Events.LogEventLevel.Debug : Serilog.Events.LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
+
+            builder.ConfigureServices(services => services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true)));
 
             // Listen for incoming connections on the specified port
             builder.UsePort(port);
