@@ -96,7 +96,7 @@ namespace TorrentCore.Data
         /// <returns>Offset in bytes.</returns>
         public long PieceOffset(Piece piece)
         {
-            return piece.Index * PieceSize;
+            return (long)piece.Index * (long)PieceSize;
         }
 
         /// <summary>
