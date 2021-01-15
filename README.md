@@ -4,7 +4,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/p1kf1e1upjsiw60n/branch/master?svg=true)](https://ci.appveyor.com/project/SamuelFisher/torrentcore/branch/master)
 [![NuGet](https://img.shields.io/nuget/vpre/TorrentCore.svg)](https://www.nuget.org/packages/TorrentCore)
 
-A BitTorrent library that runs on all platforms supporting .NET Standard 2.0.
+A highly customizable BitTorrent library for .NET.
 
 ## Feature Progress
 

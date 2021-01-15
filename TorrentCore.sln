@@ -8,7 +8,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.travis.yml = .travis.yml
 		Directory.build.props = Directory.build.props
 		LICENSE = LICENSE
-		NuGet.config = NuGet.config
 		README.md = README.md
 		stylecop.json = stylecop.json
 		StyleCopRules.ruleset = StyleCopRules.ruleset

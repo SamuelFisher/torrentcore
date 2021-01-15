@@ -8,48 +8,41 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.Diagnostics;
+using System.CommandLine.Builder;
+using System.CommandLine.Hosting;
+using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using TorrentCore.Extensions.ExtensionProtocol;
 using TorrentCore.Extensions.PeerExchange;
 using TorrentCore.Extensions.SendMetadata;
 using TorrentCore.Modularity;
-using TorrentCore.Web;
 
 namespace TorrentCore.Cli
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
-            int port = 5000;
-            int uiPort = 5001;
-            bool runWebUi = false;
-            string input = null;
-            string output = null;
-            bool verbose = false;
-            ArgumentSyntax.Parse(args, syntax =>
-            {
-                syntax.DefineOption("p|port", ref port, "Port to listen for incoming connections on.");
-                syntax.DefineOption("o|output", ref output, "Path to save downloaded files to.");
-                syntax.DefineOption("v|verbose", ref verbose, "Show detailed logging information.");
-                var uiPortArgument = syntax.DefineOption("ui", ref uiPort, false, "Run a web UI, optionally specifying the port to listen on (default: 5001).");
-                runWebUi = uiPortArgument.IsSpecified;
+            return await BuildCommandLine()
+                .UseHost()
+                .UseDefaults()
+                .Build()
+                .InvokeAsync(args);
+        }
 
-                syntax.DefineParameter("input", ref input, "Path of torrent file to download.");
-            });
-
+        private static int Run(Options options)
+        {
             var builder = TorrentClientBuilder.CreateDefaultBuilder();
 
             // Configure logging
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Is(verbose ? Serilog.Events.LogEventLevel.Debug : Serilog.Events.LogEventLevel.Information)
+                .MinimumLevel.Is(options.Verbose ? Serilog.Events.LogEventLevel.Debug : Serilog.Events.LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .CreateLogger();
@@ -57,7 +50,7 @@ namespace TorrentCore.Cli
             builder.ConfigureServices(services => services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true)));
 
             // Listen for incoming connections on the specified port
-            builder.UsePort(port);
+            builder.UsePort(options.Port);
 
             // Add extension protocol
             builder.ConfigureServices(services =>
@@ -74,13 +67,7 @@ namespace TorrentCore.Cli
 
             var client = builder.Build();
 
-            ////if (runWebUi)
-            ////{
-            ////    var uri = client.EnableWebUI(uiPort);
-            ////    Console.WriteLine($"Web UI started at {uri}");
-            ////}
-
-            var download = client.Add(input, output);
+            var download = client.Add(options.Input.FullName, options.Output.FullName);
             download.Start();
 
             Console.WriteLine("Downloading...");
@@ -93,11 +80,46 @@ namespace TorrentCore.Cli
                 download.WaitForDownloadCompletionAsync().Wait();
             }
             Console.ReadKey();
+
+            return 0;
+        }
+
+        private static CommandLineBuilder BuildCommandLine()
+        {
+            var root = new RootCommand()
+            {
+                new Option<int>(new[] { "-p", "--port" }, "Port to listen for incoming connections on.")
+                {
+                    IsRequired = true,
+                },
+                new Option<DirectoryInfo>(new[] { "-o", "--output" }, "Path to save downloaded files to.")
+                {
+                    IsRequired = true,
+                },
+                new Option<bool>(new[] { "v", "verbose" }, "Show detailed logging information."),
+                new Argument<FileInfo>("--input", "Path of torrent file to download.")
+                {
+                    Arity = ArgumentArity.ExactlyOne,
+                },
+            };
+            root.Handler = CommandHandler.Create<Options>(Run);
+            return new CommandLineBuilder(root);
         }
 
         private static void LogStatus(TorrentDownload download)
         {
             Console.WriteLine($"{download.State} ({download.Progress:P})");
+        }
+
+        public record Options
+        {
+            public int Port { get; init; }
+
+            public DirectoryInfo Output { get; init; }
+
+            public bool Verbose { get; init; }
+
+            public FileInfo Input { get; init; }
         }
     }
 }
