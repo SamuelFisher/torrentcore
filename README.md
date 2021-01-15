@@ -123,24 +123,6 @@ by implementing an `IPiecePicker`.
 
 For more information, see [piece picking](https://torrentcore.org/extend/piece-picking/).
 
-## Web UI
-
-*Web UI is work in progress. Package not currently published.*
-
-TorrentCore includes an optional web UI that can be used for detailed monitoring
-of Torrent downloads. It does not provide any functionality to control
-downloads.
-
-It can be enabled by referencing `TorrentCore.Web` and calling:
-
-```csharp
-client.EnableWebUI();
-```
-
-This starts a web interface on `http://localhost:5001/`.
-
-![/webui-screenshot.png](/webui-screenshot.png)
-
 ## Command-Line Client
 
 In addition to a library, TorrentCore provides a basic command-line client for
@@ -155,8 +137,6 @@ usage: torrentcorecli [-p <arg>] [-o <arg>] [-v] [--ui [arg]] [--]
     -p, --port <arg>      Port to listen for incoming connections on.
     -o, --output <arg>    Path to save downloaded files to.
     -v, --verbose         Show detailed logging information.
-    --ui [arg]            Run a web UI, optionally specifying the port
-                          to listen on (default: 5001).
     <input>               Path of torrent file to download.
 ```
 

@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TorrentCore.Web\TorrentCore.Web.csproj" />
     <ProjectReference Include="..\TorrentCore\TorrentCore.csproj" />
   </ItemGroup>
 
