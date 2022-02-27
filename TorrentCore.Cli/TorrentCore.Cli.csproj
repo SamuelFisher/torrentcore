@@ -13,9 +13,6 @@
     <DocumentationFile>bin\Debug\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <AdditionalFiles Include="..\stylecop.json" Visible="false" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\TorrentCore\TorrentCore.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -23,8 +20,5 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.3.0-alpha.20574.7" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="StyleCop.Analyzers" Version="1.2.0-beta.406" />
   </ItemGroup>
 </Project>
