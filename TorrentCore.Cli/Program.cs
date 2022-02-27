@@ -24,13 +24,13 @@ public class Program
     public static async Task<int> Main(string[] args)
     {
         return await BuildCommandLine()
-            .UseHost()
+            .UseHost(host => host.UseSerilog())
             .UseDefaults()
             .Build()
             .InvokeAsync(args);
     }
 
-    private static int Run(Options options)
+    private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
     {
         var builder = TorrentClientBuilder.CreateDefaultBuilder();
 
@@ -59,7 +59,7 @@ public class Program
             });
         });
 
-        var client = builder.Build();
+        using var client = builder.Build();
 
         var download = client.Add(options.Input.FullName, options.Output.FullName);
         download.Start();
@@ -71,9 +71,15 @@ public class Program
             timer.Elapsed += (o, e) => LogStatus(download);
             timer.Start();
 
-            download.WaitForDownloadCompletionAsync().Wait();
+            try
+            {
+                await download.WaitForDownloadCompletionAsync(cancellationToken: cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                return -1;
+            }
         }
-        Console.ReadKey();
 
         return 0;
     }
@@ -96,7 +102,7 @@ public class Program
                     Arity = ArgumentArity.ExactlyOne,
                 },
             };
-        root.Handler = CommandHandler.Create<Options>(Run);
+        root.Handler = CommandHandler.Create<Options, CancellationToken>(RunAsync);
         return new CommandLineBuilder(root);
     }
 

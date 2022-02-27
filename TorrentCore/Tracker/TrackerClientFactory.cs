@@ -20,11 +20,13 @@ public class TrackerClientFactory : ITrackerClientFactory
 {
     private readonly LocalTcpConnectionOptions _connectionDetails;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public TrackerClientFactory(ILoggerFactory loggerFactory, IOptions<LocalTcpConnectionOptions> connectionDetails)
+    public TrackerClientFactory(ILoggerFactory loggerFactory, IOptions<LocalTcpConnectionOptions> connectionDetails, IHttpClientFactory httpClientFactory)
     {
         _connectionDetails = connectionDetails.Value;
         _loggerFactory = loggerFactory;
+        _httpClientFactory = httpClientFactory;
     }
 
     public ITracker? CreateTrackerClient(Uri trackerUri)
@@ -32,7 +34,8 @@ public class TrackerClientFactory : ITrackerClientFactory
         switch (trackerUri.Scheme)
         {
             case "http":
-                return new HttpTracker(_loggerFactory.CreateLogger<HttpTracker>(), _connectionDetails, trackerUri, new HttpClient());
+            case "https":
+                return new HttpTracker(_loggerFactory.CreateLogger<HttpTracker>(), _connectionDetails, trackerUri, _httpClientFactory.CreateClient());
             case "udp":
                 return new UdpTracker(_connectionDetails, trackerUri);
             default:

@@ -6,7 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5BD8F3F0-5E3F-40CB-9534-CA78C50E88EF}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		.travis.yml = .travis.yml
 		Directory.build.props = Directory.build.props
 		LICENSE = LICENSE
 		README.md = README.md

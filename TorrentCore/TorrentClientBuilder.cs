@@ -95,6 +95,7 @@ public class TorrentClientBuilder
             .ConfigureServices(services =>
             {
                 services.AddLogging();
+                services.AddHttpClient();
                 services.AddSingleton<IMainLoop, MainLoop>();
             })
             .AddTcpTransportProtocol()

@@ -7,6 +7,7 @@
 
 using TorrentCore.Data;
 using TorrentCore.Tracker;
+using TorrentCore.Utils;
 
 namespace TorrentCore;
 
@@ -39,9 +40,9 @@ public sealed class TorrentDownload
         _download.Stop();
     }
 
-    public Task WaitForDownloadCompletionAsync(TimeSpan? timeout = null)
+    public Task WaitForDownloadCompletionAsync(TimeSpan? timeout = default, CancellationToken cancellationToken = default)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
             bool completed = false;
             var completionEvent = new ManualResetEvent(false);
@@ -52,12 +53,12 @@ public sealed class TorrentDownload
             };
 
             if (timeout == null)
-                completionEvent.WaitOne();
+                await completionEvent.WaitOneAsync().WaitAsync(cancellationToken);
             else
-                completionEvent.WaitOne(timeout.Value);
+                await completionEvent.WaitOneAsync().WaitAsync(timeout.Value, cancellationToken);
 
             if (!completed)
-                throw new TimeoutException("Download did not complete within the specified timeout.");
+                throw new TaskCanceledException("Download was cancelled before completion.");
         });
     }
 
