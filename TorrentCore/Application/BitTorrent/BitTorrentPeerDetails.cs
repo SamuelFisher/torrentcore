@@ -5,23 +5,17 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using TorrentCore.Transport;
+namespace TorrentCore.Application.BitTorrent;
 
-namespace TorrentCore.Application.BitTorrent
+public sealed class BitTorrentPeerDetails
 {
-    public sealed class BitTorrentPeerDetails
+    public BitTorrentPeerDetails(string address, PeerId peerId)
     {
-        public BitTorrentPeerDetails(string address, PeerId peerId)
-        {
-            Address = address;
-            PeerId = peerId;
-        }
-
-        public string Address { get; }
-
-        public PeerId PeerId { get; }
+        Address = address;
+        PeerId = peerId;
     }
+
+    public string Address { get; }
+
+    public PeerId PeerId { get; }
 }

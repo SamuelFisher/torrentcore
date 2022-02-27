@@ -5,22 +5,17 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+namespace TorrentCore.Transport;
 
-namespace TorrentCore.Transport
+public class AcceptConnectionEventArgs
 {
-    public class AcceptConnectionEventArgs
+    public AcceptConnectionEventArgs(ITransportStream ts, Action accept)
     {
-        public AcceptConnectionEventArgs(ITransportStream ts, Action accept)
-        {
-            TransportStream = ts;
-            Accept = accept;
-        }
-
-        public ITransportStream TransportStream { get; }
-
-        public Action Accept { get; }
+        TransportStream = ts;
+        Accept = accept;
     }
+
+    public ITransportStream TransportStream { get; }
+
+    public Action Accept { get; }
 }

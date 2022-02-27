@@ -5,74 +5,69 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
 using TorrentCore.Data.Pieces;
 using TorrentCore.Modularity;
 using TorrentCore.Transport;
 
-namespace TorrentCore.Extensions.ExtensionProtocol
+namespace TorrentCore.Extensions.ExtensionProtocol;
+
+internal partial class ExtensionProtocolPeerContext : IExtensionProtocolPeerContext
 {
-    internal partial class ExtensionProtocolPeerContext : IExtensionProtocolPeerContext
+    private readonly IPeerContext _peerContext;
+    private readonly Action<IExtensionProtocolMessage> _sendMessage;
+
+    public ExtensionProtocolPeerContext(IPeerContext peerContext,
+                                        Action<IExtensionProtocolMessage> sendMessage)
     {
-        private readonly IPeerContext _peerContext;
-        private readonly Action<IExtensionProtocolMessage> _sendMessage;
-
-        public ExtensionProtocolPeerContext(IPeerContext peerContext,
-                                            Action<IExtensionProtocolMessage> sendMessage)
-        {
-            _peerContext = peerContext;
-            _sendMessage = sendMessage;
-        }
-
-        public IReadOnlyCollection<string> SupportedMessageTypes =>
-            _peerContext.GetValue<Dictionary<string, byte>>(ExtensionProtocolModule.ExtensionProtocolMessageIds).Keys;
-
-        public void SendMessage(IExtensionProtocolMessage message)
-        {
-            _sendMessage(message);
-        }
+        _peerContext = peerContext;
+        _sendMessage = sendMessage;
     }
 
-    internal partial class ExtensionProtocolPeerContext : IPeerContext
+    public IReadOnlyCollection<string> SupportedMessageTypes =>
+        _peerContext.GetRequiredValue<Dictionary<string, byte>>(ExtensionProtocolModule.ExtensionProtocolMessageIds).Keys;
+
+    public void SendMessage(IExtensionProtocolMessage message)
     {
-        public IBlockRequests BlockRequests => _peerContext.BlockRequests;
+        _sendMessage(message);
+    }
+}
 
-        public BitTorrentPeer Peer => _peerContext.Peer;
+internal partial class ExtensionProtocolPeerContext : IPeerContext
+{
+    public IBlockRequests BlockRequests => _peerContext.BlockRequests;
 
-        public Metainfo Metainfo => _peerContext.Metainfo;
+    public BitTorrentPeer Peer => _peerContext.Peer;
 
-        public IReadOnlyCollection<BitTorrentPeer> Peers => _peerContext.Peers;
+    public Metainfo Metainfo => _peerContext.Metainfo;
 
-        public IPieceDataHandler DataHandler => _peerContext.DataHandler;
+    public IReadOnlyCollection<BitTorrentPeer> Peers => _peerContext.Peers;
 
-        public void PeersAvailable(IEnumerable<ITransportStream> peers)
-        {
-            _peerContext.PeersAvailable(peers);
-        }
+    public IPieceDataHandler DataHandler => _peerContext.DataHandler;
 
-        public T GetValue<T>(string key)
-        {
-            return _peerContext.GetValue<T>(key);
-        }
+    public void PeersAvailable(IEnumerable<ITransportStream> peers)
+    {
+        _peerContext.PeersAvailable(peers);
+    }
 
-        public void SetValue<T>(string key, T value)
-        {
-            _peerContext.SetValue(key, value);
-        }
+    public T? GetValue<T>(string key)
+    {
+        return _peerContext.GetValue<T>(key);
+    }
 
-        public void RegisterMessageHandler(byte messageId)
-        {
-            _peerContext.RegisterMessageHandler(messageId);
-        }
+    public void SetValue<T>(string key, T value)
+    {
+        _peerContext.SetValue(key, value);
+    }
 
-        public void SendMessage(byte messageId, byte[] data)
-        {
-            _peerContext.SendMessage(messageId, data);
-        }
+    public void RegisterMessageHandler(byte messageId)
+    {
+        _peerContext.RegisterMessageHandler(messageId);
+    }
+
+    public void SendMessage(byte messageId, byte[] data)
+    {
+        _peerContext.SendMessage(messageId, data);
     }
 }

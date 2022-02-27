@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+	<ImplicitUsings>true</ImplicitUsings>
+	<Nullable>enable</Nullable>
     <DocumentationFile>bin\Debug\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-  
+  </PropertyGroup>  
   <ItemGroup>
     <ProjectReference Include="..\..\TorrentCore\TorrentCore.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="TorrentContent.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Update="StyleCop.Analyzers" Version="1.2.0-beta.406" />
+  </ItemGroup>
 </Project>

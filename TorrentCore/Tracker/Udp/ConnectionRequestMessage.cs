@@ -5,26 +5,19 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+namespace TorrentCore.Tracker.Udp;
 
-namespace TorrentCore.Tracker.Udp
+class ConnectionRequestMessage : UdpTrackerRequestMessage
 {
-    class ConnectionRequestMessage : UdpTrackerRequestMessage
+    public ConnectionRequestMessage()
     {
-        public ConnectionRequestMessage()
-        {
-            Action = MessageAction.Connect;
-        }
+        Action = MessageAction.Connect;
+    }
 
-        public override void WriteTo(BinaryWriter writer)
-        {
-            writer.Write(ConnectionId);
-            writer.Write((int)Action);
-            writer.Write(TransactionId);
-        }
+    public override void WriteTo(BinaryWriter writer)
+    {
+        writer.Write(ConnectionId);
+        writer.Write((int)Action);
+        writer.Write(TransactionId);
     }
 }

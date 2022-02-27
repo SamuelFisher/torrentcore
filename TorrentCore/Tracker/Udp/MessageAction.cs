@@ -5,17 +5,11 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+namespace TorrentCore.Tracker.Udp;
 
-namespace TorrentCore.Tracker.Udp
+enum MessageAction
 {
-    enum MessageAction
-    {
-        Connect = 0,
-        Announce = 1,
-        Error = 3,
-    }
+    Connect = 0,
+    Announce = 1,
+    Error = 3,
 }

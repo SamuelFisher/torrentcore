@@ -5,24 +5,20 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using TorrentCore.Modularity;
 
-namespace TorrentCore.Extensions.ExtensionProtocol
-{
-    public interface IExtensionProtocolPeerContext : IPeerContext
-    {
-        /// <summary>
-        /// Gets the message types this peer has indicated support for.
-        /// </summary>
-        IReadOnlyCollection<string> SupportedMessageTypes { get; }
+namespace TorrentCore.Extensions.ExtensionProtocol;
 
-        /// <summary>
-        /// Sends an extension protocol message to this peer.
-        /// </summary>
-        /// <param name="message">The message to send.</param>
-        void SendMessage(IExtensionProtocolMessage message);
-    }
+public interface IExtensionProtocolPeerContext : IPeerContext
+{
+    /// <summary>
+    /// Gets the message types this peer has indicated support for.
+    /// </summary>
+    IReadOnlyCollection<string> SupportedMessageTypes { get; }
+
+    /// <summary>
+    /// Sends an extension protocol message to this peer.
+    /// </summary>
+    /// <param name="message">The message to send.</param>
+    void SendMessage(IExtensionProtocolMessage message);
 }

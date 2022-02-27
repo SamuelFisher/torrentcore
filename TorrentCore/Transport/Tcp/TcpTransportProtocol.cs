@@ -5,147 +5,140 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace TorrentCore.Transport.Tcp
+namespace TorrentCore.Transport.Tcp;
+
+/// <summary>
+/// Base class for transport protocols using TCP.
+/// Provides a TCP listener for incoming connections.
+/// </summary>
+class TcpTransportProtocol : ITcpTransportProtocol
 {
+    private readonly ILogger<TcpTransportProtocol> _logger;
+    private readonly ConcurrentBag<TcpTransportStream> _streams;
+
+    private TcpListener? _listener;
+
     /// <summary>
-    /// Base class for transport protocols using TCP.
-    /// Provides a TCP listener for incoming connections.
+    /// Initializes a new instance of the <see cref="TcpTransportProtocol"/> class that will listen on the specified port.
     /// </summary>
-    class TcpTransportProtocol : ITcpTransportProtocol
+    /// <param name="logger">Logger.</param>
+    /// <param name="options">Listen options.</param>
+    public TcpTransportProtocol(ILogger<TcpTransportProtocol> logger, IOptions<LocalTcpConnectionOptions> options)
     {
-        private readonly ILogger<TcpTransportProtocol> _logger;
-        private readonly ConcurrentBag<TcpTransportStream> _streams;
+        _logger = logger;
+        _streams = new ConcurrentBag<TcpTransportStream>();
+        Port = options.Value.Port;
+        LocalBindAddress = options.Value.BindAddress ?? IPAddress.Any;
+        RateLimiter = new RateLimiter();
+    }
 
-        private TcpListener _listener;
+    public event Action<AcceptConnectionEventArgs>? AcceptConnectionHandler;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TcpTransportProtocol"/> class that will listen on the specified port.
-        /// </summary>
-        /// <param name="logger">Logger.</param>
-        /// <param name="options">Listen options.</param>
-        public TcpTransportProtocol(ILogger<TcpTransportProtocol> logger, IOptions<LocalTcpConnectionOptions> options)
+    /// <summary>
+    /// Gets or sets the maximum upload and download rates for all streams using this transport protocol.
+    /// </summary>
+    public RateLimiter RateLimiter { get; set; }
+
+    public LocalTcpConnectionOptions? LocalConection { get; private set; }
+
+    /// <summary>
+    /// Gets the port on which incoming connections can be made.
+    /// </summary>
+    public int Port { get; private set; }
+
+    /// <summary>
+    /// Gets the address of the local adapter used for connections.
+    /// </summary>
+    public IPAddress LocalBindAddress { get; }
+
+    /// <summary>
+    /// Gets a collection of the active transport streams.
+    /// </summary>
+    public IEnumerable<TcpTransportStream> Streams => _streams;
+
+    /// <summary>
+    /// Gets a collection of the active transport streams.
+    /// </summary>
+    IEnumerable<ITransportStream> ITransportProtocol.Streams => _streams;
+
+    void AcceptConnection(TransportConnectionEventArgs e)
+    {
+        var stream = new TcpTransportStream(e.Client);
+
+        // Notify application protocol
+        bool accepted = false;
+        var applicationEE = new AcceptConnectionEventArgs(stream, () =>
         {
-            _logger = logger;
-            _streams = new ConcurrentBag<TcpTransportStream>();
-            Port = options.Value.Port;
-            LocalBindAddress = options.Value.BindAddress ?? IPAddress.Any;
-            RateLimiter = new RateLimiter();
+            _logger.LogInformation($"Accepted connection from {stream.RemoteEndPoint}");
+
+            accepted = true;
+            _streams.Add(stream);
+        });
+        AcceptConnectionHandler?.Invoke(applicationEE);
+
+        if (!accepted)
+            e.Client.Dispose();
+    }
+
+    /// <summary>
+    /// Starts the transport protocol.
+    /// </summary>
+    public void Start()
+    {
+        _listener = new TcpListener(LocalBindAddress, Port);
+        _listener.Start();
+
+        // If port=0 was supplied, set the actual port we are listening on.
+        Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
+        ListenForIncomingConnections();
+    }
+
+    /// <summary>
+    /// Stops the transport protocol.
+    /// </summary>
+    public void Stop()
+    {
+        // Stop listening for new connections
+        _listener?.Stop();
+
+        foreach (var stream in _streams)
+            stream.Disconnect();
+    }
+
+    void ListenForIncomingConnections()
+    {
+        if (_listener == null)
+        {
+            throw new InvalidOperationException();
         }
 
-        public event Action<AcceptConnectionEventArgs> AcceptConnectionHandler;
-
-        /// <summary>
-        /// Gets or sets the maximum upload and download rates for all streams using this transport protocol.
-        /// </summary>
-        public RateLimiter RateLimiter { get; set; }
-
-        public LocalTcpConnectionOptions LocalConection { get; private set; }
-
-        /// <summary>
-        /// Gets the port on which incoming connections can be made.
-        /// </summary>
-        public int Port { get; private set; }
-
-        /// <summary>
-        /// Gets the public address that is used to listen for incoming connections.
-        /// </summary>
-        public IPAddress PublicListenAddress { get; }
-
-        /// <summary>
-        /// Gets the address of the local adapter used for connections.
-        /// </summary>
-        public IPAddress LocalBindAddress { get; }
-
-        /// <summary>
-        /// Gets a collection of the active transport streams.
-        /// </summary>
-        public IEnumerable<TcpTransportStream> Streams => _streams;
-
-        /// <summary>
-        /// Gets a collection of the active transport streams.
-        /// </summary>
-        IEnumerable<ITransportStream> ITransportProtocol.Streams => _streams;
-
-        void AcceptConnection(TransportConnectionEventArgs e)
+        Task.Run(async () =>
         {
-            var stream = new TcpTransportStream(e.Client);
-
-            // Notify application protocol
-            bool accepted = false;
-            var applicationEE = new AcceptConnectionEventArgs(stream, () =>
+            try
             {
-                _logger.LogInformation($"Accepted connection from {stream.RemoteEndPoint}");
-
-                accepted = true;
-                _streams.Add(stream);
-            });
-            AcceptConnectionHandler?.Invoke(applicationEE);
-
-            if (!accepted)
-                e.Client.Dispose();
-        }
-
-        /// <summary>
-        /// Starts the transport protocol.
-        /// </summary>
-        public void Start()
-        {
-            _listener = new TcpListener(LocalBindAddress, Port);
-            _listener.Start();
-
-            // If port=0 was supplied, set the actual port we are listening on.
-            Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
-            ListenForIncomingConnections();
-        }
-
-        /// <summary>
-        /// Stops the transport protocol.
-        /// </summary>
-        public void Stop()
-        {
-            // Stop listening for new connections
-            _listener.Stop();
-
-            foreach (var stream in _streams)
-                stream.Disconnect();
-        }
-
-        void ListenForIncomingConnections()
-        {
-            Task.Run(async () =>
-            {
-                try
+                while (true)
                 {
-                    while (true)
-                    {
-                        var client = await _listener.AcceptTcpClientAsync();
-                        AcceptConnection(new TransportConnectionEventArgs(client));
-                    }
+                    var client = await _listener.AcceptTcpClientAsync();
+                    AcceptConnection(new TransportConnectionEventArgs(client));
                 }
-                catch
-                {
+            }
+            catch
+            {
                     // Socket closed
                 }
-            });
-        }
+        });
+    }
 
-        public ITransportStream CreateTransportStream(IPAddress remoteAddress, int port)
-        {
-            var transportStream = new TcpTransportStream(LocalBindAddress, remoteAddress, port);
-            _streams.Add(transportStream);
-            return transportStream;
-        }
+    public ITransportStream CreateTransportStream(IPAddress remoteAddress, int port)
+    {
+        var transportStream = new TcpTransportStream(LocalBindAddress, remoteAddress, port);
+        _streams.Add(transportStream);
+        return transportStream;
     }
 }

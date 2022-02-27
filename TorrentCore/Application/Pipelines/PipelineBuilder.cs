@@ -5,55 +5,49 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using Microsoft.Extensions.DependencyInjection;
-using TorrentCore.Application;
 
-namespace TorrentCore.Application.Pipelines
+namespace TorrentCore.Application.Pipelines;
+
+public class PipelineBuilder
 {
-    public class PipelineBuilder
+    private readonly ImmutableList<Type> _stages;
+
+    public PipelineBuilder()
     {
-        private readonly ImmutableList<Type> _stages;
+        _stages = ImmutableList<Type>.Empty;
+    }
 
-        public PipelineBuilder()
+    private PipelineBuilder(IEnumerable<Type> stages)
+    {
+        _stages = stages.ToImmutableList();
+    }
+
+    public PipelineBuilder AddStage<T>()
+        where T : IPipelineStage
+    {
+        return new PipelineBuilder(_stages.Add(typeof(T)));
+    }
+
+    public IPipelineFactory Build()
+    {
+        return new PipelineStageFactory(_stages);
+    }
+
+    private class PipelineStageFactory : IPipelineFactory
+    {
+        private readonly IReadOnlyList<Type> _stages;
+
+        public PipelineStageFactory(IReadOnlyList<Type> stages)
         {
-            _stages = ImmutableList<Type>.Empty;
+            _stages = stages;
         }
 
-        private PipelineBuilder(IEnumerable<Type> stages)
+        public IPipeline CreatePipeline(IServiceProvider pipelineScope, IApplicationProtocol applicationProtocol)
         {
-            _stages = stages.ToImmutableList();
-        }
-
-        public PipelineBuilder AddStage<T>()
-            where T : IPipelineStage
-        {
-            return new PipelineBuilder(_stages.Add(typeof(T)));
-        }
-
-        public IPipelineFactory Build()
-        {
-            return new PipelineStageFactory(_stages);
-        }
-
-        private class PipelineStageFactory : IPipelineFactory
-        {
-            private readonly IReadOnlyList<Type> _stages;
-
-            public PipelineStageFactory(IReadOnlyList<Type> stages)
-            {
-                _stages = stages;
-            }
-
-            public IPipeline CreatePipeline(IServiceProvider pipelineScope, IApplicationProtocol applicationProtocol)
-            {
-                var stages = _stages.Select(x => (IPipelineStage)ActivatorUtilities.CreateInstance(pipelineScope, x, applicationProtocol)).ToList();
-                return ActivatorUtilities.CreateInstance<Pipeline>(pipelineScope, stages);
-            }
+            var stages = _stages.Select(x => (IPipelineStage)ActivatorUtilities.CreateInstance(pipelineScope, x, applicationProtocol)).ToList();
+            return ActivatorUtilities.CreateInstance<Pipeline>(pipelineScope, stages);
         }
     }
 }

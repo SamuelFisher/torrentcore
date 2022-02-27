@@ -5,19 +5,15 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using TorrentCore.Application.BitTorrent;
 
-namespace TorrentCore.Application
+namespace TorrentCore.Application;
+
+public interface IPeer
 {
-    public interface IPeer
-    {
-        PeerId PeerId { get; }
+    PeerId PeerId { get; }
 
-        string Address { get; }
+    string Address { get; }
 
-        Bitfield Available { get; }
-    }
+    Bitfield Available { get; }
 }

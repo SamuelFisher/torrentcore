@@ -5,38 +5,30 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using TorrentCore.Data;
 using TorrentCore.Modularity;
-using TorrentCore.Transport;
 
-namespace TorrentCore.Application.BitTorrent.ExtensionModule
+namespace TorrentCore.Application.BitTorrent.ExtensionModule;
+
+class MessageReceivedContext : PeerContext, IMessageReceivedContext
 {
-    class MessageReceivedContext : PeerContext, IMessageReceivedContext
+    public MessageReceivedContext(
+        BitTorrentPeer peer,
+        ITorrentContext torrentContext,
+        int messageId,
+        int messageLength,
+        BinaryReader reader,
+        Dictionary<string, object?> customValues,
+        Action<byte> registerMessageHandler)
+        : base(peer, customValues, torrentContext, registerMessageHandler)
     {
-        public MessageReceivedContext(
-            BitTorrentPeer peer,
-            ITorrentContext torrentContext,
-            int messageId,
-            int messageLength,
-            BinaryReader reader,
-            Dictionary<string, object> customValues,
-            Action<byte> registerMessageHandler)
-            : base(peer, customValues, torrentContext, registerMessageHandler)
-        {
-            Reader = reader;
-            MessageId = messageId;
-            MessageLength = messageLength;
-        }
-
-        public int MessageId { get; }
-
-        public int MessageLength { get; }
-
-        public BinaryReader Reader { get; }
+        Reader = reader;
+        MessageId = messageId;
+        MessageLength = messageLength;
     }
+
+    public int MessageId { get; }
+
+    public int MessageLength { get; }
+
+    public BinaryReader Reader { get; }
 }

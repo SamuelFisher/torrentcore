@@ -5,17 +5,11 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using TorrentCore.Extensions.ExtensionProtocol;
@@ -23,70 +17,70 @@ using TorrentCore.Extensions.PeerExchange;
 using TorrentCore.Extensions.SendMetadata;
 using TorrentCore.Modularity;
 
-namespace TorrentCore.Cli
+namespace TorrentCore.Cli;
+
+public class Program
 {
-    public class Program
+    public static async Task<int> Main(string[] args)
     {
-        public static async Task<int> Main(string[] args)
+        return await BuildCommandLine()
+            .UseHost()
+            .UseDefaults()
+            .Build()
+            .InvokeAsync(args);
+    }
+
+    private static int Run(Options options)
+    {
+        var builder = TorrentClientBuilder.CreateDefaultBuilder();
+
+        // Configure logging
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Is(options.Verbose ? Serilog.Events.LogEventLevel.Debug : Serilog.Events.LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .CreateLogger();
+
+        builder.ConfigureServices(services => services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true)));
+
+        // Listen for incoming connections on the specified port
+        builder.UsePort(options.Port);
+
+        // Add extension protocol
+        builder.ConfigureServices(services =>
         {
-            return await BuildCommandLine()
-                .UseHost()
-                .UseDefaults()
-                .Build()
-                .InvokeAsync(args);
-        }
-
-        private static int Run(Options options)
-        {
-            var builder = TorrentClientBuilder.CreateDefaultBuilder();
-
-            // Configure logging
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Is(options.Verbose ? Serilog.Events.LogEventLevel.Debug : Serilog.Events.LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .CreateLogger();
-
-            builder.ConfigureServices(services => services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true)));
-
-            // Listen for incoming connections on the specified port
-            builder.UsePort(options.Port);
-
-            // Add extension protocol
-            builder.ConfigureServices(services =>
+            services.AddScoped<IModule>(s =>
             {
-                services.AddScoped<IModule>(s =>
-                {
-                    // TODO: Handle construction of message handlers inside ExtensionProtocolModule
-                    var extensionProtocolModule = ActivatorUtilities.CreateInstance<ExtensionProtocolModule>(s);
-                    extensionProtocolModule.RegisterMessageHandler(ActivatorUtilities.CreateInstance<PeerExchangeMessageHandler>(s));
-                    extensionProtocolModule.RegisterMessageHandler(ActivatorUtilities.CreateInstance<MetadataMessageHandler>(s));
-                    return extensionProtocolModule;
-                });
+                // TODO: Handle construction of message handlers inside ExtensionProtocolModule
+                var extensionProtocolModule = ActivatorUtilities.CreateInstance<ExtensionProtocolModule>(s);
+                extensionProtocolModule.RegisterMessageHandler(ActivatorUtilities.CreateInstance<PeerExchangeMessageHandler>(s));
+                extensionProtocolModule.RegisterMessageHandler(ActivatorUtilities.CreateInstance<MetadataMessageHandler>(s));
+                return extensionProtocolModule;
             });
+        });
 
-            var client = builder.Build();
+        var client = builder.Build();
 
-            var download = client.Add(options.Input.FullName, options.Output.FullName);
-            download.Start();
+        var download = client.Add(options.Input.FullName, options.Output.FullName);
+        download.Start();
 
-            Console.WriteLine("Downloading...");
+        Console.WriteLine("Downloading...");
 
-            using (var timer = new System.Timers.Timer(TimeSpan.FromSeconds(1).TotalMilliseconds))
-            {
-                timer.Elapsed += (o, e) => LogStatus(download);
-                timer.Start();
-
-                download.WaitForDownloadCompletionAsync().Wait();
-            }
-            Console.ReadKey();
-
-            return 0;
-        }
-
-        private static CommandLineBuilder BuildCommandLine()
+        using (var timer = new System.Timers.Timer(TimeSpan.FromSeconds(1).TotalMilliseconds))
         {
-            var root = new RootCommand()
+            timer.Elapsed += (o, e) => LogStatus(download);
+            timer.Start();
+
+            download.WaitForDownloadCompletionAsync().Wait();
+        }
+        Console.ReadKey();
+
+        return 0;
+    }
+
+    private static CommandLineBuilder BuildCommandLine()
+    {
+        var root = new RootCommand()
             {
                 new Option<int>(new[] { "-p", "--port" }, "Port to listen for incoming connections on.")
                 {
@@ -102,24 +96,25 @@ namespace TorrentCore.Cli
                     Arity = ArgumentArity.ExactlyOne,
                 },
             };
-            root.Handler = CommandHandler.Create<Options>(Run);
-            return new CommandLineBuilder(root);
-        }
-
-        private static void LogStatus(TorrentDownload download)
-        {
-            Console.WriteLine($"{download.State} ({download.Progress:P})");
-        }
-
-        public record Options
-        {
-            public int Port { get; init; }
-
-            public DirectoryInfo Output { get; init; }
-
-            public bool Verbose { get; init; }
-
-            public FileInfo Input { get; init; }
-        }
+        root.Handler = CommandHandler.Create<Options>(Run);
+        return new CommandLineBuilder(root);
     }
+
+    private static void LogStatus(TorrentDownload download)
+    {
+        Console.WriteLine($"{download.State} ({download.Progress:P})");
+    }
+
+    #nullable disable
+    public record Options
+    {
+        public int Port { get; init; }
+
+        public DirectoryInfo Output { get; init; }
+
+        public bool Verbose { get; init; }
+
+        public FileInfo Input { get; init; }
+    }
+    #nullable enable
 }

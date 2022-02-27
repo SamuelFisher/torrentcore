@@ -5,24 +5,19 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+namespace TorrentCore.Application.Pipelines;
 
-namespace TorrentCore.Application.Pipelines
+public sealed class StatusUpdate
 {
-    public sealed class StatusUpdate
+    public StatusUpdate(DownloadState state, double progress)
     {
-        public StatusUpdate(DownloadState state, double progress)
-        {
-            State = state;
-            Progress = progress;
-        }
-
-        public DownloadState State { get; }
-
-        public double Progress { get; }
-
-        public override string ToString() => $"{State} ({Progress:P})";
+        State = state;
+        Progress = progress;
     }
+
+    public DownloadState State { get; }
+
+    public double Progress { get; }
+
+    public override string ToString() => $"{State} ({Progress:P})";
 }

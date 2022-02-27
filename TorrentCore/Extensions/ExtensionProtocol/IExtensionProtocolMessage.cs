@@ -5,19 +5,13 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+namespace TorrentCore.Extensions.ExtensionProtocol;
 
-namespace TorrentCore.Extensions.ExtensionProtocol
+public interface IExtensionProtocolMessage
 {
-    public interface IExtensionProtocolMessage
-    {
-        string MessageType { get; }
+    string MessageType { get; }
 
-        byte[] Serialize();
+    byte[] Serialize();
 
-        void Deserialize(byte[] data);
-    }
+    void Deserialize(byte[] data);
 }

@@ -5,80 +5,76 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using BencodeNET.Objects;
 using BencodeNET.Parsing;
 using TorrentCore.Extensions.ExtensionProtocol;
 
-namespace TorrentCore.Extensions.SendMetadata
+namespace TorrentCore.Extensions.SendMetadata;
+
+#nullable disable
+class MetadataMessage : IExtensionProtocolMessage
 {
-    class MetadataMessage : IExtensionProtocolMessage
+    public const string MessageType = "ut_metadata";
+
+    public enum Type
     {
-        public const string MessageType = "ut_metadata";
+        Request = 0,
+        Data = 1,
+        Reject = 2,
+    }
 
-        public enum Type
+    string IExtensionProtocolMessage.MessageType => MessageType;
+
+    public Type RequestType { get; set; }
+
+    public int PieceIndex { get; set; }
+
+    public int TotalSize { get; set; }
+
+    public byte[] PieceData { get; set; }
+
+    public byte[] Serialize()
+    {
+        var dict = new BDictionary
         {
-            Request = 0,
-            Data = 1,
-            Reject = 2,
-        }
+            ["msg_type"] = new BNumber((int)RequestType),
+            ["piece"] = new BNumber(PieceIndex),
+        };
 
-        string IExtensionProtocolMessage.MessageType => MessageType;
+        if (RequestType == Type.Data)
+            dict["total_size"] = new BNumber(TotalSize);
 
-        public Type RequestType { get; set; }
-
-        public int PieceIndex { get; set; }
-
-        public int TotalSize { get; set; }
-
-        public byte[] PieceData { get; set; }
-
-        public byte[] Serialize()
+        using (var ms = new MemoryStream())
         {
-            var dict = new BDictionary
-            {
-                ["msg_type"] = new BNumber((int)RequestType),
-                ["piece"] = new BNumber(PieceIndex),
-            };
+            dict.EncodeTo(ms);
 
             if (RequestType == Type.Data)
-                dict["total_size"] = new BNumber(TotalSize);
+                ms.Write(PieceData, 0, PieceData.Length);
 
-            using (var ms = new MemoryStream())
-            {
-                dict.EncodeTo(ms);
-
-                if (RequestType == Type.Data)
-                    ms.Write(PieceData, 0, PieceData.Length);
-
-                return ms.ToArray();
-            }
+            return ms.ToArray();
         }
+    }
 
-        public void Deserialize(byte[] data)
+    public void Deserialize(byte[] data)
+    {
+        using (var ms = new MemoryStream(data))
         {
-            using (var ms = new MemoryStream(data))
+            var dictParser = new BDictionaryParser(new BencodeParser());
+            var dict = dictParser.Parse(ms);
+
+            var requestType = (Type)((BNumber)dict["msg_type"]).Value;
+            if (!Enum.IsDefined(typeof(Type), requestType))
+                return; // Unsupported message type
+
+            RequestType = requestType;
+
+            PieceIndex = (int)((BNumber)dict["piece"]).Value;
+
+            if (RequestType == Type.Data)
             {
-                var dictParser = new BDictionaryParser(new BencodeParser());
-                var dict = dictParser.Parse(ms);
-
-                var requestType = (Type)((BNumber)dict["msg_type"]).Value;
-                if (!Enum.IsDefined(typeof(Type), requestType))
-                    return; // Unsupported message type
-
-                RequestType = requestType;
-
-                PieceIndex = (int)((BNumber)dict["piece"]).Value;
-
-                if (RequestType == Type.Data)
-                {
-                    TotalSize = (int)((BNumber)dict["total_size"]).Value;
-                    PieceData = new byte[ms.Length - ms.Position];
-                    ms.Read(PieceData, 0, (int)(ms.Length - ms.Position));
-                }
+                TotalSize = (int)((BNumber)dict["total_size"]).Value;
+                PieceData = new byte[ms.Length - ms.Position];
+                ms.Read(PieceData, 0, (int)(ms.Length - ms.Position));
             }
         }
     }

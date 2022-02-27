@@ -5,16 +5,12 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using TorrentCore.Transport;
+namespace TorrentCore.Modularity;
 
-namespace TorrentCore.Tracker;
-
-public class AnnounceResult
+public static class PeerContextExtensions
 {
-    public AnnounceResult(IEnumerable<ITransportStream> peers)
+    public static T GetRequiredValue<T>(this IPeerContext context, string key)
     {
-        Peers = peers.ToArray();
+        return context.GetValue<T>(key) ?? throw new InvalidOperationException();
     }
-
-    public IReadOnlyList<ITransportStream> Peers { get; }
 }

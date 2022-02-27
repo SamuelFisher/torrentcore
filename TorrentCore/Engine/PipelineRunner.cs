@@ -5,16 +5,6 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TorrentCore.Application;
@@ -24,175 +14,175 @@ using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Tracker;
 
-namespace TorrentCore
+namespace TorrentCore;
+
+/// <summary>
+/// Runs a Torrent pipeline.
+/// </summary>
+class PipelineRunner : ITorrentPipelineRunner
 {
-    /// <summary>
-    /// Runs a Torrent pipeline.
-    /// </summary>
-    class PipelineRunner : ITorrentPipelineRunner
+    private readonly ILogger<PipelineRunner> _logger;
+    private readonly PeerId _localPeerId;
+    private readonly IMainLoop _mainLoop;
+    private readonly IServiceProvider _parentContainer;
+    private readonly IPipelineFactory _pipelineFactory;
+    private readonly StageInterrupt _stageInterrupt;
+    private readonly Progress<StatusUpdate> _progress;
+
+    private IPipeline? _pipeline;
+    private volatile int _recentlyDownloaded;
+    private volatile int _recentlyUploaded;
+
+    private bool _isRunning;
+
+    public PipelineRunner(
+        ILogger<PipelineRunner> logger,
+        PeerId localPeerId,
+        IMainLoop mainLoop,
+        IApplicationProtocol applicationProtocol,
+        ITracker tracker,
+        IServiceProvider parentContainer,
+        IPipelineFactory pipelineFactory)
     {
-        private readonly ILogger<PipelineRunner> _logger;
-        private readonly PeerId _localPeerId;
-        private readonly IMainLoop _mainLoop;
-        private readonly IServiceProvider _parentContainer;
-        private readonly IPipelineFactory _pipelineFactory;
-        private readonly StageInterrupt _stageInterrupt;
-        private readonly Progress<StatusUpdate> _progress;
+        _logger = logger;
+        _localPeerId = localPeerId;
+        _mainLoop = mainLoop;
+        ApplicationProtocol = applicationProtocol;
+        Description = applicationProtocol.Metainfo;
+        _parentContainer = parentContainer;
+        _pipelineFactory = pipelineFactory;
+        Tracker = tracker;
+        State = DownloadState.Pending;
+        DownloadRateMeasurer = new RateMeasurer();
+        UploadRateMeasurer = new RateMeasurer();
+        _progress = new Progress<StatusUpdate>();
+        _progress.ProgressChanged += ProgressChanged;
 
-        private IPipeline _pipeline;
-        private volatile int _recentlyDownloaded;
-        private volatile int _recentlyUploaded;
+        _stageInterrupt = new StageInterrupt();
+    }
 
-        private bool _isRunning;
+    public IApplicationProtocol ApplicationProtocol { get; }
 
-        public PipelineRunner(ILogger<PipelineRunner> logger,
-                              PeerId localPeerId,
-                              IMainLoop mainLoop,
-                              IApplicationProtocol applicationProtocol,
-                              ITracker tracker,
-                              IServiceProvider parentContainer,
-                              IPipelineFactory pipelineFactory)
+    internal ITracker Tracker { get; }
+
+    /// <summary>
+    /// Gets the metainfo describing the collection of files.
+    /// </summary>
+    public Metainfo Description { get; }
+
+    /// <summary>
+    /// Gets the number of bytes downloaded so far.
+    /// </summary>
+    public long Downloaded => ApplicationProtocol.DataHandler.CompletedPieces.Sum(x => x.Size);
+
+    /// <summary>
+    /// Gets the number of bytes uploaded.
+    /// </summary>
+    public long Uploaded => ApplicationProtocol.Uploaded;
+
+    /// <summary>
+    /// Gets the number of bytes still to be downloaded.
+    /// </summary>
+    public long Remaining => Description.TotalSize - Downloaded;
+
+    /// <summary>
+    /// Gets a value indicating the percentage of data that has been downloaded.
+    /// </summary>
+    public double DownloadProgress => (double)Downloaded / Description.TotalSize;
+
+    /// <summary>
+    /// Gets the current state of the download.
+    /// </summary>
+    public DownloadState State { get; private set; }
+
+    /// <summary>
+    /// Gets the RateMeasurer used to measure the download rate.
+    /// </summary>
+    public RateMeasurer DownloadRateMeasurer { get; }
+
+    /// <summary>
+    /// Gets the RateMeasurer used to measure the upload rate.
+    /// </summary>
+    public RateMeasurer UploadRateMeasurer { get; }
+
+    public void Start()
+    {
+        if (_isRunning)
+            throw new InvalidOperationException("Already started.");
+        _isRunning = true;
+
+        _stageInterrupt.Reset();
+
+        Task.Run(async () =>
         {
-            _logger = logger;
-            _localPeerId = localPeerId;
-            _mainLoop = mainLoop;
-            ApplicationProtocol = applicationProtocol;
-            Description = applicationProtocol.Metainfo;
-            _parentContainer = parentContainer;
-            _pipelineFactory = pipelineFactory;
-            Tracker = tracker;
-            State = DownloadState.Pending;
-            DownloadRateMeasurer = new RateMeasurer();
-            UploadRateMeasurer = new RateMeasurer();
-            _progress = new Progress<StatusUpdate>();
-            _progress.ProgressChanged += ProgressChanged;
+            await ContactTracker();
 
-            _stageInterrupt = new StageInterrupt();
-        }
-
-        public IApplicationProtocol ApplicationProtocol { get; }
-
-        internal ITracker Tracker { get; }
-
-        /// <summary>
-        /// Gets the metainfo describing the collection of files.
-        /// </summary>
-        public Metainfo Description { get; }
-
-        /// <summary>
-        /// Gets the number of bytes downloaded so far.
-        /// </summary>
-        public long Downloaded => ApplicationProtocol.DataHandler.CompletedPieces.Sum(x => x.Size);
-
-        /// <summary>
-        /// Gets the number of bytes uploaded.
-        /// </summary>
-        public long Uploaded => ApplicationProtocol.Uploaded;
-
-        /// <summary>
-        /// Gets the number of bytes still to be downloaded.
-        /// </summary>
-        public long Remaining => Description.TotalSize - Downloaded;
-
-        /// <summary>
-        /// Gets a value indicating the percentage of data that has been downloaded.
-        /// </summary>
-        public double DownloadProgress => (double)Downloaded / Description.TotalSize;
-
-        /// <summary>
-        /// Gets the current state of the download.
-        /// </summary>
-        public DownloadState State { get; private set; }
-
-        /// <summary>
-        /// Gets the RateMeasurer used to measure the download rate.
-        /// </summary>
-        public RateMeasurer DownloadRateMeasurer { get; }
-
-        /// <summary>
-        /// Gets the RateMeasurer used to measure the upload rate.
-        /// </summary>
-        public RateMeasurer UploadRateMeasurer { get; }
-
-        public void Start()
-        {
-            if (_isRunning)
-                throw new InvalidOperationException("Already started.");
-            _isRunning = true;
-
-            _stageInterrupt.Reset();
-
-            Task.Run(async () =>
+            using (var pipelineScope = _parentContainer.CreateScope())
             {
-                await ContactTracker();
-
-                using (var pipelineScope = _parentContainer.CreateScope())
-                {
-                    _pipeline = _pipelineFactory.CreatePipeline(pipelineScope.ServiceProvider, ApplicationProtocol);
-                    _pipeline.Run(_stageInterrupt, _progress);
-                }
-            });
-        }
-
-        private async Task ContactTracker()
-        {
-            _logger.LogInformation("Contacting tracker");
-
-            try
-            {
-                var request = new AnnounceRequest(
-                    _localPeerId,
-                    Remaining,
-                    Downloaded,
-                    Uploaded,
-                    Description.InfoHash);
-
-                var result = await Tracker.Announce(request);
-
-                _logger.LogInformation($"{result.Peers.Count} peers available");
-
-                ApplicationProtocol.PeersAvailable(result.Peers);
+                _pipeline = _pipelineFactory.CreatePipeline(pipelineScope.ServiceProvider, ApplicationProtocol);
+                _pipeline.Run(_stageInterrupt, _progress);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unable to contact tracker");
+        });
+    }
 
-                // Cannot connect to tracker
-                State = DownloadState.Error;
-            }
-        }
+    private async Task ContactTracker()
+    {
+        _logger.LogInformation("Contacting tracker");
 
-        public void Pause()
+        try
         {
-            _isRunning = false;
-            _stageInterrupt.Pause();
-        }
+            var request = new AnnounceRequest(
+                _localPeerId,
+                Remaining,
+                Downloaded,
+                Uploaded,
+                Description.InfoHash);
 
-        public void Stop()
+            var result = await Tracker.Announce(request);
+
+            _logger.LogInformation($"{result.Peers.Count} peers available");
+
+            ApplicationProtocol.PeersAvailable(result.Peers);
+        }
+        catch (Exception ex)
         {
-            _isRunning = false;
-            _stageInterrupt.Stop();
-        }
+            _logger.LogError(ex, "Unable to contact tracker");
 
-        public void Dispose()
-        {
-            if (_isRunning)
-                Stop();
+            // Cannot connect to tracker
+            State = DownloadState.Error;
         }
+    }
 
-        private void ProgressChanged(object sender, StatusUpdate e)
-        {
-            _logger.LogTrace($"Progress: {e}");
-            State = e.State;
-        }
+    public void Pause()
+    {
+        _isRunning = false;
+        _stageInterrupt.Pause();
+    }
 
-        internal void UpdateStatistics()
-        {
-            DownloadRateMeasurer.AddMeasure(_recentlyDownloaded);
-            _recentlyDownloaded = 0;
+    public void Stop()
+    {
+        _isRunning = false;
+        _stageInterrupt.Stop();
+    }
 
-            UploadRateMeasurer.AddMeasure(_recentlyUploaded);
-            _recentlyUploaded = 0;
-        }
+    public void Dispose()
+    {
+        if (_isRunning)
+            Stop();
+    }
+
+    private void ProgressChanged(object? sender, StatusUpdate e)
+    {
+        _logger.LogTrace($"Progress: {e}");
+        State = e.State;
+    }
+
+    internal void UpdateStatistics()
+    {
+        DownloadRateMeasurer.AddMeasure(_recentlyDownloaded);
+        _recentlyDownloaded = 0;
+
+        UploadRateMeasurer.AddMeasure(_recentlyUploaded);
+        _recentlyUploaded = 0;
     }
 }

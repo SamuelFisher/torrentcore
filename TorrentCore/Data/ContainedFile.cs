@@ -5,33 +5,26 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace TorrentCore.Data;
 
-namespace TorrentCore.Data
+/// <summary>
+/// Describes a single file within a download collection.
+/// </summary>
+public class ContainedFile
 {
-    /// <summary>
-    /// Describes a single file within a download collection.
-    /// </summary>
-    public class ContainedFile
+    public ContainedFile(string name, long size)
     {
-        public ContainedFile(string name, long size)
-        {
-            Name = name;
-            Size = size;
-        }
-
-        /// <summary>
-        /// Gets the name of this file, including directories.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Gets the size of the file, in bytes.
-        /// </summary>
-        public long Size { get; }
+        Name = name;
+        Size = size;
     }
+
+    /// <summary>
+    /// Gets the name of this file, including directories.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Gets the size of the file, in bytes.
+    /// </summary>
+    public long Size { get; }
 }

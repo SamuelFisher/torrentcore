@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+	<ImplicitUsings>true</ImplicitUsings>
+	<Nullable>enable</Nullable>
     <AssemblyName>torrentcorecli</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>TorrentCore.Cli</PackageId>
@@ -11,20 +12,19 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <DocumentationFile>bin\Debug\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
-
   <ItemGroup>
     <AdditionalFiles Include="..\stylecop.json" Visible="false" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\TorrentCore\TorrentCore.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="System.CommandLine.Hosting" Version="0.3.0-alpha.20574.7" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Update="StyleCop.Analyzers" Version="1.2.0-beta.406" />
+  </ItemGroup>
 </Project>

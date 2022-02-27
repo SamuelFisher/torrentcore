@@ -5,15 +5,9 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using TorrentCore.Application;
+namespace TorrentCore.Application.Pipelines;
 
-namespace TorrentCore.Application.Pipelines
+public interface IPipelineStage
 {
-    public interface IPipelineStage
-    {
-        void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress);
-    }
+    void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress);
 }
