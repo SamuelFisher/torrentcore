@@ -6,18 +6,25 @@
 // LICENSE file in the project root for full license information.
 
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace TorrentCore.Engine;
 
 public class MainLoop : IMainLoop
 {
+    private readonly ILogger<MainLoop> _logger;
     private readonly AutoResetEvent _handle = new AutoResetEvent(false);
-    private readonly ConcurrentQueue<Action> _queue = new ConcurrentQueue<Action>();
+    private readonly ConcurrentQueue<Func<Task>> _queue = new ConcurrentQueue<Func<Task>>();
     private readonly HashSet<RegularTask> _regularTasks = new HashSet<RegularTask>();
 
     private Thread? _mainLoop;
     private CancellationTokenSource? _cancelToken;
     private Timer? _regularTaskTimer;
+
+    public MainLoop(ILogger<MainLoop> logger)
+    {
+        _logger = logger;
+    }
 
     /// <summary>
     /// Gets a value indicating whether the loop is running.
@@ -32,10 +39,10 @@ public class MainLoop : IMainLoop
 
             // Start main loop
             _cancelToken = new CancellationTokenSource();
-            _mainLoop = new Thread(() =>
+            _mainLoop = new Thread(async () =>
             {
                 Thread.CurrentThread.Name = "MainLoop";
-                Loop(_cancelToken.Token);
+                await Loop(_cancelToken.Token);
             });
             _mainLoop.Start();
 
@@ -67,29 +74,57 @@ public class MainLoop : IMainLoop
 
     public void AddTask(Action t)
     {
-        _queue.Enqueue(t);
+        _queue.Enqueue(() =>
+        {
+            t();
+            return Task.CompletedTask;
+        });
         _handle.Set();
     }
 
     public IRegularTask AddRegularTask(Action t)
+    {
+        var rt = new RegularTask(
+            () =>
+            {
+                t();
+                return Task.CompletedTask;
+            },
+            RemoveRegularTask);
+        _regularTasks.Add(rt);
+        return rt;
+    }
+
+    public IRegularTask AddRegularTask(Func<Task> t)
     {
         var rt = new RegularTask(t, RemoveRegularTask);
         _regularTasks.Add(rt);
         return rt;
     }
 
-    void Loop(CancellationToken ct)
+    async Task Loop(CancellationToken ct)
     {
         while (true)
         {
-            Action? task = null;
+            Func<Task>? task = null;
             if (_queue.Count > 0)
                 _queue.TryDequeue(out task);
 
             if (task == null)
+            {
                 _handle.WaitOne();
+            }
             else
-                task();
+            {
+                try
+                {
+                    await task();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unhandled task exception.");
+                }
+            }
 
             if (ct.IsCancellationRequested)
                 break;
@@ -103,10 +138,10 @@ public class MainLoop : IMainLoop
 
     private class RegularTask : IRegularTask
     {
-        private readonly Action _execute;
+        private readonly Func<Task> _execute;
         private readonly Action<RegularTask> _cancel;
 
-        public RegularTask(Action execute, Action<RegularTask> cancel)
+        public RegularTask(Func<Task> execute, Action<RegularTask> cancel)
         {
             _execute = execute;
             _cancel = cancel;

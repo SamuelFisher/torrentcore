@@ -54,6 +54,11 @@ class AggregatedTracker : ITracker
 
     private void CreateCandidateTrackers()
     {
+        if (!_trackers.Any(x => x.Any()))
+        {
+            return;
+        }
+
         // TODO: currently just take the first tracker.
         var trackerUri = _trackers.First().First();
         var tracker = _trackerClientFactory.CreateTrackerClient(trackerUri);

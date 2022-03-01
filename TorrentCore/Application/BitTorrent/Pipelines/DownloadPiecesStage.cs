@@ -41,20 +41,20 @@ class DownloadPiecesStage : IPipelineStage
 
     public void Run(IStageInterrupt interrupt, IProgress<StatusUpdate> progress)
     {
-        using (var iterate = _mainLoop.AddRegularTask(() => Iterate(progress)))
+        using (var iterate = _mainLoop.AddRegularTask(() => IterateAsync(progress)))
         {
             interrupt.StopWaitHandle.WaitOne();
         }
     }
 
-    private void Iterate(IProgress<StatusUpdate> progress)
+    private async Task IterateAsync(IProgress<StatusUpdate> progress)
     {
         progress.Report(new StatusUpdate(DownloadState.Downloading, ApplicationProtocol.DataHandler.CompletedPieces.Sum(x => (long)x.Size) / ApplicationProtocol.Metainfo.Pieces.Sum(x => (long)x.Size)));
 
         if (ApplicationProtocol.DataHandler.IncompletePieces().Any())
             RequestPieces();
         SendPieces();
-        ConnectToPeers();
+        await ConnectToPeersAsync();
     }
 
     private void RequestPieces()
@@ -118,13 +118,13 @@ class DownloadPiecesStage : IPipelineStage
         ApplicationProtocol.UploadedData(data!);
     }
 
-    private void ConnectToPeers()
+    private async Task ConnectToPeersAsync()
     {
         if (ApplicationProtocol.Peers.Count + ApplicationProtocol.ConnectingPeers.Count < MaxConnectedPeers &&
             ApplicationProtocol.AvailablePeers.Count > 0)
         {
             var peer = ApplicationProtocol.AvailablePeers.First();
-            ApplicationProtocol.ConnectToPeer(peer);
+            await ApplicationProtocol.ConnectToPeerAsync(peer);
         }
     }
 }

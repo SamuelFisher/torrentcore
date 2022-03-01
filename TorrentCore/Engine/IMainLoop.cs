@@ -21,4 +21,6 @@ public interface IMainLoop
     void AddTask(Action t);
 
     IRegularTask AddRegularTask(Action t);
+
+    IRegularTask AddRegularTask(Func<Task> t);
 }
