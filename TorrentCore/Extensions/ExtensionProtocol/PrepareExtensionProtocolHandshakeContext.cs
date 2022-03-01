@@ -12,9 +12,10 @@ namespace TorrentCore.Extensions.ExtensionProtocol;
 
 class PrepareExtensionProtocolHandshakeContext : ExtensionProtocolPeerContext, IPrepareExtensionProtocolHandshakeContext
 {
-    public PrepareExtensionProtocolHandshakeContext(BDictionary handshakeContent,
-                                                    IPeerContext peerContext,
-                                                    Action<IExtensionProtocolMessage> sendMessage)
+    public PrepareExtensionProtocolHandshakeContext(
+        BDictionary handshakeContent,
+        IPeerContext peerContext,
+        Action<IExtensionProtocolMessage> sendMessage)
         : base(peerContext, sendMessage)
     {
         HandshakeContent = handshakeContent;

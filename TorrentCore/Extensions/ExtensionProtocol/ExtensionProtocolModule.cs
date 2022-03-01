@@ -121,9 +121,10 @@ public class ExtensionProtocolModule : IModule
         message.Deserialize(context.Reader.ReadBytes(context.MessageLength - 1));
 
         var extensionMessageContext =
-            new ExtensionProtocolMessageReceivedContext(message,
-                                                        context,
-                                                        reply => SendExtensionMessage(context, reply));
+            new ExtensionProtocolMessageReceivedContext(
+                message,
+                context,
+                reply => SendExtensionMessage(context, reply));
         handler.MessageReceived(extensionMessageContext);
     }
 

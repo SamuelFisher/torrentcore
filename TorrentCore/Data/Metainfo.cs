@@ -25,12 +25,13 @@ public class Metainfo
     /// <param name="pieces">List of pieces to include.</param>
     /// <param name="trackers">URLs of the trackers.</param>
     /// <param name="metadata">Info section of the metadata file.</param>
-    public Metainfo(string name,
-                    Sha1Hash infoHash,
-                    IEnumerable<ContainedFile> files,
-                    IEnumerable<Piece> pieces,
-                    IEnumerable<IEnumerable<Uri>> trackers,
-                    IReadOnlyList<byte>? metadata)
+    public Metainfo(
+        string name,
+        Sha1Hash infoHash,
+        IEnumerable<ContainedFile> files,
+        IEnumerable<Piece> pieces,
+        IEnumerable<IEnumerable<Uri>> trackers,
+        IReadOnlyList<byte>? metadata)
     {
         Name = name;
         _pieces = new ReadOnlyCollection<Piece>(pieces.ToList());

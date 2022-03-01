@@ -28,25 +28,27 @@ public class PieceCheckerHandlerTest
         using (var sha1 = SHA1.Create())
             hash = new Sha1Hash(sha1.ComputeHash(Enumerable.Repeat((byte)0, 50).ToArray()));
 
-        var metainfo = new Metainfo("test",
-                                    Sha1Hash.Empty,
-                                    new[]
-                                    {
-                                            new ContainedFile("File1.txt", 100),
-                                    },
-                                    new[]
-                                    {
-                                            new Piece(0, 50, hash),
-                                            new Piece(50, 50, hash),
-                                    },
-                                    new IEnumerable<Uri>[0],
-                                    new byte[0]);
+        var metainfo = new Metainfo(
+            "test",
+            Sha1Hash.Empty,
+            new[]
+            {
+                    new ContainedFile("File1.txt", 100),
+            },
+            new[]
+            {
+                    new Piece(0, 50, hash),
+                    new Piece(50, 50, hash),
+            },
+            new IEnumerable<Uri>[0],
+            new byte[0]);
 
         var baseHandler = new Mock<IBlockDataHandler>();
         baseHandler.Setup(x => x.Metainfo)
                    .Returns(metainfo);
-        baseHandler.Setup(x => x.WriteBlockData(It.IsAny<long>(),
-                                                It.IsAny<byte[]>()))
+        baseHandler.Setup(x => x.WriteBlockData(
+            It.IsAny<long>(),
+            It.IsAny<byte[]>()))
                    .Callback<long, byte[]>((offset, data) => _writtenData.Add(Tuple.Create(offset, data)));
 
         _pieceChecker = new PieceCheckerHandler(new NullLogger<PieceCheckerHandler>(), baseHandler.Object);

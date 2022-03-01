@@ -63,10 +63,11 @@ class DownloadPiecesStage : IPipelineStage
         foreach (var peer in ApplicationProtocol.Peers)
             availability.Union(peer.Available);
 
-        var blocksToRequest = _piecePicker.BlocksToRequest(ApplicationProtocol.DataHandler.IncompletePieces().ToList(),
-                                                          availability,
-                                                          ApplicationProtocol.Peers,
-                                                          ApplicationProtocol.BlockRequests);
+        var blocksToRequest = _piecePicker.BlocksToRequest(
+            ApplicationProtocol.DataHandler.IncompletePieces().ToList(),
+            availability,
+            ApplicationProtocol.Peers,
+            ApplicationProtocol.BlockRequests);
 
         foreach (var block in blocksToRequest)
         {

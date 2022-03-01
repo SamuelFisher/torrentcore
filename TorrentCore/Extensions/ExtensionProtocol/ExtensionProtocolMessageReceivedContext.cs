@@ -11,9 +11,10 @@ namespace TorrentCore.Extensions.ExtensionProtocol;
 
 class ExtensionProtocolMessageReceivedContext : ExtensionProtocolPeerContext, IExtensionProtocolMessageReceivedContext
 {
-    public ExtensionProtocolMessageReceivedContext(IExtensionProtocolMessage message,
-                                                   IPeerContext peerContext,
-                                                   Action<IExtensionProtocolMessage> sendMessage)
+    public ExtensionProtocolMessageReceivedContext(
+        IExtensionProtocolMessage message,
+        IPeerContext peerContext,
+        Action<IExtensionProtocolMessage> sendMessage)
         : base(peerContext, sendMessage)
     {
         Message = message;

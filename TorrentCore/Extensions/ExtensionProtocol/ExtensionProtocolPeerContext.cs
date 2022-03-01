@@ -18,8 +18,9 @@ internal partial class ExtensionProtocolPeerContext : IExtensionProtocolPeerCont
     private readonly IPeerContext _peerContext;
     private readonly Action<IExtensionProtocolMessage> _sendMessage;
 
-    public ExtensionProtocolPeerContext(IPeerContext peerContext,
-                                        Action<IExtensionProtocolMessage> sendMessage)
+    public ExtensionProtocolPeerContext(
+        IPeerContext peerContext,
+        Action<IExtensionProtocolMessage> sendMessage)
     {
         _peerContext = peerContext;
         _sendMessage = sendMessage;

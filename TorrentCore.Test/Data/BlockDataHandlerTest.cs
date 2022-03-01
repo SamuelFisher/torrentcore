@@ -31,21 +31,22 @@ public class BlockDataHandlerTest
         fileHandler.Setup(x => x.GetFileStream("File2.txt"))
                    .Returns(_file2Stream);
 
-        var metainfo = new Metainfo("test",
-                                    Sha1Hash.Empty,
-                                    new[]
-                                    {
-                                            new ContainedFile("File1.txt", 100),
-                                            new ContainedFile("File2.txt", 50),
-                                    },
-                                    new[]
-                                    {
-                                            new Piece(0, 50, Sha1Hash.Empty),
-                                            new Piece(50, 50, Sha1Hash.Empty),
-                                            new Piece(100, 50, Sha1Hash.Empty),
-                                    },
-                                    new IEnumerable<Uri>[0],
-                                    new byte[0]);
+        var metainfo = new Metainfo(
+            "test",
+            Sha1Hash.Empty,
+            new[]
+            {
+                    new ContainedFile("File1.txt", 100),
+                    new ContainedFile("File2.txt", 50),
+            },
+            new[]
+            {
+                    new Piece(0, 50, Sha1Hash.Empty),
+                    new Piece(50, 50, Sha1Hash.Empty),
+                    new Piece(100, 50, Sha1Hash.Empty),
+            },
+            new IEnumerable<Uri>[0],
+            new byte[0]);
 
         _blockDataHandler = new BlockDataHandler(fileHandler.Object, metainfo);
     }
@@ -67,11 +68,13 @@ public class BlockDataHandlerTest
         _blockDataHandler.WriteBlockData(0, Enumerable.Range(0, 150).Select(x => (byte)x).ToArray());
 
         // Check contents of file 1
-        CollectionAssert.AreEqual(Enumerable.Range(0, 100).Select(x => (byte)x).ToArray(),
-                                  _file1Stream.ToArray());
+        CollectionAssert.AreEqual(
+            Enumerable.Range(0, 100).Select(x => (byte)x).ToArray(),
+            _file1Stream.ToArray());
 
         // Check contents of file 2
-        CollectionAssert.AreEqual(Enumerable.Range(100, 50).Select(x => (byte)x).ToArray(),
-                                  _file2Stream.ToArray());
+        CollectionAssert.AreEqual(
+            Enumerable.Range(100, 50).Select(x => (byte)x).ToArray(),
+            _file2Stream.ToArray());
     }
 }

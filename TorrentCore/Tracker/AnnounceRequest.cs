@@ -15,11 +15,12 @@ namespace TorrentCore.Tracker;
 /// </summary>
 public class AnnounceRequest
 {
-    public AnnounceRequest(PeerId peerId,
-                           long remaining,
-                           long downloaded,
-                           long uploaded,
-                           Sha1Hash infoHash)
+    public AnnounceRequest(
+        PeerId peerId,
+        long remaining,
+        long downloaded,
+        long uploaded,
+        Sha1Hash infoHash)
     {
         PeerId = peerId;
         Remaining = remaining;

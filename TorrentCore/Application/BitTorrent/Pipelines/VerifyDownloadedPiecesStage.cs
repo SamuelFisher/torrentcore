@@ -48,7 +48,8 @@ class VerifyDownloadedPiecesStage : IPipelineStage
                 byte[]? pieceData;
                 if (!_application.DataHandler.TryReadBlockData(pieceOffset, piece.Size, out pieceData))
                 {
-                    progress.Report(new StatusUpdate(DownloadState.Checking,
+                    progress.Report(new StatusUpdate(
+                        DownloadState.Checking,
                         (piece.Index + 1d) / _application.Metainfo.Pieces.Count));
                     continue;
                 }
@@ -57,7 +58,8 @@ class VerifyDownloadedPiecesStage : IPipelineStage
                 if (hash == piece.Hash)
                     _application.DataHandler.MarkPieceAsCompleted(piece);
 
-                progress.Report(new StatusUpdate(DownloadState.Checking,
+                progress.Report(new StatusUpdate(
+                    DownloadState.Checking,
                     (piece.Index + 1d) / _application.Metainfo.Pieces.Count));
 
                 if (interrupt.IsPauseRequested)

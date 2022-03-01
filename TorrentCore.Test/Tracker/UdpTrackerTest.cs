@@ -20,11 +20,12 @@ namespace TorrentCore.Test.Tracker;
 [TestFixture]
 public class UdpTrackerTest
 {
-    private readonly AnnounceRequest _request = new AnnounceRequest(PeerId.CreateNew(),
-                                                                   0,
-                                                                   0,
-                                                                   1000,
-                                                                   Sha1Hash.Empty);
+    private readonly AnnounceRequest _request = new AnnounceRequest(
+        PeerId.CreateNew(),
+        0,
+        0,
+        1000,
+        Sha1Hash.Empty);
 
     [Test]
     public void Announce()
@@ -32,13 +33,14 @@ public class UdpTrackerTest
         var fakeTracker = new FakeUdpTracker(5001);
         fakeTracker.Start();
 
-        var trackerClient = new UdpTracker(new LocalTcpConnectionOptions
-        {
-            Port = 5000,
-            BindAddress = IPAddress.Loopback,
-            PublicAddress = IPAddress.Loopback,
-        },
-        new Uri("udp://localhost:5001"));
+        var trackerClient = new UdpTracker(
+            new LocalTcpConnectionOptions
+            {
+                Port = 5000,
+                BindAddress = IPAddress.Loopback,
+                PublicAddress = IPAddress.Loopback,
+            },
+            new Uri("udp://localhost:5001"));
 
         var response = trackerClient.Announce(_request).Result;
         var peers = response.Peers.Cast<TcpTransportStream>().ToArray();

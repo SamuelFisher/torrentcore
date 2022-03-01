@@ -18,10 +18,11 @@ class PiecePicker : IPiecePicker
     public const int MaxOutstandingRequests = 100;
     private const int BlockRequestSize = 16384; // 16 kB
 
-    public IEnumerable<BlockRequest> BlocksToRequest(IReadOnlyList<Piece> incompletePieces,
-                                                     Bitfield availability,
-                                                     IReadOnlyCollection<IPeer> peers,
-                                                     IBlockRequests blockRequests)
+    public IEnumerable<BlockRequest> BlocksToRequest(
+        IReadOnlyList<Piece> incompletePieces,
+        Bitfield availability,
+        IReadOnlyCollection<IPeer> peers,
+        IBlockRequests blockRequests)
     {
         var toRequest = new List<BlockRequest>();
         int maxToRequest = MaxOutstandingRequests - blockRequests.RequestedBlocks.Count;

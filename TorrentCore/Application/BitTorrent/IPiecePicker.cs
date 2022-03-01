@@ -22,8 +22,9 @@ public interface IPiecePicker
     /// <param name="availability">Indicates which pieces are available.</param>
     /// <param name="peers">The peers that are currently connected.</param>
     /// <param name="blockRequests">Provides details of which blocks have been requested already.</param>
-    IEnumerable<BlockRequest> BlocksToRequest(IReadOnlyList<Piece> incompletePieces,
-                                              Bitfield availability,
-                                              IReadOnlyCollection<IPeer> peers,
-                                              IBlockRequests blockRequests);
+    IEnumerable<BlockRequest> BlocksToRequest(
+        IReadOnlyList<Piece> incompletePieces,
+        Bitfield availability,
+        IReadOnlyCollection<IPeer> peers,
+        IBlockRequests blockRequests);
 }

@@ -31,14 +31,16 @@ public sealed class MetainfoBuilder
 
     public MetainfoBuilder AddFile(string fileName, byte[] data)
     {
-        return new MetainfoBuilder(_files.Concat(new[] { Tuple.Create(fileName, data) }),
-                                   _trackers);
+        return new MetainfoBuilder(
+            _files.Concat(new[] { Tuple.Create(fileName, data) }),
+            _trackers);
     }
 
     public MetainfoBuilder WithTracker(Uri trackerUri)
     {
-        return new MetainfoBuilder(_files,
-                                   _trackers.Concat(new[] { trackerUri }));
+        return new MetainfoBuilder(
+            _files,
+            _trackers.Concat(new[] { trackerUri }));
     }
 
     public Metainfo Build()
