@@ -8,6 +8,7 @@
 using System.Net;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
 using TorrentCore.Application.BitTorrent;
@@ -196,10 +197,10 @@ public class PeerExchangeTest
     {
         return new List<BitTorrentPeer>
             {
-                new BitTorrentPeer(MockMetaInfo(), null, null, ProtocolExtension.None, null, new FakeTransportStream("192.168.1.20:8080")),
-                new BitTorrentPeer(MockMetaInfo(), null, null, ProtocolExtension.None, null, new FakeTransportStream("192.168.1.21:8080")),
-                new BitTorrentPeer(MockMetaInfo(), null, null, ProtocolExtension.None, null, new FakeTransportStream("192.168.1.22:8080")),
-                new BitTorrentPeer(MockMetaInfo(), null, null, ProtocolExtension.None, null, new FakeTransportStream("192.168.1.23:8080")),
+                new BitTorrentPeer(NullLogger<BitTorrentPeer>.Instance, MockMetaInfo(), null, null, ProtocolExtension.None, null, new FakeTransportStream("192.168.1.20:8080")),
+                new BitTorrentPeer(NullLogger<BitTorrentPeer>.Instance, MockMetaInfo(), null, null, ProtocolExtension.None, null, new FakeTransportStream("192.168.1.21:8080")),
+                new BitTorrentPeer(NullLogger<BitTorrentPeer>.Instance, MockMetaInfo(), null, null, ProtocolExtension.None, null, new FakeTransportStream("192.168.1.22:8080")),
+                new BitTorrentPeer(NullLogger<BitTorrentPeer>.Instance, MockMetaInfo(), null, null, ProtocolExtension.None, null, new FakeTransportStream("192.168.1.23:8080")),
             };
     }
 

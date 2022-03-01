@@ -5,6 +5,7 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.Logging;
 using TorrentCore.Application.BitTorrent.Messages;
 using TorrentCore.Application.Pipelines;
 using TorrentCore.Data;
@@ -20,11 +21,17 @@ class DownloadPiecesStage : IPipelineStage
 {
     private const int MaxConnectedPeers = 5;
 
+    private readonly ILogger<DownloadPiecesStage> _logger;
     private readonly IMainLoop _mainLoop;
     private readonly IPiecePicker _piecePicker;
 
-    public DownloadPiecesStage(BitTorrentApplicationProtocol applicationProtocol, IMainLoop mainLoop, IPiecePicker piecePicker)
+    public DownloadPiecesStage(
+        ILogger<DownloadPiecesStage> logger,
+        BitTorrentApplicationProtocol applicationProtocol,
+        IMainLoop mainLoop,
+        IPiecePicker piecePicker)
     {
+        _logger = logger;
         ApplicationProtocol = applicationProtocol;
         _mainLoop = mainLoop;
         _piecePicker = piecePicker;
@@ -113,8 +120,7 @@ class DownloadPiecesStage : IPipelineStage
 
     private void ConnectToPeers()
     {
-        if (ApplicationProtocol.Peers.Count +
-            ApplicationProtocol.ConnectingPeers.Count < MaxConnectedPeers &&
+        if (ApplicationProtocol.Peers.Count + ApplicationProtocol.ConnectingPeers.Count < MaxConnectedPeers &&
             ApplicationProtocol.AvailablePeers.Count > 0)
         {
             var peer = ApplicationProtocol.AvailablePeers.First();

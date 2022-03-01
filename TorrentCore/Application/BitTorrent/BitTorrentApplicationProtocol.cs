@@ -155,7 +155,7 @@ class BitTorrentApplicationProtocol :
         }
     }
 
-    public void ConnectToPeer(ITransportStream peerTransport)
+    public async Task ConnectToPeerAsync(ITransportStream peerTransport)
     {
         try
         {
@@ -165,29 +165,32 @@ class BitTorrentApplicationProtocol :
                 _connectingPeers.Add(peerTransport);
             }
 
-            peerTransport.Connect().ContinueWith(antecedent =>
+            _logger.LogInformation($"Connecting to peer at {peerTransport.DisplayAddress}");
+            await peerTransport.ConnectAsync();
+
+            // TODO: run on main loop thread
+            if (!peerTransport.IsConnected)
             {
-                // TODO: run on main loop thread
-                if (antecedent.Status != TaskStatus.RanToCompletion
-                || !peerTransport.IsConnected)
+                _logger.LogInformation($"Failed to connect to peer at {peerTransport.DisplayAddress}");
+
+                // Connection failed
+                lock (_peersLock)
                 {
-                    _logger.LogInformation($"Failed to connect to peer at {peerTransport.DisplayAddress}");
-
-                    // Connection failed
-                    lock (_peersLock)
-                    {
-                        _connectingPeers.Remove(peerTransport);
-                    }
-
-                    // TODO: keep a record of failed connection peers
-                    return;
+                    _connectingPeers.Remove(peerTransport);
                 }
 
-                var peer = _peerInitiator.InitiateOutgoingConnection(peerTransport, this);
-                lock (_peersLock)
+                // TODO: keep a record of failed connection peers
+                return;
+            }
+
+            var peer = _peerInitiator.InitiateOutgoingConnection(peerTransport, this);
+
+            lock (_peersLock)
+            {
                 _connectingPeers.Remove(peerTransport);
-                PeerConnected(peer);
-            });
+            }
+
+            PeerConnected(peer);
         }
         catch (Exception ex)
         {

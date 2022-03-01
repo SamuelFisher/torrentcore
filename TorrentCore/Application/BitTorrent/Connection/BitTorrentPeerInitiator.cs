@@ -5,6 +5,7 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.Logging;
 using TorrentCore.Data;
 using TorrentCore.Engine;
 using TorrentCore.Modularity;
@@ -23,13 +24,15 @@ class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator
     private readonly Dictionary<Sha1Hash, IApplicationProtocol> _applicationProtocolLookup;
     private readonly PeerId _localPeerId;
     private readonly IMainLoop _mainLoop;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly IReadOnlyCollection<IModule> _modules;
 
-    public BitTorrentPeerInitiator(PeerId localPeerId, IMainLoop mainLoop, IEnumerable<IModule> modules)
+    public BitTorrentPeerInitiator(PeerId localPeerId, IMainLoop mainLoop, ILoggerFactory loggerFactory, IEnumerable<IModule> modules)
     {
         _applicationProtocolLookup = new Dictionary<Sha1Hash, IApplicationProtocol>();
         _localPeerId = localPeerId;
         _mainLoop = mainLoop;
+        _loggerFactory = loggerFactory;
         _modules = modules.ToList().AsReadOnly();
     }
 
@@ -49,6 +52,7 @@ class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator
             WriteConnectionHeader(writer, applicationProtocol.Metainfo.InfoHash, _localPeerId);
 
             return new BitTorrentPeer(
+                _loggerFactory.CreateLogger<BitTorrentPeer>(),
                 applicationProtocol.Metainfo,
                 header.PeerId,
                 header.ReservedBytes,
@@ -72,6 +76,7 @@ class BitTorrentPeerInitiator : IApplicationProtocolPeerInitiator
         }
 
         return new BitTorrentPeer(
+            _loggerFactory.CreateLogger<BitTorrentPeer>(),
             applicationProtocol.Metainfo,
             header.PeerId,
             header.ReservedBytes,

@@ -34,7 +34,7 @@ class FileTransportStream : ITransportStream
 
     public Stream Stream => _stream ?? throw new InvalidOperationException();
 
-    public Task Connect()
+    public Task ConnectAsync()
     {
         // Wrap in a BufferedStream so that each file represents one message
         _stream = new BufferedStream(new FileChunkStream(_inDir, _outDir));

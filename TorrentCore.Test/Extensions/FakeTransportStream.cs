@@ -24,7 +24,7 @@ public class FakeTransportStream : ITransportStream
 
     public Stream Stream => new MemoryStream();
 
-    public Task Connect()
+    public Task ConnectAsync()
     {
         throw new NotImplementedException();
     }

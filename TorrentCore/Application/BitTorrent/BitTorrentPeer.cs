@@ -5,6 +5,7 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.Logging;
 using TorrentCore.Application.BitTorrent.Messages;
 using TorrentCore.Data;
 using TorrentCore.Modularity;
@@ -17,6 +18,7 @@ namespace TorrentCore.Application.BitTorrent;
 /// </summary>
 public class BitTorrentPeer : IPeer
 {
+    private readonly ILogger<BitTorrentPeer> _logger;
     private readonly IPeerMessageHandler _messageHandler;
     private readonly BigEndianBinaryReader _reader;
     private readonly BigEndianBinaryWriter _writer;
@@ -24,6 +26,7 @@ public class BitTorrentPeer : IPeer
     private readonly Dictionary<IModule, Dictionary<string, object?>> _customValues;
 
     internal BitTorrentPeer(
+        ILogger<BitTorrentPeer> logger,
         Metainfo meta,
         PeerId peerId,
         IReadOnlyList<byte> reservedBytes,
@@ -34,6 +37,7 @@ public class BitTorrentPeer : IPeer
         _messageHandler = messageHandler;
         _transportStream = transportStream;
         _customValues = new Dictionary<IModule, Dictionary<string, object?>>();
+        _logger = logger;
         PeerId = peerId;
         ReservedBytes = reservedBytes;
         SupportedExtensions = supportedExtensions;
@@ -141,9 +145,10 @@ public class BitTorrentPeer : IPeer
                         _messageHandler.MessageReceived(this, data);
                     }
                 }
-                catch (IOException)
+                catch (IOException ex)
                 {
                     // Disconnected
+                    _logger.LogError(ex, $"Disconnected from peer {Address}");
                     _messageHandler.PeerDisconnected(this);
                 }
             },

@@ -8,6 +8,7 @@
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TorrentCore;
 using TorrentCore.Application.BitTorrent;
 using TorrentCore.Data;
@@ -41,7 +42,7 @@ class Program
         File.Copy(Path.Combine(Environment.CurrentDirectory, "TorrentContent.txt"), Path.Combine(seederDir, "TorrentContent.txt"), true);
 
         // Share a main loop between both peers to make this easier to follow as an example
-        var mainLoop = new MainLoop();
+        var mainLoop = new MainLoop(NullLogger<MainLoop>.Instance);
 
         var metainfo = new MetainfoBuilder("CustomTransportProtocol")
             .AddFile("TorrentContent.txt", File.ReadAllBytes("TorrentContent.txt"))

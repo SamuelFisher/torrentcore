@@ -5,6 +5,7 @@
 // Licensed under the GNU Lesser General Public License, version 3. See the
 // LICENSE file in the project root for full license information.
 
+using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using TorrentCore.Engine;
 
@@ -18,7 +19,7 @@ public class MainLoopTest
     [SetUp]
     public void Setup()
     {
-        _mainLoop = new MainLoop();
+        _mainLoop = new MainLoop(NullLogger<MainLoop>.Instance);
         _mainLoop.Start();
     }
 

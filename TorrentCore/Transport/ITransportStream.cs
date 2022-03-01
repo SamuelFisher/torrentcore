@@ -37,7 +37,7 @@ public interface ITransportStream
     /// Attempts to initiate this connection.
     /// </summary>
     /// <returns>Task which completes when the connection is made.</returns>
-    Task Connect();
+    Task ConnectAsync();
 
     /// <summary>
     /// Closes the connection.

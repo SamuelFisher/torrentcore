@@ -45,7 +45,7 @@ public interface IApplicationProtocol
     /// Attempts to connect to the peer addressed by the supplied transport stream.
     /// </summary>
     /// <param name="peerTransport">Transport stream to the peer.</param>
-    void ConnectToPeer(ITransportStream peerTransport);
+    Task ConnectToPeerAsync(ITransportStream peerTransport);
 
     /// <summary>
     /// Handles new incoming connection requests.

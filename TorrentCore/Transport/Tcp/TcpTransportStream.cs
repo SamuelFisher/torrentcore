@@ -15,6 +15,7 @@ sealed class TcpTransportStream : ITransportStream
     private readonly ManualResetEvent _connectionEvent = new ManualResetEvent(false);
     private readonly TcpClient _client;
 
+    private int _isConnecting = 0;
     private Stream? _stream;
 
     /// <summary>
@@ -60,13 +61,13 @@ sealed class TcpTransportStream : ITransportStream
     /// <summary>
     /// Gets a value indicating whether a connection attempt is in progress for this stream.
     /// </summary>
-    public bool IsConnecting { get; private set; }
+    public bool IsConnecting => _isConnecting != 0;
 
     /// <summary>
     /// Attempts to initiate this connection.
     /// </summary>
     /// <returns>Task which completes when the connection is made.</returns>
-    public async Task Connect()
+    public async Task ConnectAsync()
     {
         if (IsConnected)
             throw new InvalidOperationException("Already connected.");
@@ -74,13 +75,11 @@ sealed class TcpTransportStream : ITransportStream
         if (RemoteEndPoint == null)
             throw new InvalidOperationException("Address and port have not been specified.");
 
-        if (IsConnecting)
+        if (Interlocked.CompareExchange(ref _isConnecting, 0, 1) == 1)
         {
             _connectionEvent.WaitOne();
             return;
         }
-
-        IsConnecting = true;
 
         try
         {
@@ -88,13 +87,11 @@ sealed class TcpTransportStream : ITransportStream
         }
         finally
         {
-            IsConnecting = false;
+            _isConnecting = 0;
             _connectionEvent.Set();
         }
 
         _stream = new RateLimitedStream(_client.GetStream());
-
-        IsConnecting = false;
         _connectionEvent.Set();
     }
 
