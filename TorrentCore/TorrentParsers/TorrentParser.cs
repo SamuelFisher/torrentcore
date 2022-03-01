@@ -42,7 +42,7 @@ static class TorrentParser
         var pieces = new List<Piece>();
         byte[] pieceHashes = torrent.Pieces;
         int pieceIndex = 0;
-        for (long offset = 0; offset + torrent.PieceSize <= torrent.TotalSize; offset += torrent.PieceSize)
+        for (long offset = 0; offset < torrent.TotalSize; offset += torrent.PieceSize)
         {
             int length = (int)Math.Min(torrent.PieceSize, torrent.TotalSize - offset);
             byte[] hash = new byte[Sha1Hash.Length];
@@ -52,11 +52,12 @@ static class TorrentParser
             pieceIndex++;
         }
 
-        return new Metainfo(torrent.DisplayName,
-                            new Sha1Hash(torrent.GetInfoHashBytes()),
-                            files,
-                            pieces,
-                            torrent.Trackers.Select(x => x.Select(y => new Uri(y))),
-                            new byte[0]);
+        return new Metainfo(
+            torrent.DisplayName,
+            new Sha1Hash(torrent.GetInfoHashBytes()),
+            files,
+            pieces,
+            torrent.Trackers.Select(x => x.Select(y => new Uri(y))),
+            new byte[0]);
     }
 }
