@@ -98,7 +98,7 @@ public class ExternalTest
             }
             catch (TimeoutException)
             {
-                Assert.Fail($"Timed out at {download.Progress:P}");
+                Assert.Fail($"Timed out at {download.Progress:P}. Seed status: HasExited={aria2.HasExited}.");
             }
 
             download.Stop();
