@@ -14,9 +14,13 @@ jobs:
     - uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '6.0.x'
+    - name: Install aria2
+      run: sudo apt-get install aria2
     - name: Restore
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Test
-      run: dotnet test --no-restore
+      run: dotnet test --no-restore --no-build -c Release
+    - name: Functional Tests
+      run: dotnet test --no-restore --no-build -c Release --filter "TestCategory=Functional" -- NUnit.ExplicitMode=Relaxed

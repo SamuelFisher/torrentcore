@@ -92,7 +92,15 @@ public class ExternalTest
                 new DiskFileHandler(Path.Combine(workDir, "output")));
 
             download.Start();
-            await download.WaitForDownloadCompletionAsync(TimeSpan.FromSeconds(30));
+            try
+            {
+                await download.WaitForDownloadCompletionAsync(TimeSpan.FromSeconds(30));
+            }
+            catch (TimeoutException)
+            {
+                Assert.Fail($"Timed out at {download.Progress:P}");
+            }
+
             download.Stop();
             download.Dispose();
 
