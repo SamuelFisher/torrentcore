@@ -25,6 +25,11 @@ class MockTracker : ITrackerClientFactory
         _peers.Add(new IPEndPoint(IPAddress.Loopback, port));
     }
 
+    public void RegisterPeer(IPAddress ipAddress, int port)
+    {
+        _peers.Add(new IPEndPoint(ipAddress, port));
+    }
+
     private class TrackerClient : ITracker
     {
         private readonly IList<IPEndPoint> _peers;
@@ -38,7 +43,7 @@ class MockTracker : ITrackerClientFactory
 
         public Task<AnnounceResult> Announce(AnnounceRequest request)
         {
-            var result = new AnnounceResult(_peers.Select(x => new TcpTransportStream(IPAddress.Loopback, x.Address, x.Port)));
+            var result = new AnnounceResult(_peers.Select(x => new TcpTransportStream(IPAddress.Any, x.Address, x.Port)));
             return Task.FromResult(result);
         }
     }
