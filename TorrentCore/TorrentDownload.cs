@@ -11,7 +11,7 @@ using TorrentCore.Utils;
 
 namespace TorrentCore;
 
-public sealed class TorrentDownload
+public sealed class TorrentDownload : IDisposable
 {
     private readonly PipelineRunner _download;
 
@@ -71,4 +71,9 @@ public sealed class TorrentDownload
     /// Gets the average upload rate in bytes per second.
     /// </summary>
     public long UploadRate() => _download.UploadRateMeasurer.AverageRate();
+
+    public void Dispose()
+    {
+        _download.Dispose();
+    }
 }

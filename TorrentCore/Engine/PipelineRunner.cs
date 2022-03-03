@@ -169,6 +169,7 @@ class PipelineRunner : ITorrentPipelineRunner
     {
         if (_isRunning)
             Stop();
+        ApplicationProtocol.Dispose();
     }
 
     private void ProgressChanged(object? sender, StatusUpdate e)

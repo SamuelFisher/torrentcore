@@ -36,6 +36,11 @@ class BlockDataHandler : IBlockDataHandler
     /// </summary>
     public Metainfo Metainfo { get; }
 
+    public void Dispose()
+    {
+        FileHandler.Dispose();
+    }
+
     public void Flush()
     {
         FileHandler.Flush();

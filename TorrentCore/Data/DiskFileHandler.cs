@@ -80,6 +80,7 @@ public class DiskFileHandler : IFileHandler
             file.Value.Flush();
             file.Value.Dispose();
         }
+        _openFiles.Clear();
     }
 
     string FullName(string fileName)

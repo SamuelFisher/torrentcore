@@ -250,4 +250,9 @@ class BitTorrentApplicationProtocol :
                 _messageHandlerRegistrations.Remove(r.Key);
         }
     }
+
+    public void Dispose()
+    {
+        DataHandler.Dispose();
+    }
 }

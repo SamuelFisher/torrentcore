@@ -103,6 +103,8 @@ public class TorrentClient : ITorrentClient
         foreach (var download in Downloads)
             download.Stop();
         _mainLoop.Stop();
+        foreach (var download in Downloads)
+            download.Dispose();
     }
 
     public static ITorrentClient Create()

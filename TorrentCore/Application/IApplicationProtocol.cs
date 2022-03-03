@@ -11,7 +11,7 @@ using TorrentCore.Transport;
 
 namespace TorrentCore.Application;
 
-public interface IApplicationProtocol
+public interface IApplicationProtocol : IDisposable
 {
     event EventHandler DownloadCompleted;
 

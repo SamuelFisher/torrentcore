@@ -12,7 +12,7 @@ namespace TorrentCore.Engine;
 /// <summary>
 /// Manages the download of a torrent.
 /// </summary>
-interface ITorrentPipelineRunner
+interface ITorrentPipelineRunner : IDisposable
 {
     /// <summary>
     /// Gets the details of the torrent being managed by this pipeline.

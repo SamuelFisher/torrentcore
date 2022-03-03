@@ -186,4 +186,9 @@ internal class PieceCheckerHandler : IPieceDataHandler
     {
         _baseHandler.Flush();
     }
+
+    public void Dispose()
+    {
+        _baseHandler.Dispose();
+    }
 }

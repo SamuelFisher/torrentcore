@@ -12,7 +12,7 @@ namespace TorrentCore.Data;
 /// <summary>
 /// Provides access to a collection of files as a single block of data.
 /// </summary>
-public interface IBlockDataHandler
+public interface IBlockDataHandler : IDisposable
 {
     /// <summary>
     /// Gets the metainfo describing the layout of the collection of files.
