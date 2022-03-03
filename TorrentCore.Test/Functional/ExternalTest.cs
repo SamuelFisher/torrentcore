@@ -24,7 +24,7 @@ public class ExternalTest
     {
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Is(Serilog.Events.LogEventLevel.Information)
-            .WriteTo.Trace(outputTemplate: "[{Level:u4}][{SourceContext:l}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.Console(outputTemplate: "[{Level:u4}][{SourceContext:l}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
     }
 
@@ -71,7 +71,7 @@ public class ExternalTest
             aria2 = Process.Start(new ProcessStartInfo
             {
                 FileName = "aria2c",
-                Arguments = "test.torrent --listen-port 6882 --seed-ratio=0.0 -V -d seed",
+                Arguments = "test.torrent --listen-port 6882 --enable-dht=false --seed-ratio=0.0 -V -d seed",
                 WorkingDirectory = workDir,
             });
 
