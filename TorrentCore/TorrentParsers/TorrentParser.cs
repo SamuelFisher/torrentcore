@@ -29,11 +29,8 @@ namespace TorrentCore.TorrentParsers
         /// <returns>Metainfo data.</returns>
         public static Metainfo ReadFromStream(Stream input)
         {
-            var dictParser = new BDictionaryParser(new BencodeParser());
-            var dict = dictParser.Parse(input);
-
             var parser = new BencodeParser();
-            var torrent = parser.Parse<Torrent>(dict.EncodeAsBytes());
+            var torrent = parser.Parse<Torrent>(input);
 
             var files = new List<ContainedFile>();
             if (torrent.File != null)

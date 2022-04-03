@@ -93,7 +93,8 @@ namespace TorrentCore.Extensions.ExtensionProtocol
             SendMessage(context, writer =>
             {
                 writer.Write((byte)0);
-                writer.Write(handshakeDict.EncodeAsBytes());
+                writer.Flush();
+                handshakeDict.EncodeTo(writer.BaseStream);
             });
         }
 

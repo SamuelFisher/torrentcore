@@ -81,6 +81,8 @@ namespace TorrentCore.Application.BitTorrent
 
         public IPieceDataHandler DataHandler { get; }
 
+        public long Uploaded { get; private set; }
+
         public void PeersAvailable(IEnumerable<ITransportStream> newPeers)
         {
             foreach (var peer in newPeers)
@@ -89,7 +91,7 @@ namespace TorrentCore.Application.BitTorrent
                 {
                     bool added = _availablePeers.Add(peer);
                     if (!added)
-                        _logger.LogInformation($"Discarded duplicate peer {peer}");
+                        _logger.LogInformation($"Discarded duplicate peer {peer.DisplayAddress}");
                 }
             }
         }
@@ -204,6 +206,11 @@ namespace TorrentCore.Application.BitTorrent
                         _connectingPeers.Remove(peerTransport);
                 }
             }
+        }
+
+        public void UploadedData(byte[] data)
+        {
+            Uploaded += data.Length;
         }
 
         private void RegisterModuleForMessageId(BitTorrentPeer peer, IModule module, byte messageId)

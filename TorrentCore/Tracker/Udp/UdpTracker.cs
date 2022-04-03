@@ -61,10 +61,10 @@ namespace TorrentCore.Tracker.Udp
                 ConnectionId = connectionId,
                 TransactionId = transactionId,
                 InfoHash = request.InfoHash,
-                PeerId = new byte[20], // todo
-                Downloaded = 0, // todo
+                PeerId = request.PeerId.Value.ToArray(),
+                Downloaded = request.Downloaded,
                 LeftToDownload = request.Remaining,
-                Uploaded = 0, // todo
+                Uploaded = request.Uploaded,
                 Event = AnnounceRequestMessage.EventType.Started,
                 IPAddress = _tcpConnectionDetails.PublicAddress,
                 Key = _rand.Next(),
