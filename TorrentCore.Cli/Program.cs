@@ -96,14 +96,7 @@ namespace TorrentCore.Cli
                 timer.Elapsed += (o, e) => LogStatus(download);
                 timer.Start();
 
-                try
-                {
-                    await download.WaitForDownloadCompletionAsync();
-                }
-                catch (TaskCanceledException)
-                {
-                    return -1;
-                }
+                await download.WaitForDownloadCompletionAsync();
             }
 
             return 0;
