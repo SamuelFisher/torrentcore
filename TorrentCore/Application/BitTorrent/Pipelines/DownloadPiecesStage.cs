@@ -49,7 +49,7 @@ namespace TorrentCore.Application.BitTorrent.Pipelines
 
         private void Iterate(IProgress<StatusUpdate> progress)
         {
-            progress.Report(new StatusUpdate(DownloadState.Downloading, ApplicationProtocol.DataHandler.CompletedPieces.Sum(x => x.Size) / ApplicationProtocol.Metainfo.Pieces.Sum(x => x.Size)));
+            progress.Report(new StatusUpdate(DownloadState.Downloading, ApplicationProtocol.DataHandler.CompletedPieces.Sum(x => (long)x.Size) / ApplicationProtocol.Metainfo.Pieces.Sum(x => (long)x.Size)));
 
             if (ApplicationProtocol.DataHandler.IncompletePieces().Any())
                 RequestPieces();
