@@ -45,7 +45,7 @@ namespace TorrentCore.Cli
                 {
                     IsRequired = true,
                 },
-                new Option<bool>(new[] { "v", "verbose" }, "Show detailed logging information."),
+                new Option<bool>(new[] { "-v", "--verbose" }, "Show detailed logging information."),
                 new Argument<FileInfo>("--input", "Path of torrent file to download.")
                 {
                     Arity = ArgumentArity.ExactlyOne,
