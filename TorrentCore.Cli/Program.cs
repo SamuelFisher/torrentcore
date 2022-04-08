@@ -45,6 +45,7 @@ namespace TorrentCore.Cli
                 {
                     IsRequired = true,
                 },
+                new Option<bool>(new[] { "-u", "--upnp" }, "Use UPnP for port forwarding."),
                 new Option<bool>(new[] { "-v", "--verbose" }, "Show detailed logging information."),
                 new Argument<FileInfo>("--input", "Path of torrent file to download.")
                 {
@@ -72,7 +73,7 @@ namespace TorrentCore.Cli
             builder.UsePort(options.Port);
 
             // If upnp is selected use it.
-            if (upnp)
+            if (options.UPnP)
                 builder.AddUPnP();
 
             // Add extension protocol
@@ -116,6 +117,8 @@ namespace TorrentCore.Cli
             public int Port { get; set; }
 
             public DirectoryInfo Output { get; set; }
+
+            public bool UPnP { get; set; }
 
             public bool Verbose { get; set; }
 
