@@ -21,12 +21,18 @@ namespace TorrentCore
             PeerId = PeerId.CreateNew();
             ListenPort = 6881;
             AdapterAddress = IPAddress.Any;
+            UseUPnP = false;
         }
 
         /// <summary>
         /// Gets or sets the Peer ID for the local client.
         /// </summary>
         public PeerId PeerId { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to use UPnP for port forwarding.
+        /// </summary>
+        public bool UseUPnP { get; set; }
 
         /// <summary>
         /// Gets or sets the port to listen for incoming connections on.

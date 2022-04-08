@@ -28,5 +28,10 @@ namespace TorrentCore.Transport.Tcp
         /// Gets or sets the address of the local adapter used for connections.
         /// </summary>
         public IPAddress BindAddress { get; set; } = IPAddress.Any;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to use UPnP for port forwarding.
+        /// </summary>
+        public bool UseUPnP { get; set; }
     }
 }

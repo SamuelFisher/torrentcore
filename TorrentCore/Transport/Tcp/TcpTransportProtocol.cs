@@ -27,6 +27,7 @@ namespace TorrentCore.Transport.Tcp
     {
         private readonly ILogger<TcpTransportProtocol> _logger;
         private readonly ConcurrentBag<TcpTransportStream> _streams;
+        private readonly IUPnPClient _uPnPClient;
 
         private TcpListener _listener;
 
@@ -40,6 +41,7 @@ namespace TorrentCore.Transport.Tcp
             _logger = logger;
             _streams = new ConcurrentBag<TcpTransportStream>();
             Port = options.Value.Port;
+            _uPnPClient = new TcpTransportUPnPClient(options.Value.UseUPnP);
             LocalBindAddress = options.Value.BindAddress ?? IPAddress.Any;
             RateLimiter = new RateLimiter();
         }
@@ -108,6 +110,8 @@ namespace TorrentCore.Transport.Tcp
             // If port=0 was supplied, set the actual port we are listening on.
             Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
             ListenForIncomingConnections();
+
+            _uPnPClient.TryAddPortMappingAsync(Port);
         }
 
         /// <summary>
